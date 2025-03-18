@@ -1,4 +1,4 @@
-import 'package:brokeo/frontend/LoginPages/LoginPage3.dart';
+import 'package:brokeo/frontend/login_pages/login_page3.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_phone_field/phone_number.dart';

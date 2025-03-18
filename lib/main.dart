@@ -1,5 +1,5 @@
-import 'package:brokeo/frontend/LoginPages/LoginPage1.dart';
-import 'package:brokeo/frontend/LoginPages/LoginPage3.dart';
+import 'package:brokeo/frontend/login_pages/login_page1.dart';
+import 'package:brokeo/frontend/login_pages/login_page3.dart';
 import 'package:flutter/material.dart';
 
 void main() {
