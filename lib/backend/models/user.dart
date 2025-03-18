@@ -17,15 +17,12 @@ class User {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is User &&
-        other.name == name &&
-        other.email == email &&
-        other.phoneNumber == phoneNumber;
+    return other is User && other.phoneNumber == phoneNumber;
   }
 
   @override
   int get hashCode {
-    return name.hashCode ^ email.hashCode ^ phoneNumber.hashCode;
+    return phoneNumber.hashCode;
   }
 
   factory User.fromJson(String json) {
@@ -47,13 +44,6 @@ class User {
       phoneNumberColumn: phoneNumber,
       budgetColumn: budget,
     });
-  }
-
-  void updateMerchant(Map<String, dynamic> newMerchant) {
-    name = newMerchant[nameColumn] ?? name;
-    email = newMerchant[emailColumn] ?? email;
-    phoneNumber = newMerchant[phoneNumberColumn] ?? phoneNumber;
-    budget = newMerchant[budgetColumn] ?? budget;
   }
 
   void addEmail(String email) {
