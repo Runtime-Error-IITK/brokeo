@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class User {
   String name;
   String email;
@@ -26,22 +28,25 @@ class User {
     return name.hashCode ^ email.hashCode ^ phoneNumber.hashCode;
   }
 
-  factory User.fromJson(Map<String, dynamic> json) {
+  factory User.fromJson(String json) {
+    Map<String, dynamic> decodedJson = jsonDecode(json) as Map<String, dynamic>;
     return User(
-      name: json[nameColumn] as String,
-      email: json[emailColumn] as String,
-      phoneNumber: json[phoneNumberColumn] as String,
-      budget: json[budgetColumn] as Map<String, dynamic>,
+      name: decodedJson[nameColumn] as String,
+      email: decodedJson[emailColumn] as String,
+      phoneNumber: decodedJson[phoneNumberColumn] as String,
+      budget: decodedJson[budgetColumn] as Map<String, dynamic>,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
+  String toJson() {
+    //return json string
+
+    return jsonEncode({
       nameColumn: name,
       emailColumn: email,
       phoneNumberColumn: phoneNumber,
       budgetColumn: budget,
-    };
+    });
   }
 
   void updateMerchant(Map<String, dynamic> newMerchant) {
