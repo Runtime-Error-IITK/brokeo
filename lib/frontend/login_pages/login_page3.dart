@@ -1,3 +1,4 @@
+import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:currency_picker/currency_picker.dart';
@@ -39,6 +40,15 @@ class _LoginPage3State extends State<LoginPage3> {
       print("✅ Budget: ${_budgetController.text}");
 
       //TODO : Store all the data in the database
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(
+            name: _nameController.text,
+            budget: double.parse(_budgetController.text),
+          ),
+        ),
+      );
     }
   }
 
@@ -116,7 +126,7 @@ class _LoginPage3State extends State<LoginPage3> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: TextFormField(
                   controller: _nameController,
-                  decoration: _inputDecoration("Username", _isNameValid),
+                  decoration: _inputDecoration("Name", _isNameValid),
                 ),
               ),
               SizedBox(height: 15),
