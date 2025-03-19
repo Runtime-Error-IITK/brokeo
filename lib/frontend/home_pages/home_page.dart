@@ -2,10 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-void main() {
-  runApp(MaterialApp(home: HomePage(name: "User", budget: 1000)));
-}
-
 /// Home Page
 class HomePage extends StatefulWidget {
   final String name;

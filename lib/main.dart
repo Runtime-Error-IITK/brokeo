@@ -1,4 +1,5 @@
 import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/login_pages/login_page1.dart';
 // import 'package:brokeo/frontend/login_pages/login_page1.dart';
 // import 'package:brokeo/frontend/login_pages/login_page3.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,  // Remove debug banner
-      home: HomePage(name: "Aujasvit", budget: 10000),  // Set LoginPage1 as the home page
+      home: LoginPage1(),  // Set LoginPage1 as the home page
     );
   }
 }
