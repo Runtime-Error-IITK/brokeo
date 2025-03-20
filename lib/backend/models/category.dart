@@ -2,13 +2,11 @@ import 'dart:convert';
 
 class Category {
   String name;
-  List<String> merchants;
-  String categoryId;
+  int categoryId;
   double budget;
 
   Category({
     required this.name,
-    required this.merchants,
     required this.categoryId,
     required this.budget,
   });
@@ -29,8 +27,7 @@ class Category {
     Map<String, dynamic> decodedJson = jsonDecode(json) as Map<String, dynamic>;
     return Category(
       name: decodedJson[nameColumn] as String,
-      merchants: List<String>.from(decodedJson[merchantsColumn] as List),
-      categoryId: decodedJson[categoryIdColumn] as String,
+      categoryId: decodedJson[categoryIdColumn] as int,
       budget: decodedJson[budgetColumn] as double,
     );
   }
@@ -39,14 +36,43 @@ class Category {
 
     return jsonEncode({
       nameColumn: name,
-      merchantsColumn: merchants,
       categoryIdColumn: categoryId,
       budgetColumn: budget,
     });
   }
 }
 
+class DatabaseCategory {
+  String name;
+  int categoryId;
+  double budget;
+
+  DatabaseCategory({
+    required this.name,
+    required this.categoryId,
+    required this.budget,
+  });
+
+  DatabaseCategory.fromRow(Map<String, dynamic> row)
+      : categoryId = row[categoryIdColumn] as int,
+        name = row[nameColumn] as String,
+        budget = row[budgetColumn] as double;
+
+  @override
+  String toString() => "Category $categoryId: Name: $name, Budget: $budget";
+
+  @override
+  bool operator ==(covariant Object other) {
+    if (identical(this, other)) return true;
+
+    return other is DatabaseCategory && other.categoryId == categoryId;
+  }
+
+  @override
+  // TODO: implement hashCode
+  int get hashCode => categoryId.hashCode;
+}
+
 String nameColumn = "name";
-String merchantsColumn = "merchants";
 String categoryIdColumn = "categoryId";
 String budgetColumn = "budget";

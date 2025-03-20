@@ -14,7 +14,7 @@ class User {
   });
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(covariant Object other) {
     if (identical(this, other)) return true;
 
     return other is User && other.phoneNumber == phoneNumber;
