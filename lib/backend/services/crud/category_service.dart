@@ -1,14 +1,10 @@
 import 'dart:developer';
 import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/services/crud/database_service.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
 
 class CategoryService {
   Future<void> deleteCategory({required int categoryId}) async {
-    final dbService = DatabaseService();
-    final db = await dbService.db;
+    final db = await DatabaseService.db;
     final deletedCount = await db.delete(
       categoryTable,
       where: 'categoryId = ?',
@@ -21,9 +17,8 @@ class CategoryService {
     }
   }
 
-  Future<DatabaseCategory> upsertCategory(Category category) async {
-    final dbService = DatabaseService();
-    final db = await dbService.db;
+  Future<DatabaseCategory?> upsertCategory(DatabaseCategory category) async {
+    final db = await DatabaseService.db;
     final results = await db.query(
       categoryTable,
       where: 'categoryId = ?',
@@ -47,10 +42,11 @@ class CategoryService {
       );
       if (updatedCategory.isEmpty) {
         log('Failed to retrieve updated category');
+        return null;
       }
       return DatabaseCategory.fromRow(updatedCategory.first);
     } else {
-      final categoryId = db.insert(categoryTable, {
+      final categoryId = await db.insert(categoryTable, {
         nameColumn: category.name,
         categoryIdColumn: category.categoryId,
         budgetColumn: category.budget,
@@ -58,6 +54,7 @@ class CategoryService {
 
       if (categoryId == 0) {
         log('Failed to create category');
+        return null;
       }
 
       final createdCategory = await db.query(
@@ -68,15 +65,15 @@ class CategoryService {
 
       if (createdCategory.isEmpty) {
         log('Failed to retrieve created category');
+        return null;
       }
 
       return DatabaseCategory.fromRow(createdCategory.first);
     }
   }
 
-  Future<DatabaseCategory> getCategory({required int categoryId}) async {
-    final dbService = DatabaseService();
-    final db = await dbService.db;
+  Future<DatabaseCategory?> getCategory({required int categoryId}) async {
+    final db = await DatabaseService.db;
     final results = await db.query(
       categoryTable,
       where: 'categoryId = ?',
@@ -85,6 +82,7 @@ class CategoryService {
 
     if (results.isEmpty) {
       log('No category found with id: $categoryId');
+      return null;
       // throw Exception('No category found with id: $categoryId');
     }
 

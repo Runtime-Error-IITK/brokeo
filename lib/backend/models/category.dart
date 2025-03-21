@@ -31,6 +31,20 @@ class Category {
       budget: decodedJson[budgetColumn] as double,
     );
   }
+
+  factory Category.fromDatabaseCategory(DatabaseCategory databaseCategory) {
+    return Category(
+      name: databaseCategory.name,
+      categoryId: databaseCategory.categoryId,
+      budget: databaseCategory.budget,
+    );
+  }
+
+  @override
+  String toString() {
+    return "Category{name: $name, categoryId: $categoryId, budget: $budget}";
+  }
+
   String toJson() {
     //return json string
 
@@ -53,13 +67,30 @@ class DatabaseCategory {
     required this.budget,
   });
 
-  DatabaseCategory.fromRow(Map<String, dynamic> row)
-      : categoryId = row[categoryIdColumn] as int,
-        name = row[nameColumn] as String,
-        budget = row[budgetColumn] as double;
+  // DatabaseCategory.fromRow(Map<String, dynamic> row)
+  //     : categoryId = row[categoryIdColumn] as int,
+  //       name = row[nameColumn] as String,
+  //       budget = row[budgetColumn] as double;
+
+  factory DatabaseCategory.fromRow(Map<String, Object?> row) {
+    return DatabaseCategory(
+      name: row[nameColumn] as String,
+      categoryId: row[categoryIdColumn] as int,
+      budget: row[budgetColumn] as double,
+    );
+  }
+
+  factory DatabaseCategory.fromCategory(Category category) {
+    return DatabaseCategory(
+      name: category.name,
+      categoryId: category.categoryId,
+      budget: category.budget,
+    );
+  }
 
   @override
-  String toString() => "Category $categoryId: Name: $name, Budget: $budget";
+  String toString() =>
+      "Category(name: $name, categoryId: $categoryId, budget: $budget)";
 
   @override
   bool operator ==(covariant Object other) {
@@ -69,7 +100,6 @@ class DatabaseCategory {
   }
 
   @override
-  // TODO: implement hashCode
   int get hashCode => categoryId.hashCode;
 }
 
