@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:brokeo/frontend/transactions_pages/transaction_page.dart';
 
 /// Home Page
 class HomePage extends StatefulWidget {
@@ -54,11 +55,19 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          // Only update if a new tab is selected
           if (index != _currentIndex) {
             setState(() {
               _currentIndex = index;
             });
+            if (index == 1) {
+              // Transactions tab index
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        TransactionPage(name: widget.name, budget: widget.budget)), // Navigate to Transaction Page
+              );
+            }
           }
         },
         type: BottomNavigationBarType.fixed,
