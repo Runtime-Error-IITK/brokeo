@@ -2,6 +2,8 @@ import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
+import 'package:brokeo/models/transaction_model.dart'; // <== new import
 
 /// Main CategoriesPage
 class CategoriesPage extends StatefulWidget {
@@ -500,10 +502,12 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
   Widget _transactionTile(Transaction transaction, int index) {
     return InkWell(
       onTap: () {
-        // setState(() {
-        //   expandedTransactionIndex =
-        //       (expandedTransactionIndex == index) ? -1 : index;
-        // });
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionDetailPage(transaction: transaction),
+          ),
+        );
       },
       child: Column(
         children: [
@@ -546,17 +550,6 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
               ],
             ),
           ),
-          // if (expandedTransactionIndex == index)
-          //   Padding(
-          //     padding: const EdgeInsets.only(left: 50, right: 10, bottom: 8),
-          //     child: Align(
-          //       alignment: Alignment.centerLeft,
-          //       child: Text(
-          //         "Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}\nCategory: Groceries",
-          //         style: TextStyle(fontSize: 12, color: Colors.black54),
-          //       ),
-          //     ),
-          //   ),
         ],
       ),
     );
@@ -850,39 +843,15 @@ class DummyDataService {
     return ["Food", "Shopping", "Travel", "Others"];
   }
 }
-class Transaction {
-  final String name;
-  final double amount;
-  Transaction(this.name, this.amount);
-
-  /// Dummy function to return a positive spend value.
-  /// For now, it returns a fixed dummy value.
-  double getSpent() {
-    return 100; // Dummy value
-  }
-}
 
 /// Backend
 class MockBackend {
   static List<Transaction> getTransactions() {
     return [
-      Transaction("Chetan Singh", -50),
-      Transaction("Darshan", -510),
-      Transaction("Anjali Patra", 1200),
-      Transaction("Extra Transaction", -200),
-      Transaction("Extra Transaction", -200),
-      Transaction("Extra Transaction", -200),
-      Transaction("Extra Transaction", -200),
-      Transaction("Extra Transaction", -200),
-      Transaction("Extra Transaction", -200),
-      Transaction("Extra Transaction", -200),
-      Transaction("Extra Transaction", -200),
-      Transaction("Extra Transaction", -200),
+      Transaction(name: "Chetan Singh", amount: -50, date: "25 Jan'25", time: "11:00 am"),
+      Transaction(name: "Darshan", amount: -510, date: "24 Jan'25", time: "10:00 am"),
+      Transaction(name: "Anjali Patra", amount: 1200, date: "23 Jan'25", time: "09:00 am"),
+      Transaction(name: "Extra Transaction", amount: -200, date: "22 Jan'25", time: "08:00 am"),
     ];
-  }
-
-  /// Dummy function to return the total spent amount.
-  static double getTotalSpent() {
-    return 600; // Dummy total spent value
   }
 }
