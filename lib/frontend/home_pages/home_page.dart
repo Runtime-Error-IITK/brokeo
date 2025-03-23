@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/profile_pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -79,7 +80,12 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 icon:
                     Icon(Icons.account_circle, size: 30, color: Colors.black54),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()),
+                  );
+                },
               ),
               SizedBox(width: 10),
               RichText(
