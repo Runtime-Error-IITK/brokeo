@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:brokeo/frontend/transactions_pages/transaction_page.dart';
@@ -52,39 +53,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          if (index != _currentIndex) {
-            setState(() {
-              _currentIndex = index;
-            });
-            if (index == 1) {
-              // Transactions tab index
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        TransactionPage(name: widget.name, budget: widget.budget)), // Navigate to Transaction Page
-              );
-            }
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.purple,
-        unselectedItemColor: Colors.grey,
-        iconSize: 24,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.list), label: "Transactions"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.analytics), label: "Analytics"),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-        ],
-      ),
+      bottomNavigationBar: buildBottomNavigationBar(),
     );
   }
 
@@ -92,7 +61,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildProfileAndBudgetSection(
       String month, double spent, double percentage) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
+      padding: EdgeInsets.symmetric(vertical: 45, horizontal: 15),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
@@ -116,7 +85,7 @@ class _HomePageState extends State<HomePage> {
               SizedBox(width: 10),
               RichText(
                 text: TextSpan(
-                  style: TextStyle(fontSize: 20, color: Colors.black),
+                  style: TextStyle(fontSize: 25, color: Colors.black),
                   children: [
                     TextSpan(text: "Hi, "),
                     TextSpan(
@@ -890,6 +859,48 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  Widget buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        if (index != _currentIndex) {
+          setState(() {
+            _currentIndex = index;
+          });
+        }
+        // Navigation logic based on index:
+        if (index == 0) {
+          // TODO: Navigate to Home Page
+        } else if (index == 1) {
+          // Already on Categories/Tran sactions page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoriesPage(),
+            ),
+          );
+        } else if (index == 2) {
+          // TODO: Navigate to Analytics Page
+        } else if (index == 3) {
+          // TODO: Navigate to Split Page
+        }
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.purple,
+      unselectedItemColor: Colors.grey,
+      iconSize: 24,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.analytics), label: "Analytics"),
+        BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
+      ],
+    );
+  }
 }
 
 /// Custom ArcPainter to draw the circular progress indicator.
@@ -990,7 +1001,7 @@ class BudgetCategory {
 class MockBackend {
   static List<Transaction> getTransactions() {
     return [
-      Transaction("Chetan Singh", -50),
+      Transaction("Sourav das", -5000),
       Transaction("Darshan", -510),
       Transaction("Anjali Patra", 1200),
       Transaction("Extra Transaction", -200),
