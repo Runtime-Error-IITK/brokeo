@@ -39,7 +39,15 @@ class _HomePageState extends State<HomePage> {
     double spentPercentage = (totalSpent / widget.budget) * 100;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        iconTheme: Theme.of(context).appBarTheme.iconTheme,
+        title: Text(
+          "Home",
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
