@@ -44,8 +44,8 @@ class _CategoryPageState extends State<CategoryPage> {
   AppBar buildCustomAppBar(BuildContext context, int totalSpends) {
     final data = widget.data;
     return AppBar(
-      backgroundColor: const Color.fromARGB(255, 243, 225, 247),
-      iconTheme: IconThemeData(color: Colors.black),
+      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+      iconTheme: Theme.of(context).iconTheme,
       leading: IconButton(
         icon: Icon(Icons.arrow_back),
         onPressed: () {
@@ -69,18 +69,11 @@ class _CategoryPageState extends State<CategoryPage> {
               children: [
                 Text(
                   data.name,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   "$totalSpends Spends - ₹${data.spent.toStringAsFixed(0)}/₹${data.budget.toStringAsFixed(0)}",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.black54,
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -97,7 +90,7 @@ class _CategoryPageState extends State<CategoryPage> {
               color: Colors.black54.withOpacity(0.2),
             ),
             child: IconButton(
-              icon: Icon(Icons.edit, color: Colors.white),
+              icon: Icon(Icons.edit, color: Theme.of(context).iconTheme.color),
               onPressed: () {
                 // TODO: Add logic to edit category details.
                 _showEditCategoryDialog(
@@ -134,7 +127,7 @@ class _CategoryPageState extends State<CategoryPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: BarChartWidget(
         data: chartData,
-        barColor: Colors.deepPurple,
+        barColor: Theme.of(context).primaryColor,
       ),
     );
   }

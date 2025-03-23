@@ -5,22 +5,36 @@ class FAQsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("FAQs"),
-        backgroundColor: const Color.fromARGB(255, 205, 143, 216),
+        title: Text(
+          "FAQs",
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+        ),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: ListView(
           children: [
             ListTile(
-              title: Text("What is Brokeo?"),
-              subtitle: Text("Brokeo is a financial management app."),
+              title: Text(
+                "What is Brokeo?",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              subtitle: Text(
+                "Brokeo is a financial management app.",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ),
             ListTile(
-              title: Text("How do I reset my password?"),
-              subtitle: Text("Go to settings and select 'Reset Password'."),
+              title: Text(
+                "How do I reset my password?",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              subtitle: Text(
+                "Go to settings and select 'Reset Password'.",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ),
-            // Add more FAQs as needed
           ],
         ),
       ),

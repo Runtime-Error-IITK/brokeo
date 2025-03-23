@@ -207,7 +207,7 @@ class ProfilePage extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         "support@brokeo.com",
-                                        style: TextStyle(color: Colors.black54),
+                                        style: TextStyle(),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -223,7 +223,7 @@ class ProfilePage extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         "+91 9876543210",
-                                        style: TextStyle(color: Colors.black54),
+                                        style: TextStyle(),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),

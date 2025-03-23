@@ -69,15 +69,19 @@ class _HomePageState extends State<HomePage> {
   Widget _buildProfileAndBudgetSection(
       String month, double spent, double percentage) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 45, horizontal: 15),
+      padding: EdgeInsets.symmetric(
+        vertical: 16.0, // Replace with a fixed padding value
+        horizontal: 16.0,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
-          stops: [0.0, 0.5, 1.0],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+          colors: [Colors.purple, Colors.deepPurple],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(20.0), // Replace with a fixed radius value
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,8 +90,11 @@ class _HomePageState extends State<HomePage> {
           Row(
             children: [
               IconButton(
-                icon:
-                    Icon(Icons.account_circle, size: 30, color: Colors.black54),
+                icon: Icon(
+                  Icons.account_circle,
+                  size: Theme.of(context).iconTheme.size,
+                  color: Theme.of(context).iconTheme.color,
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -95,66 +102,67 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
-              SizedBox(width: 10),
+              SizedBox(width: 8.0), // Replace with a fixed width value
               RichText(
                 text: TextSpan(
-                  style: TextStyle(fontSize: 25, color: Colors.black),
+                  style: Theme.of(context).textTheme.titleLarge,
                   children: [
                     TextSpan(text: "Hi, "),
                     TextSpan(
                       text: widget.name,
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
               ),
               Spacer(),
               IconButton(
-                icon:
-                    Icon(Icons.notifications, size: 28, color: Colors.black54),
+                icon: Icon(
+                  Icons.notifications,
+                  size: Theme.of(context).iconTheme.size,
+                  color: Theme.of(context).iconTheme.color,
+                ),
                 onPressed: () {},
               ),
             ],
           ),
-          SizedBox(height: 20),
+          SizedBox(height: Theme.of(context).spacingScheme.medium),
           Center(
             child: Column(
               children: [
                 Text(
                   month,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: Theme.of(context).spacingScheme.small),
                 CustomPaint(
-                  size: Size(160, 160),
+                  size: Size(
+                    Theme.of(context).sizeScheme.arcSize,
+                    Theme.of(context).sizeScheme.arcSize,
+                  ),
                   painter: ArcPainter(
                     progress: percentage / 100,
-                    strokeWidth: 8,
-                    color: Colors.deepPurple,
-                    gapSize: 20,
+                    strokeWidth: Theme.of(context).strokeWidthScheme.arcStrokeWidth,
+                    color: Theme.of(context).colorScheme.primary,
+                    gapSize: Theme.of(context).gapSizeScheme.arcGapSize,
                   ),
                   child: Container(
-                    width: 160,
-                    height: 160,
+                    width: Theme.of(context).sizeScheme.arcSize,
+                    height: Theme.of(context).sizeScheme.arcSize,
                     alignment: Alignment.center,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           "₹${spent.toStringAsFixed(0)}",
-                          style: TextStyle(
-                              fontSize: 30, fontWeight: FontWeight.bold),
+                          style: Theme.of(context).textTheme.headlineMedium,
                         ),
-                        SizedBox(height: 5),
+                        SizedBox(height: Theme.of(context).spacingScheme.small),
                         Text(
                           "${percentage.toStringAsFixed(1)}%",
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.black87),
+                          style: Theme.of(context).textTheme.titleSmall,
                         ),
                       ],
                     ),
@@ -175,25 +183,37 @@ class _HomePageState extends State<HomePage> {
         showAllTransactions ? transactions : transactions.take(3).toList();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      padding: EdgeInsets.symmetric(
+        horizontal: Theme.of(context).paddingScheme.horizontal,
+        vertical: Theme.of(context).paddingScheme.vertical,
+      ),
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        color: Color(0xFFEDE7F6),
-        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            Theme.of(context).radiusScheme.medium,
+          ),
+        ),
+        color: Theme.of(context).cardColor,
+        elevation: Theme.of(context).elevationScheme.cardElevation,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(Theme.of(context).paddingScheme.cardPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /// Header with "Transactions" Title & Icons
               Row(
                 children: [
-                  Text("Transactions",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    "Transactions",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   Spacer(),
                   IconButton(
-                    icon: Icon(Icons.add, size: 22, color: Colors.black54),
+                    icon: Icon(
+                      Icons.add,
+                      size: Theme.of(context).iconTheme.size,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
                     onPressed: () {
                       // TODO: Handle add transaction
                     },
@@ -203,8 +223,8 @@ class _HomePageState extends State<HomePage> {
                       showAllTransactions
                           ? Icons.expand_less
                           : Icons.expand_more,
-                      size: 22,
-                      color: Colors.black54,
+                      size: Theme.of(context).iconTheme.size,
+                      color: Theme.of(context).iconTheme.color,
                     ),
                     onPressed: () {
                       setState(() {
@@ -214,17 +234,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: Theme.of(context).spacingScheme.small),
 
               /// Transaction List or Empty Message
               transactions.isEmpty
                   ? Center(
                       child: Text(
                         "No Transactions Yet",
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black54),
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                     )
                   : Column(
@@ -233,7 +250,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             _transactionTile(entry.value, entry.key),
                             if (entry.key < transactionsToShow.length - 1)
-                              Divider(color: Colors.grey[300]),
+                              Divider(color: Theme.of(context).dividerColor),
                           ],
                         );
                       }).toList(),
@@ -272,7 +289,7 @@ class _HomePageState extends State<HomePage> {
                 Expanded(
                   child: Text(
                     transaction.name,
-                    style: TextStyle(fontSize: 14, color: Colors.black87),
+                    style: TextStyle(fontSize: 14,),
                   ),
                 ),
                 Text(
@@ -308,13 +325,20 @@ class _HomePageState extends State<HomePage> {
         showAllCategories ? categories : categories.take(3).toList();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      padding: EdgeInsets.symmetric(
+        horizontal: Theme.of(context).paddingScheme.horizontal,
+        vertical: Theme.of(context).paddingScheme.vertical,
+      ),
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        color: Color(0xFFEDE7F6),
-        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            Theme.of(context).radiusScheme.medium,
+          ),
+        ),
+        color: Theme.of(context).cardColor,
+        elevation: Theme.of(context).elevationScheme.cardElevation,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(Theme.of(context).paddingScheme.cardPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -323,11 +347,15 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     "Categories",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Spacer(),
                   IconButton(
-                    icon: Icon(Icons.add, size: 22, color: Colors.black54),
+                    icon: Icon(
+                      Icons.add,
+                      size: Theme.of(context).iconTheme.size,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
                     onPressed: () {
                       // TODO: Handle "Add Category"
                     },
@@ -335,8 +363,8 @@ class _HomePageState extends State<HomePage> {
                   IconButton(
                     icon: Icon(
                       showAllCategories ? Icons.expand_less : Icons.expand_more,
-                      size: 22,
-                      color: Colors.black54,
+                      size: Theme.of(context).iconTheme.size,
+                      color: Theme.of(context).iconTheme.color,
                     ),
                     onPressed: () {
                       setState(() {
@@ -346,18 +374,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: Theme.of(context).spacingScheme.small),
 
               // If empty
               categories.isEmpty
                   ? Center(
                       child: Text(
                         "No Categories Yet",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black54,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                     )
                   : Column(
@@ -366,7 +390,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             _buildCategoryTile(entry.value),
                             if (entry.key < categoriesToShow.length - 1)
-                              Divider(color: Colors.grey[300]),
+                              Divider(color: Theme.of(context).dividerColor),
                           ],
                         );
                       }).toList(),
@@ -443,7 +467,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Spacer(),
                   IconButton(
-                    icon: Icon(Icons.add, size: 22, color: Colors.black54),
+                    icon: Icon(Icons.add, size: 22,),
                     onPressed: () {
                       // TODO: Handle "Add Scheduled Payment"
                     },
@@ -454,7 +478,7 @@ class _HomePageState extends State<HomePage> {
                           ? Icons.expand_less
                           : Icons.expand_more,
                       size: 22,
-                      color: Colors.black54,
+                      // color: Colors.black54,
                     ),
                     onPressed: () {
                       setState(() {
@@ -474,7 +498,7 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black54,
+                          // color: Colors.black54,
                         ),
                       ),
                     )
@@ -520,7 +544,7 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Text(
                 payment.name,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(fontSize: 14),
               ),
             ),
             Text(
@@ -566,7 +590,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Spacer(),
                   IconButton(
-                    icon: Icon(Icons.add, size: 22, color: Colors.black54),
+                    icon: Icon(Icons.add, size: 22),
                     onPressed: () {
                       // TODO: Handle "Add Split" action
                     },
@@ -575,7 +599,7 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(
                       showAllSplits ? Icons.expand_less : Icons.expand_more,
                       size: 22,
-                      color: Colors.black54,
+                      // color: Colors.black54,
                     ),
                     onPressed: () {
                       setState(() {
@@ -603,7 +627,7 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black54,
+                      // color: Colors.black54,
                     ),
                   ),
                 )
@@ -646,7 +670,7 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(fontSize: 16, color: Colors.black87),
+              style: TextStyle(fontSize: 16,),
             ),
           ),
           Text(
@@ -686,7 +710,7 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Text(
                 split.name,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(fontSize: 14,),
               ),
             ),
             Text(
@@ -731,7 +755,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Spacer(),
                   IconButton(
-                    icon: Icon(Icons.add, size: 22, color: Colors.black54),
+                    icon: Icon(Icons.add, size: 22,),
                     onPressed: () {
                       // TODO: Handle "Add Budget Category" action
                     },
@@ -742,7 +766,7 @@ class _HomePageState extends State<HomePage> {
                           ? Icons.expand_less
                           : Icons.expand_more,
                       size: 22,
-                      color: Colors.black54,
+                      // color: Colors.black54,
                     ),
                     onPressed: () {
                       setState(() {
@@ -768,7 +792,7 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black54,
+                      // color: Colors.black54,
                     ),
                   ),
                 )
@@ -814,7 +838,7 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(fontSize: 16, color: Colors.black87),
+              style: TextStyle(fontSize: 16),
             ),
           ),
 
@@ -824,7 +848,7 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              // color: Colors.black,
             ),
           ),
         ],
@@ -855,7 +879,7 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Text(
                 category.name,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(fontSize: 14,),
               ),
             ),
 
@@ -865,7 +889,7 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black),
+),
             ),
           ],
         ),
@@ -914,6 +938,54 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
+}
+
+extension on ThemeData {
+  get spacingScheme => _SpacingScheme();
+
+  get paddingScheme => _PaddingScheme();
+
+  get radiusScheme => _RadiusScheme();
+
+  get sizeScheme => _SizeScheme();
+
+  get elevationScheme => _ElevationScheme();
+
+  get strokeWidthScheme => _StrokeWidthScheme();
+
+  get gapSizeScheme => _GapSizeScheme();
+}
+
+class _SpacingScheme {
+  double get small => 8.0;
+  double get medium => 16.0;
+  double get large => 24.0;
+}
+
+class _PaddingScheme {
+  double get horizontal => 16.0;
+  double get vertical => 12.0;
+  double get cardPadding => 16.0;
+}
+
+class _RadiusScheme {
+  double get medium => 20.0;
+}
+
+class _SizeScheme {
+  double get arcSize => 120.0;
+}
+
+class _ElevationScheme {
+  double get cardElevation => 4.0;
+}
+
+class _StrokeWidthScheme {
+  double get arcStrokeWidth => 8.0;
+}
+
+class _GapSizeScheme {
+  double get arcGapSize => 15.0;
 }
 
 /// Custom ArcPainter to draw the circular progress indicator.

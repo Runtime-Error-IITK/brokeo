@@ -25,11 +25,11 @@ class _BudgetPageState extends State<BudgetPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 243, 225, 247),
-        iconTheme: IconThemeData(color: Colors.black),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        iconTheme: Theme.of(context).iconTheme,
         title: Text(
           "Set Budget",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: Theme.of(context).appBarTheme.titleTextStyle,
         ),
         centerTitle: true,
         elevation: 0,
@@ -42,13 +42,14 @@ class _BudgetPageState extends State<BudgetPage> {
             // Total Budget Input
             Text(
               "Total Budget",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
             TextFormField(
               initialValue: _totalBudget.toStringAsFixed(0),
               decoration: InputDecoration(
                 labelText: "Enter total budget",
+                labelStyle: Theme.of(context).textTheme.bodyMedium,
                 prefixText: "₹",
                 border: OutlineInputBorder(),
               ),
@@ -64,7 +65,7 @@ class _BudgetPageState extends State<BudgetPage> {
             // Category Budgets
             Text(
               "Category Budgets",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
             ..._categoryBudgets.entries.map((entry) {
@@ -72,12 +73,12 @@ class _BudgetPageState extends State<BudgetPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    Icon(entry.value["icon"], size: 24, color: Colors.purple),
+                    Icon(entry.value["icon"], size: 24, color: Theme.of(context).primaryColor),
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         entry.key,
-                        style: TextStyle(fontSize: 16),
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ),
                     SizedBox(width: 10),
@@ -86,6 +87,7 @@ class _BudgetPageState extends State<BudgetPage> {
                         initialValue: entry.value["budget"].toStringAsFixed(0),
                         decoration: InputDecoration(
                           labelText: "Budget",
+                          labelStyle: Theme.of(context).textTheme.bodyMedium,
                           prefixText: "₹",
                           border: OutlineInputBorder(),
                         ),
