@@ -59,8 +59,24 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
           ],
         ),
       ),
+      floatingActionButton: _tabController.index == 0 ? FloatingActionButton(
+        onPressed: () {
+          _showAddTransactionDialog(context);
+        },
+        child: Icon(Icons.add, color: Colors.white), // Icon color set to white
+        backgroundColor: Color.fromARGB(255, 97, 53, 186), // Match the color in the image
+        shape: CircleBorder(), // Ensure the shape is circular
+      ) : null,
       bottomNavigationBar: buildBottomNavigationBar(),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tabController.addListener(() {
+      setState(() {});
+    });
   }
 
   /// Top section: Circular arc for "Safe to Spend" & "Amount Spent"
@@ -332,6 +348,87 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                 print(
                     "Adding category: $selectedCategory with budget $budgetValue");
                 // TODO : Perform the adding process
+              },
+              child: Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddTransactionDialog(BuildContext context) {
+    String? amount;
+    String? merchant;
+    String? category;
+
+    // TODO: Backend
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Add transaction"),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Amount",
+                      prefixText: "₹",
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      setState(() {
+                        amount = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Merchant",
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        merchant = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    decoration: InputDecoration(
+                      labelText: "Category",
+                    ),
+                    items: DummyDataService.getCategoriesFromBackend().map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat,
+                        child: Text(cat),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        category = value;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // just close
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                print("Adding transaction: $amount, $merchant, $category");
+                // TODO: Perform the adding process
+                Navigator.pop(context); // close dialog
               },
               child: Text("Confirm"),
             ),

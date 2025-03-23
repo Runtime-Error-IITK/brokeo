@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:brokeo/frontend/transactions_pages/transaction_page.dart';
 
 /// Home Page
 class HomePage extends StatefulWidget {
