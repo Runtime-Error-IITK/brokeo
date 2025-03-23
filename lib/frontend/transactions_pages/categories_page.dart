@@ -9,8 +9,17 @@ class CategoriesPage extends StatefulWidget {
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
-class _CategoriesPageState extends State<CategoriesPage> {
+class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProviderStateMixin {
   int _currentIndex = 1;
+  late TabController _tabController;
+  bool showTransactions = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 0); // Change initialIndex to 0
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,17 +37,22 @@ class _CategoriesPageState extends State<CategoriesPage> {
             buildNavigationBar(context),
 
             SizedBox(height: 10),
-            // 3) Expanded area with a ListView:
-            //    - Donut chart
-            //    - Categories list
+            // 3) Expanded area with a ListView or Transactions:
             Expanded(
-              child: ListView(
+              child: TabBarView(
+                controller: _tabController,
                 children: [
-                  // Donut chart
-                  buildDonutChart(),
-                  SizedBox(height: 20),
-                  // Placeholder for your categories list
-                  buildCategoryGrid(),
+                  _buildTransactions(),
+                  ListView(
+                    children: [
+                      // Donut chart
+                      buildDonutChart(),
+                      SizedBox(height: 20),
+                      // Placeholder for your categories list
+                      buildCategoryGrid(),
+                    ],
+                  ),
+                  Center(child: Text("Merchants View")),
                 ],
               ),
             ),
@@ -140,51 +154,16 @@ class _CategoriesPageState extends State<CategoriesPage> {
   /// Navigation bar with three items: Transactions, Categories, Merchants
   Widget buildNavigationBar(BuildContext context) {
     return Container(
-      color: Color.fromARGB(255, 211, 199, 239), // Light pink background
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // Transactions (placeholder - no actual navigation)
-          InkWell(
-            onTap: () {
-              // TODO: Navigate to Transactions Page
-            },
-            child: Text(
-              "Transactions",
-              style: TextStyle(fontSize: 16, color: Colors.black),
-            ),
-          ),
-
-          // Categories (highlighted, current page)
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color:
-                  const Color.fromARGB(255, 212, 145, 223), // highlight color
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: InkWell(
-              onTap: () {
-                // Already on Categories page
-              },
-              child: Text(
-                "Categories",
-                style: TextStyle(fontSize: 16, color: Colors.black),
-              ),
-            ),
-          ),
-
-          // Merchants (placeholder - no actual navigation)
-          InkWell(
-            onTap: () {
-              // TODO: Navigate to Merchants Page
-            },
-            child: Text(
-              "Merchants",
-              style: TextStyle(fontSize: 16, color: Colors.black),
-            ),
-          ),
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        labelColor: Colors.purple,
+        unselectedLabelColor: Colors.grey,
+        indicatorColor: Colors.purple,
+        tabs: [
+          Tab(text: "Transactions"),
+          Tab(text: "Categories"),
+          Tab(text: "Merchants"),
         ],
       ),
     );
@@ -401,6 +380,88 @@ class _CategoriesPageState extends State<CategoriesPage> {
             icon: Icon(Icons.analytics), label: "Analytics"),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
       ],
+    );
+  }
+
+  Widget _buildTransactions() {
+    List<Transaction> transactions = MockBackend.getTransactions();
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        return Column(
+          children: [
+            _transactionTile(transactions[index], index),
+            if (index < transactions.length - 1)
+              Divider(color: Colors.grey[300]),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _transactionTile(Transaction transaction, int index) {
+    return InkWell(
+      onTap: () {
+        // setState(() {
+        //   expandedTransactionIndex =
+        //       (expandedTransactionIndex == index) ? -1 : index;
+        // });
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.purple[100],
+                  child: Text(
+                    transaction.name[0],
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.purple),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        transaction.name,
+                        style: TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+                      Text(
+                        "19:30", // Placeholder for time
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  "₹${transaction.amount.abs()}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: transaction.amount < 0 ? Colors.red : Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // if (expandedTransactionIndex == index)
+          //   Padding(
+          //     padding: const EdgeInsets.only(left: 50, right: 10, bottom: 8),
+          //     child: Align(
+          //       alignment: Alignment.centerLeft,
+          //       child: Text(
+          //         "Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}\nCategory: Groceries",
+          //         style: TextStyle(fontSize: 12, color: Colors.black54),
+          //       ),
+          //     ),
+          //   ),
+        ],
+      ),
     );
   }
 }
@@ -690,5 +751,41 @@ class DummyDataService {
 
   static List<String> getCategoriesFromBackend() {
     return ["Food", "Shopping", "Travel", "Others"];
+  }
+}
+class Transaction {
+  final String name;
+  final double amount;
+  Transaction(this.name, this.amount);
+
+  /// Dummy function to return a positive spend value.
+  /// For now, it returns a fixed dummy value.
+  double getSpent() {
+    return 100; // Dummy value
+  }
+}
+
+/// Backend
+class MockBackend {
+  static List<Transaction> getTransactions() {
+    return [
+      Transaction("Chetan Singh", -50),
+      Transaction("Darshan", -510),
+      Transaction("Anjali Patra", 1200),
+      Transaction("Extra Transaction", -200),
+      Transaction("Extra Transaction", -200),
+      Transaction("Extra Transaction", -200),
+      Transaction("Extra Transaction", -200),
+      Transaction("Extra Transaction", -200),
+      Transaction("Extra Transaction", -200),
+      Transaction("Extra Transaction", -200),
+      Transaction("Extra Transaction", -200),
+      Transaction("Extra Transaction", -200),
+    ];
+  }
+
+  /// Dummy function to return the total spent amount.
+  static double getTotalSpent() {
+    return 600; // Dummy total spent value
   }
 }
