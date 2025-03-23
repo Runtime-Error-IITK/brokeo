@@ -8,7 +8,6 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool _notificationsEnabled = true; // State variable for notifications
-    String _selectedTheme = "Light"; // State variable for theme selection
 
     return Scaffold(
       appBar: AppBar(
@@ -47,7 +46,7 @@ class ProfilePage extends StatelessWidget {
                   ),
                   SizedBox(height: 5),
                   Text(
-                    "aujasvit@chitchi.com | +91 9870131789",
+                    "aujasvit@dhichik.com | +91 9870131789",
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
@@ -55,228 +54,129 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
 
-            // Profile Options
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  // Edit Profile Option
-                  ListTile(
-                    leading: Icon(Icons.edit, color: Colors.purple),
-                    title: Text(
-                      "Edit profile information",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => EditProfilePage()),
-                      );
-                    },
-                  ),
-
-                  // Notifications Toggle
-                  ListTile(
-                    leading: Icon(Icons.notifications, color: Colors.purple),
-                    title: Text(
-                      "Notifications",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Switch(
-                      value: _notificationsEnabled,
-                      onChanged: (value) {
-                        // TODO: Notify backend team to configure notifications
-                      },
-                      activeColor: Colors.purple,
-                    ),
-                  ),
-
-                  // Language Selector
-                  ListTile(
-                    leading: Icon(Icons.language, color: Colors.purple),
-                    title: Text(
-                      "Language",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: DropdownButton<String>(
-                      value: "English", // Default language
-                      items: [
-                        DropdownMenuItem(
-                          value: "English",
-                          child: Text("English"),
-                        ),
-                        DropdownMenuItem(
-                          value: "Hindi",
-                          child: Text("हिंदी"),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        // TODO: Handle language change
-                      },
-                    ),
-                  ),
-                  Divider(),
-                  // Permissions Section
-                  ListTile(
-                    leading: Icon(Icons.lock, color: Colors.purple),
-                    title: Text(
-                      "Permissions",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      // TODO: Navigate to permissions page
-                    },
-                  ),
-
-                  // Theme Selector
-                  ListTile(
-                    leading: Icon(Icons.brightness_6, color: Colors.purple),
-                    title: Text(
-                      "Theme",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: DropdownButton<String>(
-                      value: _selectedTheme,
-                      items: [
-                        DropdownMenuItem(
-                          value: "Light",
-                          child: Text("Light"),
-                        ),
-                        DropdownMenuItem(
-                          value: "Dark",
-                          child: Text("Dark"),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        // TODO: Apply theme change
-                      },
-                    ),
-                  ),
-
-                  Divider(),
-
-                  // Help & Support
-                  ListTile(
-                    leading: Icon(Icons.help_outline, color: Colors.purple),
-                    title: Text(
-                      "Help & Support",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => FAQsPage()),
-                      );
-                    },
-                  ),
-
-                  // Contact Us
-                  ListTile(
-                    leading: Icon(Icons.contact_mail, color: Colors.purple),
-                    title: Text(
-                      "Contact us",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Text("Contact Us"),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Row(
-                                  children: [
-                                  Text(
-                                    "Email: ",
-                                    style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                    "support@brokeo.com",
-                                    style: TextStyle(
-                                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  ],
-                                ),
-                                SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                  Text(
-                                    "Phone: ",
-                                    style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                    "+91 9876543210",
-                                    style: TextStyle(
-                                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Text("Close"),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-
-                  // Privacy Policy
-                  ListTile(
-                    leading: Icon(Icons.privacy_tip, color: Colors.purple),
-                    title: Text(
-                      "Privacy policy",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
-                      );
-                    },
-                  ),
-                  Divider(),
-                  _buildProfileOption(
-                    context,
-                    icon: Icons.account_balance_wallet,
-                    title: "Budget",
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => BudgetPage()),
-                      );
-                    },
-                  ),
-                ],
+            // Edit Profile Option
+            ListTile(
+              leading: Icon(Icons.edit, color: Colors.purple),
+              title: Text(
+                "Edit profile information",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EditProfilePage()),
+                );
+              },
+            ),
+
+            // Budget Section
+            ListTile(
+              leading: Icon(Icons.account_balance_wallet, color: Colors.purple),
+              title: Text(
+                "Budget",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BudgetPage()),
+                );
+              },
+            ),
+
+            Divider(),
+
+            // Notifications Toggle
+            ListTile(
+              leading: Icon(Icons.notifications, color: Colors.purple),
+              title: Text(
+                "Notifications",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Switch(
+                value: _notificationsEnabled,
+                onChanged: (value) {
+                  // TODO: Notify backend team to configure notifications
+                },
+                activeColor: Colors.purple,
+              ),
+            ),
+
+            // Permissions Section
+            ListTile(
+              leading: Icon(Icons.lock, color: Colors.purple),
+              title: Text(
+                "Permissions",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                // TODO: Navigate to permissions page
+              },
+            ),
+
+            Divider(),
+
+            // Help & Support
+            ListTile(
+              leading: Icon(Icons.help_outline, color: Colors.purple),
+              title: Text(
+                "Help & Support",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FAQsPage()),
+                );
+              },
+            ),
+
+            // Contact Us
+            ListTile(
+              leading: Icon(Icons.contact_mail, color: Colors.purple),
+              title: Text(
+                "Contact us",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                _showContactDialog(context, "Contact Us");
+              },
+            ),
+
+            // Privacy Policy
+            ListTile(
+              leading: Icon(Icons.privacy_tip, color: Colors.purple),
+              title: Text(
+                "Privacy policy",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
+                );
+              },
+            ),
+
+            Divider(),
+
+            // About Us Section
+            ListTile(
+              leading: Icon(Icons.info, color: Colors.purple),
+              title: Text(
+                "About Us",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                _showAboutDialog(context, "About Us");
+              },
             ),
           ],
         ),
@@ -284,19 +184,127 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileOption(BuildContext context,
-      {required IconData icon,
-      required String title,
-      required Widget trailing,
-      VoidCallback? onTap}) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.purple),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-      ),
-      trailing: trailing,
-      onTap: onTap,
+  // Helper method to show the Contact Us or About Us dialog
+  void _showContactDialog(BuildContext context, String title) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    "Email: ",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "support@brokeo.com",
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  Text(
+                    "Phone: ",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "+91 9876543210",
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void _showAboutDialog(BuildContext context, String title) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Hello!",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "We are Brokeo, a team of developers who are passionate about helping you manage your finances. Our goal is to provide you with tools and insights to make better financial decisions.",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "Made for:",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "The CS253 course project at IIT Kanpur. This project is a demonstration of our commitment to creating impactful and user-friendly applications.",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Close"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
