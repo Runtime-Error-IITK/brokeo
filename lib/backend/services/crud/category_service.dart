@@ -17,60 +17,118 @@ class CategoryService {
     }
   }
 
-  Future<DatabaseCategory?> upsertCategory(DatabaseCategory category) async {
+  Future<DatabaseCategory?> insertCategory(DatabaseCategory category) async {
     final db = await DatabaseService.db;
-    final results = await db.query(
+    final categoryId = await db.insert(categoryTable, {
+      nameColumn: category.name,
+      categoryIdColumn: category.categoryId,
+      budgetColumn: category.budget,
+    });
+
+    if (categoryId == 0) {
+      log('Failed to create category');
+      return null;
+    }
+
+    final createdCategory = await db.query(
+      categoryTable,
+      where: 'categoryId = ?',
+      whereArgs: [categoryId],
+    );
+
+    if (createdCategory.isEmpty) {
+      log('Failed to retrieve created category');
+      return null;
+    }
+
+    return DatabaseCategory.fromRow(createdCategory.first);
+  }
+
+  Future<DatabaseCategory?> updateCategory(DatabaseCategory category) async {
+    final db = await DatabaseService.db;
+    final updatedCount = await db.update(
+      categoryTable,
+      {
+        nameColumn: category.name,
+        budgetColumn: category.budget,
+      },
+      where: 'categoryId = ?',
+      whereArgs: [category.categoryId],
+    );
+
+    if (updatedCount == 0) {
+      log('No category found with id: ${category.categoryId}');
+      return null;
+    }
+
+    final updatedCategory = await db.query(
       categoryTable,
       where: 'categoryId = ?',
       whereArgs: [category.categoryId],
     );
 
-    if (results.isNotEmpty) {
-      await db.update(
-        categoryTable,
-        {
-          nameColumn: category.name,
-          budgetColumn: category.budget,
-        },
-        where: 'categoryId = ?',
-        whereArgs: [category.categoryId],
-      );
-      final updatedCategory = await db.query(
-        categoryTable,
-        where: 'categoryId = ?',
-        whereArgs: [category.categoryId],
-      );
-      if (updatedCategory.isEmpty) {
-        log('Failed to retrieve updated category');
-        return null;
-      }
-      return DatabaseCategory.fromRow(updatedCategory.first);
-    } else {
-      final categoryId = await db.insert(categoryTable, {
-        nameColumn: category.name,
-        categoryIdColumn: category.categoryId,
-        budgetColumn: category.budget,
-      });
-
-      if (categoryId == 0) {
-        log('Failed to create category');
-        return null;
-      }
-
-      final createdCategory = await db.query(
-        categoryTable,
-        where: 'categoryId = ?',
-        whereArgs: [categoryId],
-      );
-
-      if (createdCategory.isEmpty) {
-        log('Failed to retrieve created category');
-        return null;
-      }
-
-      return DatabaseCategory.fromRow(createdCategory.first);
+    if (updatedCategory.isEmpty) {
+      log('Failed to retrieve updated category');
+      return null;
     }
+
+    return DatabaseCategory.fromRow(updatedCategory.first);
   }
+
+  // Future<DatabaseCategory?> upsertCategory(DatabaseCategory category) async {
+  //   final db = await DatabaseService.db;
+  //   final results = await db.query(
+  //     categoryTable,
+  //     where: 'categoryId = ?',
+  //     whereArgs: [category.categoryId],
+  //   );
+
+  //   if (results.isNotEmpty) {
+  //     await db.update(
+  //       categoryTable,
+  //       {
+  //         nameColumn: category.name,
+  //         budgetColumn: category.budget,
+  //       },
+  //       where: 'categoryId = ?',
+  //       whereArgs: [category.categoryId],
+  //     );
+  //     final updatedCategory = await db.query(
+  //       categoryTable,
+  //       where: 'categoryId = ?',
+  //       whereArgs: [category.categoryId],
+  //     );
+  //     if (updatedCategory.isEmpty) {
+  //       log('Failed to retrieve updated category');
+  //       return null;
+  //     }
+  //     return DatabaseCategory.fromRow(updatedCategory.first);
+  //   } else {
+  //     final categoryId = await db.insert(categoryTable, {
+  //       nameColumn: category.name,
+  //       categoryIdColumn: category.categoryId,
+  //       budgetColumn: category.budget,
+  //     });
+
+  //     if (categoryId == 0) {
+  //       log('Failed to create category');
+  //       return null;
+  //     }
+
+  //     final createdCategory = await db.query(
+  //       categoryTable,
+  //       where: 'categoryId = ?',
+  //       whereArgs: [categoryId],
+  //     );
+
+  //     if (createdCategory.isEmpty) {
+  //       log('Failed to retrieve created category');
+  //       return null;
+  //     }
+
+  //     return DatabaseCategory.fromRow(createdCategory.first);
+  //   }
+  // }
 
   Future<DatabaseCategory?> getCategory({required int categoryId}) async {
     final db = await DatabaseService.db;

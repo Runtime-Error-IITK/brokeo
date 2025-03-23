@@ -48,8 +48,8 @@ class DatabaseService {
 const String dbName = "brokeo.db";
 
 const String categoryTable = "categories";
-const String createCategoryTable = '''CREATE TABLE IF NOT EXISTS "categories" (
-	"name"	TEXT NOT NULL,
+const String createCategoryTable = '''CREATE TABLE "categories" (
+	"name"	TEXT NOT NULL UNIQUE,
 	"categoryId"	INTEGER NOT NULL UNIQUE,
 	"budget"	REAL NOT NULL,
 	PRIMARY KEY("categoryId" AUTOINCREMENT)

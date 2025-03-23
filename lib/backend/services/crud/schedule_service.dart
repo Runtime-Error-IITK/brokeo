@@ -19,63 +19,124 @@ class ScheduleService {
     }
   }
 
-  Future<DatabaseSchedule?> upsertSchedule(DatabaseSchedule schedule) async {
+  Future<DatabaseSchedule?> insertSchedule(DatabaseSchedule schedule) async {
     final db = await DatabaseService.db;
-    final results = await db.query(
+    final scheduleId = await db.insert(scheduleTable, {
+      amountColumn: schedule.amount,
+      merchantIdColumn: schedule.merchantId,
+      categoryIdColumn: schedule.categoryId,
+      datesColumn: schedule.dates,
+      timePeriodColumn: schedule.timePeriod,
+    });
+
+    if (scheduleId == 0) {
+      log('Failed to create schedule');
+      return null;
+    }
+
+    final createdSchedule = await db.query(
       scheduleTable,
       where: 'scheduleId = ?',
-      whereArgs: [schedule.scheduleId],
+      whereArgs: [scheduleId],
     );
 
-    if (results.isNotEmpty) {
-      await db.update(
-        scheduleTable,
-        {
-          amountColumn: schedule.amount,
-          merchantIdColumn: schedule.merchantId,
-          categoryIdColumn: schedule.categoryId,
-          datesColumn: schedule.dates,
-          timePeriodColumn: schedule.timePeriod,
-        },
-        where: 'scheduleId = ?',
-        whereArgs: [schedule.scheduleId],
-      );
-      final updatedSchedule = await db.query(
-        scheduleTable,
-        where: 'scheduleId = ?',
-        whereArgs: [schedule.scheduleId],
-      );
-      if (updatedSchedule.isEmpty) {
-        log('Failed to retrieve updated schedule');
-        return null;
-      }
-      return DatabaseSchedule.fromRow(updatedSchedule.first);
-    } else {
-      final scheduleId = await db.insert(scheduleTable, {
+    if (createdSchedule.isEmpty) {
+      log('Failed to retrieve created schedule');
+      return null;
+    }
+    return DatabaseSchedule.fromRow(createdSchedule.first);
+  }
+
+  Future<DatabaseSchedule?> updateSchedule(DatabaseSchedule schedule) async {
+    final db = await DatabaseService.db;
+    final updatedCount = await db.update(
+      scheduleTable,
+      {
         amountColumn: schedule.amount,
         merchantIdColumn: schedule.merchantId,
         categoryIdColumn: schedule.categoryId,
         datesColumn: schedule.dates,
         timePeriodColumn: schedule.timePeriod,
-      });
+      },
+      where: 'scheduleId = ?',
+      whereArgs: [schedule.scheduleId],
+    );
 
-      if (scheduleId == 0) {
-        log('Failed to create schedule');
-        return null;
-      }
-
-      final createdSchedule = await db.query(
-        scheduleTable,
-        where: 'scheduleId = ?',
-        whereArgs: [scheduleId],
-      );
-      if (createdSchedule.isEmpty) {
-        log('Failed to retrieve created schedule');
-        return null;
-      }
-      return DatabaseSchedule.fromRow(createdSchedule.first);
+    if (updatedCount == 0) {
+      log('No schedule found with id: ${schedule.scheduleId}');
+      return null;
     }
+
+    final updatedSchedule = await db.query(
+      scheduleTable,
+      where: 'scheduleId = ?',
+      whereArgs: [schedule.scheduleId],
+    );
+
+    if (updatedSchedule.isEmpty) {
+      log('Failed to retrieve updated schedule');
+      return null;
+    }
+    return DatabaseSchedule.fromRow(updatedSchedule.first);
   }
+
+  // Future<DatabaseSchedule?> upsertSchedule(DatabaseSchedule schedule) async {
+  //   final db = await DatabaseService.db;
+  //   final results = await db.query(
+  //     scheduleTable,
+  //     where: 'scheduleId = ?',
+  //     whereArgs: [schedule.scheduleId],
+  //   );
+
+  //   if (results.isNotEmpty) {
+  //     await db.update(
+  //       scheduleTable,
+  //       {
+  //         amountColumn: schedule.amount,
+  //         merchantIdColumn: schedule.merchantId,
+  //         categoryIdColumn: schedule.categoryId,
+  //         datesColumn: schedule.dates,
+  //         timePeriodColumn: schedule.timePeriod,
+  //       },
+  //       where: 'scheduleId = ?',
+  //       whereArgs: [schedule.scheduleId],
+  //     );
+  //     final updatedSchedule = await db.query(
+  //       scheduleTable,
+  //       where: 'scheduleId = ?',
+  //       whereArgs: [schedule.scheduleId],
+  //     );
+  //     if (updatedSchedule.isEmpty) {
+  //       log('Failed to retrieve updated schedule');
+  //       return null;
+  //     }
+  //     return DatabaseSchedule.fromRow(updatedSchedule.first);
+  //   } else {
+  //     final scheduleId = await db.insert(scheduleTable, {
+  //       amountColumn: schedule.amount,
+  //       merchantIdColumn: schedule.merchantId,
+  //       categoryIdColumn: schedule.categoryId,
+  //       datesColumn: schedule.dates,
+  //       timePeriodColumn: schedule.timePeriod,
+  //     });
+
+  //     if (scheduleId == 0) {
+  //       log('Failed to create schedule');
+  //       return null;
+  //     }
+
+  //     final createdSchedule = await db.query(
+  //       scheduleTable,
+  //       where: 'scheduleId = ?',
+  //       whereArgs: [scheduleId],
+  //     );
+  //     if (createdSchedule.isEmpty) {
+  //       log('Failed to retrieve created schedule');
+  //       return null;
+  //     }
+  //     return DatabaseSchedule.fromRow(createdSchedule.first);
+  //   }
+  // }
 
   Future<DatabaseSchedule?> getSchedule({required int scheduleId}) async {
     final db = await DatabaseService.db;
