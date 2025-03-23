@@ -146,4 +146,16 @@ class CategoryService {
 
     return DatabaseCategory.fromRow(results.first);
   }
+
+  Future<List<DatabaseCategory>> getAllCategories() async {
+    final db = await DatabaseService.db;
+    final results = await db.query(categoryTable);
+
+    if (results.isEmpty) {
+      log('No categories found');
+      return [];
+    }
+
+    return results.map((row) => DatabaseCategory.fromRow(row)).toList();
+  }
 }

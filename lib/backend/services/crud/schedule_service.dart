@@ -153,4 +153,16 @@ class ScheduleService {
 
     return DatabaseSchedule.fromRow(results.first);
   }
+
+  Future<List<DatabaseSchedule>> getAllSchedules() async {
+    final db = await DatabaseService.db;
+    final results = await db.query(scheduleTable);
+
+    if (results.isEmpty) {
+      log('No schedules found');
+      return [];
+    }
+
+    return results.map((row) => DatabaseSchedule.fromRow(row)).toList();
+  }
 }

@@ -146,4 +146,16 @@ class MerchantService {
       return null;
     }
   }
+
+  Future<List<DatabaseMerchant>> getAllMerchants() async {
+    final db = await DatabaseService.db;
+    final results = await db.query(merchantTable);
+
+    if (results.isNotEmpty) {
+      return results.map((row) => DatabaseMerchant.fromRow(row)).toList();
+    } else {
+      log('No merchants found');
+      return [];
+    }
+  }
 }

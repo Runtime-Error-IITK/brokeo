@@ -145,4 +145,16 @@ class DueService {
       return DatabaseDue.fromRow(results.first);
     }
   }
+
+  Future<List<DatabaseDue>> getAllDues() async {
+    final db = await DatabaseService.db;
+    final results = await db.query(dueTable);
+
+    if (results.isEmpty) {
+      log('No dues found');
+      return [];
+    } else {
+      return results.map((row) => DatabaseDue.fromRow(row)).toList();
+    }
+  }
 }
