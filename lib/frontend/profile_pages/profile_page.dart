@@ -192,33 +192,43 @@ class ProfilePage extends StatelessWidget {
                               children: [
                                 Row(
                                   children: [
-                                    Text(
-                                      "Email: ",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                  Text(
+                                    "Email: ",
+                                    style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
                                     ),
-                                    Expanded(
-                                      child: Text(
-                                        "support@brokeo.com",
-                                        style: TextStyle(color: Colors.black54),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                    "support@brokeo.com",
+                                    style: TextStyle(
+                                      color: Theme.of(context).textTheme.bodyMedium?.color,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                   ],
                                 ),
                                 SizedBox(height: 10),
                                 Row(
                                   children: [
-                                    Text(
-                                      "Phone: ",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                  Text(
+                                    "Phone: ",
+                                    style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
                                     ),
-                                    Expanded(
-                                      child: Text(
-                                        "+91 9876543210",
-                                        style: TextStyle(color: Colors.black54),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                    "+91 9876543210",
+                                    style: TextStyle(
+                                      color: Theme.of(context).textTheme.bodyMedium?.color,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                   ],
                                 ),
                               ],
