@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter_icons/flutter_icons.dart'; // Add this for additional icons
 
 class BudgetPage extends StatefulWidget {
   @override
@@ -9,15 +8,15 @@ class BudgetPage extends StatefulWidget {
 class _BudgetPageState extends State<BudgetPage> {
   double _totalBudget = 0.0;
   Map<String, Map<String, dynamic>> _categoryBudgets = {
-    "Food": {"budget": 0.0, "icon": Icons.fastfood},
-    "Shopping": {"budget": 0.0, "icon": Icons.shopping_cart},
-    "Travel": {"budget": 0.0, "icon": Icons.flight},
-    "Others": {"budget": 0.0, "icon": Icons.more_horiz},
+    "Food and Drinks": {"budget": 0.0, "emoji": "🍔"},
+    "Shopping": {"budget": 0.0, "emoji": "🛍️"},
+    "Travel": {"budget": 0.0, "emoji": "✈️"},
+    "Education": {"budget": 0.0, "emoji": "📚"},
   };
 
-  void _addNewCategory(String categoryName, IconData icon) {
+  void _addNewCategory(String categoryName, String emoji) {
     setState(() {
-      _categoryBudgets[categoryName] = {"budget": 0.0, "icon": icon};
+      _categoryBudgets[categoryName] = {"budget": 0.0, "emoji": emoji};
     });
   }
 
@@ -25,26 +24,29 @@ class _BudgetPageState extends State<BudgetPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 243, 225, 247),
-        iconTheme: IconThemeData(color: Colors.black),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        iconTheme: Theme.of(context).appBarTheme.iconTheme,
         title: Text(
           "Set Budget",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: Theme.of(context).appBarTheme.titleTextStyle,
         ),
         centerTitle: true,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(
+          horizontal: Theme.of(context).paddingScheme.horizontal,
+          vertical: Theme.of(context).paddingScheme.vertical,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Total Budget Input
             Text(
               "Total Budget",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            SizedBox(height: 10),
+            SizedBox(height: Theme.of(context).spacingScheme.small),
             TextFormField(
               initialValue: _totalBudget.toStringAsFixed(0),
               decoration: InputDecoration(
@@ -59,28 +61,39 @@ class _BudgetPageState extends State<BudgetPage> {
                 });
               },
             ),
-            SizedBox(height: 20),
+            SizedBox(height: Theme.of(context).spacingScheme.medium),
 
             // Category Budgets
             Text(
               "Category Budgets",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            SizedBox(height: 10),
+            SizedBox(height: Theme.of(context).spacingScheme.small),
             ..._categoryBudgets.entries.map((entry) {
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.symmetric(
+                  vertical: Theme.of(context).spacingScheme.small,
+                ),
                 child: Row(
                   children: [
-                    Icon(entry.value["icon"], size: 24, color: Colors.purple),
-                    SizedBox(width: 10),
+                    CircleAvatar(
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.1),
+                      child: Text(
+                        entry.value["emoji"],
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                    SizedBox(width: Theme.of(context).spacingScheme.small),
                     Expanded(
                       child: Text(
                         entry.key,
-                        style: TextStyle(fontSize: 16),
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    SizedBox(width: Theme.of(context).spacingScheme.small),
                     Expanded(
                       child: TextFormField(
                         initialValue: entry.value["budget"].toStringAsFixed(0),
@@ -104,25 +117,25 @@ class _BudgetPageState extends State<BudgetPage> {
             }).toList(),
 
             // Add New Category Button
-            SizedBox(height: 20),
+            SizedBox(height: Theme.of(context).spacingScheme.medium),
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {
                   _showAddCategoryDialog(context);
                 },
-                icon: Icon(Icons.add, color: Colors.white),
+                icon: Icon(Icons.add, color: Theme.of(context).iconTheme.color),
                 label: Text(
                   "Add Category",
-                  style: TextStyle(color: Colors.white),
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
 
             // Save Button
-            SizedBox(height: 20),
+            SizedBox(height: Theme.of(context).spacingScheme.medium),
             Center(
               child: ElevatedButton(
                 onPressed: () {
@@ -131,15 +144,18 @@ class _BudgetPageState extends State<BudgetPage> {
                   print("Category Budgets: $_categoryBudgets");
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Theme.of(context).spacingScheme.large,
+                    vertical: Theme.of(context).spacingScheme.medium,
+                  ),
                 ),
                 child: Text(
                   "Save",
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSecondary,
+                      ),
                 ),
               ),
             ),
@@ -151,7 +167,7 @@ class _BudgetPageState extends State<BudgetPage> {
 
   void _showAddCategoryDialog(BuildContext context) {
     String? newCategoryName;
-    IconData? selectedIcon = Icons.category;
+    String? selectedEmoji = "📁";
 
     showDialog(
       context: context,
@@ -169,26 +185,27 @@ class _BudgetPageState extends State<BudgetPage> {
                       newCategoryName = value;
                     },
                   ),
-                  SizedBox(height: 16),
-                  DropdownButtonFormField<IconData>(
-                    value: selectedIcon,
-                    decoration: InputDecoration(labelText: "Select Icon"),
+                  SizedBox(height: Theme.of(context).spacingScheme.small),
+                  DropdownButtonFormField<String>(
+                    value: selectedEmoji,
+                    decoration: InputDecoration(labelText: "Select Emoji"),
                     items: [
-                      Icons.fastfood,
-                      Icons.shopping_cart,
-                      Icons.flight,
-                      Icons.more_horiz,
-                      Icons.home,
-                      Icons.directions_car,
-                    ].map((icon) {
-                      return DropdownMenuItem<IconData>(
-                        value: icon,
-                        child: Icon(icon, color: Colors.purple),
+                      "🍔",
+                      "🛍️",
+                      "✈️",
+                      "📚",
+                      "🏠",
+                      "🚗",
+                      "📁",
+                    ].map((emoji) {
+                      return DropdownMenuItem<String>(
+                        value: emoji,
+                        child: Text(emoji, style: TextStyle(fontSize: 18)),
                       );
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        selectedIcon = value;
+                        selectedEmoji = value;
                       });
                     },
                   ),
@@ -203,8 +220,8 @@ class _BudgetPageState extends State<BudgetPage> {
             ),
             TextButton(
               onPressed: () {
-                if (newCategoryName != null && selectedIcon != null) {
-                  _addNewCategory(newCategoryName!, selectedIcon!);
+                if (newCategoryName != null && selectedEmoji != null) {
+                  _addNewCategory(newCategoryName!, selectedEmoji!);
                 }
                 Navigator.pop(context);
               },
@@ -215,4 +232,32 @@ class _BudgetPageState extends State<BudgetPage> {
       },
     );
   }
+}
+
+extension on ThemeData {
+  PaddingScheme get paddingScheme => PaddingScheme(
+        horizontal: 16.0,
+        vertical: 16.0,
+      );
+
+  SpacingScheme get spacingScheme => SpacingScheme(
+        small: 8.0,
+        medium: 16.0,
+        large: 24.0,
+      );
+}
+
+class PaddingScheme {
+  final double horizontal;
+  final double vertical;
+
+  PaddingScheme({required this.horizontal, required this.vertical});
+}
+
+class SpacingScheme {
+  final double small;
+  final double medium;
+  final double large;
+
+  SpacingScheme({required this.small, required this.medium, required this.large});
 }

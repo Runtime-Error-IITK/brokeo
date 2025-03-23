@@ -175,7 +175,7 @@ class ProfilePage extends StatelessWidget {
               ),
               trailing: Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                _showAboutDialog(context, "About Us");
+                _showContactDialog(context, "About Us");
               },
             ),
           ],
@@ -236,64 +236,6 @@ class ProfilePage extends StatelessWidget {
                 ],
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("Close"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-  void _showAboutDialog(BuildContext context, String title) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Hello!",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  "We are Brokeo, a team of developers who are passionate about helping you manage your finances. Our goal is to provide you with tools and insights to make better financial decisions.",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  "Made for:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  "The CS253 course project at IIT Kanpur. This project is a demonstration of our commitment to creating impactful and user-friendly applications.",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-              ],
-            ),
           ),
           actions: [
             TextButton(
