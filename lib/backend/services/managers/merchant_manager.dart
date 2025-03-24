@@ -45,7 +45,7 @@ class MerchantManager {
     }
   }
 
-  void deleteMerchant(int merchantId) async {
+  Future<void> deleteMerchant(int merchantId) async {
     final merchantService = MerchantService();
     await merchantService.deleteMerchant(merchantId: merchantId);
     _merchants.removeWhere((merchant) => merchant.merchantId == merchantId);
@@ -59,7 +59,7 @@ class MerchantManager {
     return newMerchantManager;
   }
 
-  void loadMerchants() async {
+  Future<void> loadMerchants() async {
     final merchantService = MerchantService();
     final merchants = await merchantService.getAllMerchants();
 

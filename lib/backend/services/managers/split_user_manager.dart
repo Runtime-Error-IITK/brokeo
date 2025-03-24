@@ -45,7 +45,7 @@ class SplitUserManager {
     }
   }
 
-  void deleteSplitUser(String phoneNumber) async {
+  Future<void> deleteSplitUser(String phoneNumber) async {
     final splitUserService = SplitUserService();
     await splitUserService.deleteSplitUser(phoneNumber: phoneNumber);
     _splitUsers
@@ -60,7 +60,7 @@ class SplitUserManager {
     return newSplitUserManager;
   }
 
-  void loadSplitUsers() async {
+  Future<void> loadSplitUsers() async {
     final splitUserService = SplitUserService();
     final splitUsers = await splitUserService.getAllSplitUsers();
     _splitUsers = splitUsers

@@ -46,7 +46,7 @@ class CategoryManager {
     }
   }
 
-  void deleteCategory(int categoryId) async {
+  Future<void> deleteCategory(int categoryId) async {
     final categoryService = CategoryService();
     await categoryService.deleteCategory(categoryId: categoryId);
     _categories.removeWhere((category) => category.categoryId == categoryId);
@@ -60,7 +60,7 @@ class CategoryManager {
     return newCategoryManager;
   }
 
-  void loadCategories() async {
+  Future<void> loadCategories() async {
     final categoryService = CategoryService();
     final categories = await categoryService.getAllCategories();
     _categories = categories

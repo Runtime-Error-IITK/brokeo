@@ -40,7 +40,7 @@ class DueManager {
     }
   }
 
-  void deleteDue(int dueId) async {
+  Future<void> deleteDue(int dueId) async {
     final dueService = DueService();
     await dueService.deleteDue(dueId: dueId);
     _dues.removeWhere((due) => due.dueId == dueId);
@@ -54,7 +54,7 @@ class DueManager {
     return newDueManager;
   }
 
-  void loadDues() async {
+  Future<void> loadDues() async {
     final dueService = DueService();
     final dues = await dueService.getAllDues();
 

@@ -46,7 +46,7 @@ class ScheduleManager {
     }
   }
 
-  void deleteSchedule(int scheduleId) async {
+  Future<void> deleteSchedule(int scheduleId) async {
     final scheduleService = ScheduleService();
     await scheduleService.deleteSchedule(scheduleId: scheduleId);
     _schedules.removeWhere((schedule) => schedule.scheduleId == scheduleId);
@@ -60,7 +60,7 @@ class ScheduleManager {
     return newScheduleManager;
   }
 
-  void loadSchedules() async {
+  Future<void> loadSchedules() async {
     final scheduleService = ScheduleService();
     final schedules = await scheduleService.getAllSchedules();
 
