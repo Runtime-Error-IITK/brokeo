@@ -1,2 +1,0 @@
-C:/Users/singh/Desktop/IITK/CS253 Project App Brokeo/brokeo/android/app/.cxx/Debug/6y692e6d/x86/CMakeFiles/edit_cache.dir
-C:/Users/singh/Desktop/IITK/CS253 Project App Brokeo/brokeo/android/app/.cxx/Debug/6y692e6d/x86/CMakeFiles/rebuild_cache.dir
