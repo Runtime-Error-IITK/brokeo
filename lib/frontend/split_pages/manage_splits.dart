@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
 
-
 class ManageSplitsPage extends StatefulWidget {
   @override
   _ManageSplitsPageState createState() => _ManageSplitsPageState();
@@ -11,7 +10,8 @@ class ManageSplitsPage extends StatefulWidget {
 
 class _ManageSplitsPageState extends State<ManageSplitsPage> {
   int _currentIndex = 3;
-  List<brokeo_split.Split> splits = []; // Now using Split model instead of raw data
+  List<brokeo_split.Split> splits =
+      []; // Now using Split model instead of raw data
 
   @override
   void initState() {
@@ -36,138 +36,181 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
 
     // Convert raw data to Split objects
 
-
     setState(() {
-      splits = mockData.map((item) => brokeo_split.Split.fromMap(item)).toList();
+      splits =
+          mockData.map((item) => brokeo_split.Split.fromMap(item)).toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      //backgroundColor: Color.fromARGB(255, 255, 247, 254),
       body: Column(
         children: [
 // Balance Summary Card
-Container(
-  margin: const EdgeInsets.all(16.0),
-  decoration: BoxDecoration(
-    color: const Color(0xFFEDE7F6), // Your specified background color
-    borderRadius: BorderRadius.circular(16.0),
-  ),
-  child: Padding(
-    padding: const EdgeInsets.all(20.0),
-    child: Column(
-      children: [
-        // Total Balance
-        _buildBalanceRow(
-          label: "Total Balance",
-          amount: 1441,
-          amountColor: Colors.green[700]!,
-        ),
-        const SizedBox(height: 16),
-        
-        // You Owe
-        _buildBalanceRow(
-          label: "You Owe",
-          amount: 200,
-          amountColor: Colors.red[700]!,
-        ),
-        const SizedBox(height: 16),
-        
-        // You Are Owed
-        _buildBalanceRow(
-          label: "You Are Owed",
-          amount: 1641,
-          amountColor: Colors.green[700]!,
-        ),
-      ],
-    ),
-  ),
-),          // Dynamic ListView with dividers
+          Container(
+            margin: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE7F6), // Your specified background color
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  // Total Balance
+                  _buildBalanceRow(
+                    label: "Total Balance",
+                    amount: 1441,
+                    amountColor: Colors.green[700]!,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // You Owe
+                  _buildBalanceRow(
+                    label: "You Owe",
+                    amount: 200,
+                    amountColor: Colors.red[700]!,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // You Are Owed
+                  _buildBalanceRow(
+                    label: "You Are Owed",
+                    amount: 1641,
+                    amountColor: Colors.green[700]!,
+                  ),
+                ],
+              ),
+            ),
+          ), // Dynamic ListView with dividers
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadSplits,
-              child: ListView.separated(
-                itemCount: splits.length,
-                itemBuilder: (context, index) {
-                  final split = splits[index];
-                  return _buildSplitTile(split);
-                },
-                separatorBuilder: (context, index) => Divider(
-                  color: Colors.grey[300],
-                  height: 1,
-                  indent: 72, // Matches avatar width
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0), // Adds 8 padding left & right
+                child: ListView.separated(
+                  itemCount: splits.length,
+                  itemBuilder: (context, index) {
+                    final split = splits[index];
+                    return _buildSplitTile(split);
+                  },
+                  separatorBuilder: (context, index) => Divider(
+                    color: Colors.grey[300],
+                  ),
                 ),
               ),
             ),
           ),
         ],
       ),
-floatingActionButton: _currentIndex == 3 ? FloatingActionButton(
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ChooseTransactionPage()),
-    );
-  },
-  child: const Icon(Icons.add, color: Colors.white),
-  backgroundColor: const Color.fromARGB(255, 97, 53, 186), // Your exact purple color
-  shape: const CircleBorder(),
-) : null,
-      
+      floatingActionButton: _currentIndex == 3
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChooseTransactionPage()),
+                );
+              },
+              child: const Icon(Icons.add, color: Colors.white),
+              backgroundColor: const Color.fromARGB(
+                  255, 97, 53, 186), // Your exact purple color
+              shape: const CircleBorder(),
+            )
+          : null,
       bottomNavigationBar: buildBottomNavigationBar(),
     );
   }
 
-Widget _buildBalanceRow({
-  required String label,
-  required int amount,
-  required Color amountColor,
-}) {
-  return Row(
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
+  Widget _buildBalanceRow({
+    required String label,
+    required int amount,
+    required Color amountColor,
+  }) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
         ),
-      ),
-      const Spacer(),
-      Text(
-        "₹${amount.toString()}",
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: amountColor,
+        const Spacer(),
+        Text(
+          "₹${amount.toString()}",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: amountColor,
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
+
   Widget _buildSplitTile(brokeo_split.Split split) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Colors.purple[100],
-        child: Text(
-          split.name[0],
-          style: TextStyle(color: Colors.purple),
-        ),
-      ),
-      title: Text(split.name),
-      trailing: Text(
-        "₹${split.amount}",
-        style: TextStyle(
-          color: split.amount < 0 ? Colors.red : Colors.green,
-          //Issettled not defined in split class
-          //fontWeight: split.isSettled ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
+    return InkWell(
       onTap: () {
-        // Add tap handling if needed
+        // Add navigation if needed
+        // Navigator.push(context, MaterialPageRoute(builder: (_) => SplitDetailPage(split)));
       },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.purple[100],
+                  child: Text(
+                    split.name[0],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        split.name,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      // Optional: Add date/time if available
+                      // Text(
+                      //   "12:30 PM",
+                      //   style: TextStyle(
+                      //     fontSize: 12,
+                      //     color: Colors.black54,
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                ),
+                Text(
+                  "₹${split.amount.abs()}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: split.amount < 0 ? Colors.red : Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -184,7 +227,8 @@ Widget _buildBalanceRow({
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => brokeo_split.HomePage(name: "Darshan", budget: 5000),
+              builder: (context) =>
+                  brokeo_split.HomePage(name: "Darshan", budget: 5000),
             ),
           );
         } else if (index == 1) {
@@ -207,7 +251,8 @@ Widget _buildBalanceRow({
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
         BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
-        BottomNavigationBarItem(icon: Icon(Icons.analytics), label: "Analytics"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.analytics), label: "Analytics"),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
       ],
     );
