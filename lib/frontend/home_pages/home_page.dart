@@ -1,6 +1,10 @@
 import 'dart:math';
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/profile_pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:brokeo/models/transaction_model.dart'; // <== new import
+import 'package:brokeo/frontend/split_pages/manage_splits.dart'; // <== new import
 
 /// Home Page
 class HomePage extends StatefulWidget {
@@ -27,7 +31,7 @@ class _HomePageState extends State<HomePage> {
     String currentMonth = DateFormat.MMMM().format(DateTime.now());
 
     // Get data
-    List<Transaction> transactions = MockBackend.getTransactions();
+    List<Transaction> transactions = MockBackend.getTransactions(context);
     List<CategoryItem> categories = MockBackend.getCategories();
     List<ScheduledPayment> scheduledPayments =
         MockBackend.getScheduledPayments();
@@ -51,31 +55,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          // Only update if a new tab is selected
-          if (index != _currentIndex) {
-            setState(() {
-              _currentIndex = index;
-            });
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.purple,
-        unselectedItemColor: Colors.grey,
-        iconSize: 24,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.list), label: "Transactions"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.analytics), label: "Analytics"),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-        ],
-      ),
+      bottomNavigationBar: buildBottomNavigationBar(),
     );
   }
 
@@ -83,7 +63,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildProfileAndBudgetSection(
       String month, double spent, double percentage) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
+      padding: EdgeInsets.symmetric(vertical: 45, horizontal: 15),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
@@ -102,12 +82,17 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 icon:
                     Icon(Icons.account_circle, size: 30, color: Colors.black54),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()),
+                  );
+                },
               ),
               SizedBox(width: 10),
               RichText(
                 text: TextSpan(
-                  style: TextStyle(fontSize: 20, color: Colors.black),
+                  style: TextStyle(fontSize: 25, color: Colors.black),
                   children: [
                     TextSpan(text: "Hi, "),
                     TextSpan(
@@ -881,6 +866,54 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  Widget buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        if (index != _currentIndex) {
+          setState(() {
+            _currentIndex = index;
+          });
+        }
+        // Navigation logic based on index:
+        if (index == 0) {
+          // TODO: Navigate to Home Page
+        } else if (index == 1) {
+          // Already on Categories/Tran sactions page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoriesPage(),
+            ),
+          );
+        } else if (index == 2) {
+          // TODO: Navigate to Analytics Page
+        } else if (index == 3) {
+          // TODO: Navigate to Split Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ManageSplitsPage(),
+            ),
+          );
+        }
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.purple,
+      unselectedItemColor: Colors.grey,
+      iconSize: 24,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.analytics), label: "Analytics"),
+        BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
+      ],
+    );
+  }
 }
 
 /// Custom ArcPainter to draw the circular progress indicator.
@@ -933,18 +966,7 @@ class ArcPainter extends CustomPainter {
 
 /// Models
 
-/// Transaction Model with a dummy getSpent() method.
-class Transaction {
-  final String name;
-  final double amount;
-  Transaction(this.name, this.amount);
-
-  /// Dummy function to return a positive spend value.
-  /// For now, it returns a fixed dummy value.
-  double getSpent() {
-    return 100; // Dummy value
-  }
-}
+/// Remove the local Transaction model
 
 /// Category Model
 class CategoryItem {
@@ -967,6 +989,15 @@ class Split {
   final double amount;
 
   Split(this.name, this.amount);
+
+    factory Split.fromMap(Map<String, dynamic> map) {
+    return Split(
+      map['name'] as String,
+      (map['amount'] as num).toDouble(),
+    );
+  }
+
+  bool get isSettled => amount == 0;  // Calculated property
 }
 
 class BudgetCategory {
@@ -979,12 +1010,12 @@ class BudgetCategory {
 
 /// Backend
 class MockBackend {
-  static List<Transaction> getTransactions() {
+  static List<Transaction> getTransactions(BuildContext context) {
     return [
-      Transaction("Chetan Singh", -50),
-      Transaction("Darshan", -510),
-      Transaction("Anjali Patra", 1200),
-      Transaction("Extra Transaction", -200),
+      Transaction(name: "Sourav das", amount: -5000, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
+      Transaction(name: "Darshan", amount: -510, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
+      Transaction(name: "Anjali Patra", amount: 1200, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
+      Transaction(name: "Extra Transaction", amount: -200, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
     ];
   }
 

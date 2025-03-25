@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/transactions_pages/category_page.dart';
+import 'package:flutter/material.dart';
+import 'dart:math';
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 
 class ChooseTransactionPage extends StatefulWidget {
   @override
   _ChooseTransactionPageState createState() => _ChooseTransactionPageState();
 }
+
+
+
 
 class _ChooseTransactionPageState extends State<ChooseTransactionPage> {
   @override
@@ -32,6 +40,8 @@ class _ChooseTransactionPageState extends State<ChooseTransactionPage> {
     );
   }
 
+
+
   Widget _buildTransactionTile(String name, double amount) {
     return ListTile(
       leading: CircleAvatar(
@@ -48,3 +58,5 @@ class _ChooseTransactionPageState extends State<ChooseTransactionPage> {
     );
   }
 }
+
+
