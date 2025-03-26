@@ -1,4 +1,5 @@
 import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -11,7 +12,8 @@ class CategoriesPage extends StatefulWidget {
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
-class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProviderStateMixin {
+class _CategoriesPageState extends State<CategoriesPage>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 1;
   late TabController _tabController;
   bool showTransactions = false;
@@ -19,7 +21,8 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 0); // Change initialIndex to 0
+    _tabController = TabController(
+        length: 3, vsync: this, initialIndex: 0); // Change initialIndex to 0
   }
 
   @override
@@ -61,14 +64,18 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
           ],
         ),
       ),
-      floatingActionButton: _tabController.index == 0 ? FloatingActionButton(
-        onPressed: () {
-          _showAddTransactionDialog(context);
-        },
-        child: Icon(Icons.add, color: Colors.white), // Icon color set to white
-        backgroundColor: Color.fromARGB(255, 97, 53, 186), // Match the color in the image
-        shape: CircleBorder(), // Ensure the shape is circular
-      ) : null,
+      floatingActionButton: _tabController.index == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                _showAddTransactionDialog(context);
+              },
+              child: Icon(Icons.add,
+                  color: Colors.white), // Icon color set to white
+              backgroundColor: Color.fromARGB(
+                  255, 97, 53, 186), // Match the color in the image
+              shape: CircleBorder(), // Ensure the shape is circular
+            )
+          : null,
       bottomNavigationBar: buildBottomNavigationBar(),
     );
   }
@@ -405,7 +412,8 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                     decoration: InputDecoration(
                       labelText: "Category",
                     ),
-                    items: DummyDataService.getCategoriesFromBackend().map((cat) {
+                    items:
+                        DummyDataService.getCategoriesFromBackend().map((cat) {
                       return DropdownMenuItem<String>(
                         value: cat,
                         child: Text(cat),
@@ -460,10 +468,22 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
           );
         } else if (index == 1) {
           // Already on Categories/Transactions page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoriesPage(),
+            ),
+          );
         } else if (index == 2) {
           // TODO: Navigate to Analytics Page
         } else if (index == 3) {
           // TODO: Navigate to Split Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ManageSplitsPage(),
+            ),
+          );
         }
       },
       type: BottomNavigationBarType.fixed,
@@ -505,7 +525,8 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TransactionDetailPage(transaction: transaction),
+            builder: (context) =>
+                TransactionDetailPage(transaction: transaction),
           ),
         );
       },
@@ -848,10 +869,23 @@ class DummyDataService {
 class MockBackend {
   static List<Transaction> getTransactions() {
     return [
-      Transaction(name: "Chetan Singh", amount: -50, date: "25 Jan'25", time: "11:00 am"),
-      Transaction(name: "Darshan", amount: -510, date: "24 Jan'25", time: "10:00 am"),
-      Transaction(name: "Anjali Patra", amount: 1200, date: "23 Jan'25", time: "09:00 am"),
-      Transaction(name: "Extra Transaction", amount: -200, date: "22 Jan'25", time: "08:00 am"),
+      Transaction(
+          name: "Chetan Singh",
+          amount: -50,
+          date: "25 Jan'25",
+          time: "11:00 am"),
+      Transaction(
+          name: "Darshan", amount: -510, date: "24 Jan'25", time: "10:00 am"),
+      Transaction(
+          name: "Anjali Patra",
+          amount: 1200,
+          date: "23 Jan'25",
+          time: "09:00 am"),
+      Transaction(
+          name: "Extra Transaction",
+          amount: -200,
+          date: "22 Jan'25",
+          time: "08:00 am"),
     ];
   }
 }

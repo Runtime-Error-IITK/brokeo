@@ -168,17 +168,15 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
     );
   }
 
-
-  
   Widget _buildSplitTile(brokeo_split.Split split) {
     return InkWell(
       onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SplitHistoryPage(split: split.toMap()),
-        ),
-      );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SplitHistoryPage(split: split.toMap()),
+          ),
+        );
       },
       child: Column(
         children: [
@@ -226,6 +224,7 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
       ),
     );
   }
+
   Widget buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
@@ -235,7 +234,9 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
             _currentIndex = index;
           });
         }
+        // Navigation logic based on index:
         if (index == 0) {
+          // TODO: Navigate to Home Page
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -244,6 +245,7 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
             ),
           );
         } else if (index == 1) {
+          // Already on Categories/Transactions page
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -251,7 +253,15 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
             ),
           );
         } else if (index == 2) {
-          // TODO: Analytics page
+          // TODO: Navigate to Analytics Page
+        } else if (index == 3) {
+          // TODO: Navigate to Split Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ManageSplitsPage(),
+            ),
+          );
         }
       },
       type: BottomNavigationBarType.fixed,
