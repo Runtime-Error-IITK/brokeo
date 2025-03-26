@@ -411,6 +411,140 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // /// Merchants List
+  // Widget _buildMerchants(List<Transaction> transactions) {
+  //   // If not showing all transactions, take only the top 3
+  //   List<Transaction> transactionsToShow =
+  //       showAllTransactions ? transactions : transactions.take(3).toList();
+
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+  //     child: Card(
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+  //       color: Color(0xFFEDE7F6),
+  //       elevation: 0,
+  //       child: Padding(
+  //         padding: const EdgeInsets.all(12),
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             /// Header with "Transactions" Title & Icons
+  //             Row(
+  //               children: [
+  //                 Text("Transactions",
+  //                     style:
+  //                         TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+  //                 Spacer(),
+  //                 // IconButton(
+  //                 //   icon: Icon(Icons.add, size: 22, color: Colors.black54),
+  //                 //   onPressed: () {
+  //                 //     // TODO: Handle add transaction
+  //                 //   },
+  //                 // ),
+  //                 IconButton(
+  //                   icon: Icon(
+  //                     showAllTransactions
+  //                         ? Icons.expand_less
+  //                         : Icons.expand_more,
+  //                     size: 22,
+  //                     color: Colors.black54,
+  //                   ),
+  //                   onPressed: () {
+  //                     setState(() {
+  //                       showAllTransactions = !showAllTransactions;
+  //                     });
+  //                   },
+  //                 ),
+  //               ],
+  //             ),
+  //             SizedBox(height: 10),
+
+  //             /// Transaction List or Empty Message
+  //             transactions.isEmpty
+  //                 ? Center(
+  //                     child: Text(
+  //                       "No Transactions Yet",
+  //                       style: TextStyle(
+  //                           fontSize: 16,
+  //                           fontWeight: FontWeight.bold,
+  //                           color: Colors.black54),
+  //                     ),
+  //                   )
+  //                 : Column(
+  //                     children: transactionsToShow.asMap().entries.map((entry) {
+  //                       return Column(
+  //                         children: [
+  //                           _merchantTile(entry.value, entry.key),
+  //                           if (entry.key < transactionsToShow.length - 1)
+  //                             Divider(color: Colors.grey[300]),
+  //                         ],
+  //                       );
+  //                     }).toList(),
+  //                   ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // /// Single Transaction Tile
+  // Widget _merchantTile(Transaction transaction, int index) {
+  //   return InkWell(
+  //     onTap: () {
+  //       setState(() {
+  //         expandedTransactionIndex =
+  //             (expandedTransactionIndex == index) ? -1 : index;
+  //       });
+  //     },
+  //     child: Column(
+  //       children: [
+  //         Padding(
+  //           padding: const EdgeInsets.symmetric(vertical: 5),
+  //           child: Row(
+  //             children: [
+  //               CircleAvatar(
+  //                 backgroundColor: Colors.purple[100],
+  //                 child: Text(
+  //                   transaction.name[0],
+  //                   style: TextStyle(
+  //                       fontWeight: FontWeight.bold, color: Colors.purple),
+  //                 ),
+  //               ),
+  //               SizedBox(width: 12),
+  //               Expanded(
+  //                 child: Text(
+  //                   transaction.name,
+  //                   style: TextStyle(fontSize: 14, color: Colors.black87),
+  //                 ),
+  //               ),
+  //               Text(
+  //                 "₹${transaction.amount.abs()}",
+  //                 style: TextStyle(
+  //                   fontSize: 14,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: transaction.amount < 0 ? Colors.red : Colors.green,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         if (expandedTransactionIndex == index)
+  //           Padding(
+  //             padding: const EdgeInsets.only(left: 50, right: 10, bottom: 8),
+  //             child: Align(
+  //               alignment: Alignment.centerLeft,
+  //               child: Text(
+  //                 "Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}\nCategory: Groceries",
+  //                 style: TextStyle(fontSize: 12, color: Colors.black54),
+  //               ),
+  //             ),
+  //           ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildScheduledPayments(List<ScheduledPayment> payments) {
     // If not expanded, only show top 3
     List<ScheduledPayment> paymentsToShow =
@@ -992,14 +1126,41 @@ class BudgetCategory {
   BudgetCategory(this.emoji, this.name, this.amount);
 }
 
+class Merchant {
+  final String id;
+  final String name;
+  final String? category;
+  final double amount = 0;
+  final double spends = 0;
+  final List<Transaction> transactions = [];
+
+  Merchant(this.id, this.name, this.category);
+}
+
 /// Backend
 class MockBackend {
   static List<Transaction> getTransactions(BuildContext context) {
     return [
-      Transaction(name: "Sourav das", amount: -5000, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
-      Transaction(name: "Darshan", amount: -510, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
-      Transaction(name: "Anjali Patra", amount: 1200, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
-      Transaction(name: "Extra Transaction", amount: -200, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
+      Transaction(
+          name: "Sourav das",
+          amount: -5000,
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          time: TimeOfDay.now().format(context)),
+      Transaction(
+          name: "Darshan",
+          amount: -510,
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          time: TimeOfDay.now().format(context)),
+      Transaction(
+          name: "Anjali Patra",
+          amount: 1200,
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          time: TimeOfDay.now().format(context)),
+      Transaction(
+          name: "Extra Transaction",
+          amount: -200,
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          time: TimeOfDay.now().format(context)),
     ];
   }
 
@@ -1034,6 +1195,16 @@ class MockBackend {
       Split("Anjali Patra", 1200),
       Split("Aujasvit", -20)
       // Add more splits if needed
+    ];
+  }
+
+  static List<Merchant> getMerchants() {
+    return [
+      Merchant("1230ABCD", "CC Canteen", null),
+      Merchant("1231ABCD", "Hall 12 Canteen", null),
+      Merchant("1232ABCD", "Z Square", null),
+      Merchant("1234ABCD", "New Merchant", null)
+      // Add more if needed
     ];
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/models/transaction_model.dart'; // <== new import
+import 'package:brokeo/frontend/transactions_pages/merchants_page.dart';
 
 /// Main CategoriesPage
 class CategoriesPage extends StatefulWidget {
@@ -11,7 +12,8 @@ class CategoriesPage extends StatefulWidget {
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
-class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProviderStateMixin {
+class _CategoriesPageState extends State<CategoriesPage>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 1;
   late TabController _tabController;
   bool showTransactions = false;
@@ -19,7 +21,8 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 0); // Change initialIndex to 0
+    _tabController = TabController(
+        length: 3, vsync: this, initialIndex: 0); // Change initialIndex to 0
   }
 
   @override
@@ -54,21 +57,25 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                       buildCategoryGrid(),
                     ],
                   ),
-                  Center(child: Text("Merchants View")),
+                  _buildMerchants(), //Center(child: Text("Merchants View")),
                 ],
               ),
             ),
           ],
         ),
       ),
-      floatingActionButton: _tabController.index == 0 ? FloatingActionButton(
-        onPressed: () {
-          _showAddTransactionDialog(context);
-        },
-        child: Icon(Icons.add, color: Colors.white), // Icon color set to white
-        backgroundColor: Color.fromARGB(255, 97, 53, 186), // Match the color in the image
-        shape: CircleBorder(), // Ensure the shape is circular
-      ) : null,
+      floatingActionButton: _tabController.index == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                _showAddTransactionDialog(context);
+              },
+              child: Icon(Icons.add,
+                  color: Colors.white), // Icon color set to white
+              backgroundColor: Color.fromARGB(
+                  255, 97, 53, 186), // Match the color in the image
+              shape: CircleBorder(), // Ensure the shape is circular
+            )
+          : null,
       bottomNavigationBar: buildBottomNavigationBar(),
     );
   }
@@ -405,7 +412,8 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                     decoration: InputDecoration(
                       labelText: "Category",
                     ),
-                    items: DummyDataService.getCategoriesFromBackend().map((cat) {
+                    items:
+                        DummyDataService.getCategoriesFromBackend().map((cat) {
                       return DropdownMenuItem<String>(
                         value: cat,
                         child: Text(cat),
@@ -505,7 +513,8 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TransactionDetailPage(transaction: transaction),
+            builder: (context) =>
+                TransactionDetailPage(transaction: transaction),
           ),
         );
       },
@@ -545,6 +554,83 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: transaction.amount < 0 ? Colors.red : Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Merchant
+  Widget _buildMerchants() {
+    List<Merchant> merchants = merchantBackend.getMerchants();
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      itemCount: merchants.length,
+      itemBuilder: (context, index) {
+        return Column(
+          children: [
+            _merchantTile(merchants[index], index),
+            if (index < merchants.length - 1) Divider(color: Colors.grey[300]),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _merchantTile(Merchant merchant, int index) {
+    merchant.updateAmountSpends();
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MerchantsPage(data: merchant),
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.purple[100],
+                  child: Text(
+                    merchant.name[0],
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.purple),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    merchant.name,
+                    style: TextStyle(fontSize: 14, color: Colors.black87),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        "₹${merchant.amount.abs()}",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      Text(
+                        merchant.spends.toString(), // Placeholder for time
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -848,10 +934,91 @@ class DummyDataService {
 class MockBackend {
   static List<Transaction> getTransactions() {
     return [
-      Transaction(name: "Chetan Singh", amount: -50, date: "25 Jan'25", time: "11:00 am"),
-      Transaction(name: "Darshan", amount: -510, date: "24 Jan'25", time: "10:00 am"),
-      Transaction(name: "Anjali Patra", amount: 1200, date: "23 Jan'25", time: "09:00 am"),
-      Transaction(name: "Extra Transaction", amount: -200, date: "22 Jan'25", time: "08:00 am"),
+      Transaction(
+          name: "Chetan Singh",
+          amount: -50,
+          date: "25 Jan'25",
+          time: "11:00 am"),
+      Transaction(
+          name: "Darshan", amount: -510, date: "24 Jan'25", time: "10:00 am"),
+      Transaction(
+          name: "Anjali Patra",
+          amount: 1200,
+          date: "23 Jan'25",
+          time: "09:00 am"),
+      Transaction(
+          name: "Extra Transaction",
+          amount: -200,
+          date: "22 Jan'25",
+          time: "08:00 am"),
+    ];
+  }
+}
+
+/// Merchant Backend - TODO: Link to original backend and integrate functionalities
+class Merchant {
+  String id = "123456789";
+  String name = "sample";
+  String alaisname = "sample";
+  String category = "Others";
+  List<Transaction> transactions = [
+    Transaction(
+        name: "CC Canteen", amount: 200, date: "31 Jan'25", time: "7:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 150, date: "18 Jan'25", time: "2:30 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+    Transaction(
+        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
+  ];
+  double amount = 0;
+  int spends = 0;
+
+  void updateAmountSpends() {
+    spends = 0;
+    amount = 0.0;
+    Transaction trans;
+    for (trans in transactions) {
+      spends = spends + 1;
+      amount = amount + trans.amount;
+    }
+  }
+
+  void addTransactions(Transaction trans) {
+    transactions.add(trans);
+    updateAmountSpends();
+  }
+
+  Merchant(String id, String name, String? cat) {
+    this.id = id;
+    this.name = name;
+    this.category = cat ?? this.category;
+    this.alaisname = name;
+  }
+}
+
+class merchantBackend {
+  static List<Merchant> getMerchants() {
+    return [
+      Merchant("1230ABCD", "CC Canteen", null),
+      Merchant("1231ABCD", "Hall 12 Canteen", null),
+      Merchant("1232ABCD", "Z Square", null),
+      Merchant("1234ABCD", "New Merchant", null)
+      // Add more if needed
     ];
   }
 }

@@ -16,11 +16,23 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,  // Remove debug banner
-      home: HomePage(name: "Darshan", budget: 5000,),  // Set LoginPage1 as the home page
+      debugShowCheckedModeBanner: false, // Remove debug banner
+      home: HomePage(
+        name: "Darshan",
+        budget: 5000,
+      ), // Set LoginPage1 as the home page
     );
   }
 }
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,  // Remove debug banner
+//       home: LoginPage1(),  // Set LoginPage1 as the home page
+//     );
+//   }
+// }
 // class MyApp extends StatelessWidget {
 //   const MyApp({super.key});
 
@@ -48,7 +60,7 @@ class MyApp extends StatelessWidget {
 //         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
 //         useMaterial3: true,
 //       ),
-//       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+//       home: const MyHomePage(title: 'Flutter no Home Page'),
 //     );
 //   }
 // }
@@ -93,50 +105,261 @@ class MyApp extends StatelessWidget {
 //     // The Flutter framework has been optimized to make rerunning build methods
 //     // fast, so that you can just rebuild anything that needs updating rather
 //     // than having to individually change instances of widgets.
+//     // return NavigationBar(
+//     //   selectedIndex: 0,
+//     //   onDestinationSelected: (int index) {
+//     //     print('Tapped on $index');
+//     //   },
+//     //   destinations: [
+//     //     NavigationDestination(
+//     //       icon: Icon(Icons.home),
+//     //       selectedIcon: Icon(Icons.home_filled),
+//     //       label: 'Home',
+//     //     ),
+//     //     NavigationDestination(
+//     //       icon: Icon(Icons.account_circle),
+//     //       selectedIcon: Icon(Icons.account_circle),
+//     //       label: 'Profile',
+//     //     ),
+//     //     NavigationDestination(
+//     //       icon: Icon(Icons.settings),
+//     //       selectedIcon: Icon(Icons.settings),
+//     //       label: 'Settings',
+//     //     ),
+//     //   ],
+//     // );
 //     return Scaffold(
-//       appBar: AppBar(
-//         // TRY THIS: Try changing the color here to a specific color (to
-//         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-//         // change color while the other colors stay the same.
-//         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-//         // Here we take the value from the MyHomePage object that was created by
-//         // the App.build method, and use it to set our appbar title.
-//         title: Text(widget.title),
-//       ),
-//       body: Center(
-//         // Center is a layout widget. It takes a single child and positions it
-//         // in the middle of the parent.
-//         child: Column(
-//           // Column is also a layout widget. It takes a list of children and
-//           // arranges them vertically. By default, it sizes itself to fit its
-//           // children horizontally, and tries to be as tall as its parent.
-//           //
-//           // Column has various properties to control how it sizes itself and
-//           // how it positions its children. Here we use mainAxisAlignment to
-//           // center the children vertically; the main axis here is the vertical
-//           // axis because Columns are vertical (the cross axis would be
-//           // horizontal).
-//           //
-//           // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-//           // action in the IDE, or press "p" in the console), to see the
-//           // wireframe for each widget.
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: <Widget>[
-//             const Text(
-//               'You have pushed the button this many times:',
-//             ),
-//             Text(
-//               '$_counter',
-//               style: Theme.of(context).textTheme.headlineMedium,
-//             ),
-//           ],
+//         appBar: AppBar(
+//           title: Text('Brokeo'),
 //         ),
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: _incrementCounter,
-//         tooltip: 'Increment',
-//         child: const Icon(Icons.add),
-//       ), // This trailing comma makes auto-formatting nicer for build methods.
-//     );
+//         body: Column(children: [
+//           Container(height: 100, child: const Text('Welcome to Brokeo!')),
+//           Container(
+//               height: 200,
+//               child: DefaultTabController(
+//                   initialIndex: 2,
+//                   length: 3,
+//                   child: Column(
+//                     children: [
+//                       Material(
+//                         child: Container(
+//                           height: 50,
+//                           color: Colors.white,
+//                           child: TabBar(
+//                               physics: const ClampingScrollPhysics(),
+//                               padding:
+//                                   const EdgeInsets.symmetric(horizontal: 20),
+//                               unselectedLabelColor: Colors.grey,
+//                               indicatorSize: TabBarIndicatorSize.label,
+//                               indicator: BoxDecoration(
+//                                 borderRadius: BorderRadius.circular(50),
+//                                 color: const Color.fromARGB(255, 229, 153, 243),
+//                               ),
+//                               tabs: [
+//                                 Tab(
+//                                   child: Container(
+//                                     height: 50,
+//                                     child: Align(
+//                                       alignment: Alignment.center,
+//                                       child: Text('Transactions'),
+//                                     ),
+//                                   ),
+//                                 ),
+//                                 Tab(
+//                                   child: Container(
+//                                     height: 50,
+//                                     child: Align(
+//                                       alignment: Alignment.center,
+//                                       child: Text('Categories'),
+//                                     ),
+//                                   ),
+//                                 ),
+//                                 Tab(
+//                                   child: Container(
+//                                     height: 50,
+//                                     child: Align(
+//                                       alignment: Alignment.center,
+//                                       child: Text('Merchants'),
+//                                     ),
+//                                   ),
+//                                 )
+//                               ]),
+//                         ),
+//                       ),
+//                       Expanded(
+//                           child: TabBarView(children: [
+//                         Column(
+//                           crossAxisAlignment: CrossAxisAlignment.center,
+//                           children: [
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Transaction 1'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             ),
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Transaction 2'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             ),
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Transaction 3'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             )
+//                           ],
+//                         ),
+//                         Column(
+//                           crossAxisAlignment: CrossAxisAlignment.center,
+//                           children: [
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Transaction 1'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             ),
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Category 2'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             ),
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Category 3'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             )
+//                           ],
+//                         ),
+//                         Column(
+//                           crossAxisAlignment: CrossAxisAlignment.center,
+//                           children: [
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Merchant 1'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             ),
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Merchant 2'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             ),
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text('Merchant 3'),
+//                                 Column(
+//                                   children: [
+//                                     Text('Date'),
+//                                     Text('Amount'),
+//                                   ],
+//                                 )
+//                               ],
+//                             )
+//                           ],
+//                         )
+//                       ]))
+//                     ],
+//                   )))
+//         ]));
+
+//     // return Scaffold(
+//     //   appBar: AppBar(
+//     //     // TRY THIS: Try changing the color here to a specific color (to
+//     //     // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+//     //     // change color while the other colors stay the same.
+//     //     backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+//     //     // Here we take the value from the MyHomePage object that was created by
+//     //     // the App.build method, and use it to set our appbar title.
+//     //     title: Text(widget.title),
+//     //   ),
+//     //   body: Center(
+//     //     // Center is a layout widget. It takes a single child and positions it
+//     //     // in the middle of the parent.
+//     //     child: Column(
+//     //       // Column is also a layout widget. It takes a list of children and
+//     //       // arranges them vertically. By default, it sizes itself to fit its
+//     //       // children horizontally, and tries to be as tall as its parent.
+//     //       //
+//     //       // Column has various properties to control how it sizes itself and
+//     //       // how it positions its children. Here we use mainAxisAlignment to
+//     //       // center the children vertically; the main axis here is the vertical
+//     //       // axis because Columns are vertical (the cross axis would be
+//     //       // horizontal).
+//     //       //
+//     //       // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+//     //       // action in the IDE, or press "p" in the console), to see the
+//     //       // wireframe for each widget.
+//     //       mainAxisAlignment: MainAxisAlignment.center,
+//     //       children: <Widget>[
+//     //         const Text(
+//     //           'You have pushed the button this many times:',
+//     //         ),
+//     //         Text(
+//     //           '$_counter',
+//     //           style: Theme.of(context).textTheme.headlineMedium,
+//     //         ),
+//     //       ],
+//     //     ),
+//     //   ),
+//     //   floatingActionButton: FloatingActionButton(
+//     //     onPressed: _incrementCounter,
+//     //     tooltip: 'Increment',
+//     //     child: const Icon(Icons.add),
+//     //   ), // This trailing comma makes auto-formatting nicer for build methods.
+//     // );
 //   }
 // }
