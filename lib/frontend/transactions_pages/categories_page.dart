@@ -964,8 +964,6 @@ class MockBackend {
           amount: -200,
           date: "22 Jan'25",
           time: "08:00 am"),
-<<<<<<< HEAD
-=======
     ];
   }
 }
@@ -1034,7 +1032,6 @@ class merchantBackend {
       Merchant("1232ABCD", "Z Square", null),
       Merchant("1234ABCD", "New Merchant", null)
       // Add more if needed
->>>>>>> 9ba5146b386dd15de316f75963f309ecc6691af6
     ];
   }
 }
