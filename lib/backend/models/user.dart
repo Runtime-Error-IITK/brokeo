@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class User {
   String name;
   String email;
@@ -12,43 +14,36 @@ class User {
   });
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(covariant Object other) {
     if (identical(this, other)) return true;
 
-    return other is User &&
-        other.name == name &&
-        other.email == email &&
-        other.phoneNumber == phoneNumber;
+    return other is User && other.phoneNumber == phoneNumber;
   }
 
   @override
   int get hashCode {
-    return name.hashCode ^ email.hashCode ^ phoneNumber.hashCode;
+    return phoneNumber.hashCode;
   }
 
-  factory User.fromJson(Map<String, dynamic> json) {
+  factory User.fromJson(String json) {
+    Map<String, dynamic> decodedJson = jsonDecode(json) as Map<String, dynamic>;
     return User(
-      name: json[nameColumn] as String,
-      email: json[emailColumn] as String,
-      phoneNumber: json[phoneNumberColumn] as String,
-      budget: json[budgetColumn] as Map<String, dynamic>,
+      name: decodedJson[nameColumn] as String,
+      email: decodedJson[emailColumn] as String,
+      phoneNumber: decodedJson[phoneNumberColumn] as String,
+      budget: decodedJson[budgetColumn] as Map<String, dynamic>,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
+  String toJson() {
+    //return json string
+
+    return jsonEncode({
       nameColumn: name,
       emailColumn: email,
       phoneNumberColumn: phoneNumber,
       budgetColumn: budget,
-    };
-  }
-
-  void updateMerchant(Map<String, dynamic> newMerchant) {
-    name = newMerchant[nameColumn] ?? name;
-    email = newMerchant[emailColumn] ?? email;
-    phoneNumber = newMerchant[phoneNumberColumn] ?? phoneNumber;
-    budget = newMerchant[budgetColumn] ?? budget;
+    });
   }
 
   void addEmail(String email) {

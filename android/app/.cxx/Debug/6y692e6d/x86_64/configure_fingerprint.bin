@@ -2,6 +2,7 @@ C/C++ Structured Logm
 k
 iC:\Users\singh\AppData\Local\Flutter\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txtC
 A
+<<<<<<< HEAD
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	ú®Í”Ý2§ ÍÒÔØ2„
 
 C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\additional_project_files.txt	ú®Í”Ý2 ó¾Ì”Ý2€
@@ -26,3 +27,29 @@ w
 uC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\prefab_config.json	ú®Í”Ý2( ¶¿Ì”Ý2~
 |
 zC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\symbol_folder_index.txt	ú®Í”Ý2q ¼¿Ì”Ý2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	ûÝ„ìÜ2§ ÍÒÔØ2„
+
+C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\additional_project_files.txt	ûÝ„ìÜ2 ’‡ü§Û2€
+~
+|C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\android_gradle_build.json	ûÝ„ìÜ2‡	 Ÿ‡ü§Û2‡
+„
+C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\android_gradle_build_mini.json	ûÝ„ìÜ2â ¨‡ü§Û2r
+p
+nC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\build.ninja	ûÝ„ìÜ2ñÕ …†ü§Û2v
+t
+rC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\build.ninja.txt	ûÝ„ìÜ2{
+y
+wC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\build_file_index.txt	ûÝ„ìÜ2i ³‡ü§Û2|
+z
+xC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\compile_commands.json	ûÝ„ìÜ2	€
+~
+|C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\compile_commands.json.bin	ûÝ„ìÜ2
+ˆ
+…
+‚C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\metadata_generation_command.txt	ûÝ„ìÜ2£	 «‡ü§Û2y
+w
+uC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\prefab_config.json	ûÝ„ìÜ2( ®‡ü§Û2~
+|
+zC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\x86_64\symbol_folder_index.txt	ûÝ„ìÜ2q ±‡ü§Û2
+>>>>>>> 9ba5146b386dd15de316f75963f309ecc6691af6
