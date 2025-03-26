@@ -2,6 +2,8 @@ import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
+import 'package:brokeo/models/transaction_model.dart'; // <== new import
 
 /// Main CategoriesPage
 class CategoriesPage extends StatefulWidget {
@@ -9,8 +11,17 @@ class CategoriesPage extends StatefulWidget {
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
-class _CategoriesPageState extends State<CategoriesPage> {
+class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProviderStateMixin {
   int _currentIndex = 1;
+  late TabController _tabController;
+  bool showTransactions = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 0); // Change initialIndex to 0
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,25 +39,46 @@ class _CategoriesPageState extends State<CategoriesPage> {
             buildNavigationBar(context),
 
             SizedBox(height: 10),
-            // 3) Expanded area with a ListView:
-            //    - Donut chart
-            //    - Categories list
+            // 3) Expanded area with a ListView or Transactions:
             Expanded(
-              child: ListView(
+              child: TabBarView(
+                controller: _tabController,
                 children: [
-                  // Donut chart
-                  buildDonutChart(),
-                  SizedBox(height: 20),
-                  // Placeholder for your categories list
-                  buildCategoryGrid(),
+                  _buildTransactions(),
+                  ListView(
+                    children: [
+                      // Donut chart
+                      buildDonutChart(),
+                      SizedBox(height: 20),
+                      // Placeholder for your categories list
+                      buildCategoryGrid(),
+                    ],
+                  ),
+                  Center(child: Text("Merchants View")),
                 ],
               ),
             ),
           ],
         ),
       ),
+      floatingActionButton: _tabController.index == 0 ? FloatingActionButton(
+        onPressed: () {
+          _showAddTransactionDialog(context);
+        },
+        child: Icon(Icons.add, color: Colors.white), // Icon color set to white
+        backgroundColor: Color.fromARGB(255, 97, 53, 186), // Match the color in the image
+        shape: CircleBorder(), // Ensure the shape is circular
+      ) : null,
       bottomNavigationBar: buildBottomNavigationBar(),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tabController.addListener(() {
+      setState(() {});
+    });
   }
 
   /// Top section: Circular arc for "Safe to Spend" & "Amount Spent"
@@ -140,51 +172,16 @@ class _CategoriesPageState extends State<CategoriesPage> {
   /// Navigation bar with three items: Transactions, Categories, Merchants
   Widget buildNavigationBar(BuildContext context) {
     return Container(
-      color: Color.fromARGB(255, 211, 199, 239), // Light pink background
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // Transactions (placeholder - no actual navigation)
-          InkWell(
-            onTap: () {
-              // TODO: Navigate to Transactions Page
-            },
-            child: Text(
-              "Transactions",
-              style: TextStyle(fontSize: 16, color: Colors.black),
-            ),
-          ),
-
-          // Categories (highlighted, current page)
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color:
-                  const Color.fromARGB(255, 212, 145, 223), // highlight color
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: InkWell(
-              onTap: () {
-                // Already on Categories page
-              },
-              child: Text(
-                "Categories",
-                style: TextStyle(fontSize: 16, color: Colors.black),
-              ),
-            ),
-          ),
-
-          // Merchants (placeholder - no actual navigation)
-          InkWell(
-            onTap: () {
-              // TODO: Navigate to Merchants Page
-            },
-            child: Text(
-              "Merchants",
-              style: TextStyle(fontSize: 16, color: Colors.black),
-            ),
-          ),
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        labelColor: Colors.purple,
+        unselectedLabelColor: Colors.grey,
+        indicatorColor: Colors.purple,
+        tabs: [
+          Tab(text: "Transactions"),
+          Tab(text: "Categories"),
+          Tab(text: "Merchants"),
         ],
       ),
     );
@@ -362,6 +359,87 @@ class _CategoriesPageState extends State<CategoriesPage> {
     );
   }
 
+  void _showAddTransactionDialog(BuildContext context) {
+    String? amount;
+    String? merchant;
+    String? category;
+
+    // TODO: Backend
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Add transaction"),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Amount",
+                      prefixText: "₹",
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      setState(() {
+                        amount = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Merchant",
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        merchant = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    decoration: InputDecoration(
+                      labelText: "Category",
+                    ),
+                    items: DummyDataService.getCategoriesFromBackend().map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat,
+                        child: Text(cat),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        category = value;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // just close
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                print("Adding transaction: $amount, $merchant, $category");
+                // TODO: Perform the adding process
+                Navigator.pop(context); // close dialog
+              },
+              child: Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
@@ -401,6 +479,79 @@ class _CategoriesPageState extends State<CategoriesPage> {
             icon: Icon(Icons.analytics), label: "Analytics"),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
       ],
+    );
+  }
+
+  Widget _buildTransactions() {
+    List<Transaction> transactions = MockBackend.getTransactions();
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        return Column(
+          children: [
+            _transactionTile(transactions[index], index),
+            if (index < transactions.length - 1)
+              Divider(color: Colors.grey[300]),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _transactionTile(Transaction transaction, int index) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionDetailPage(transaction: transaction),
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.purple[100],
+                  child: Text(
+                    transaction.name[0],
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.purple),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        transaction.name,
+                        style: TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+                      Text(
+                        "19:30", // Placeholder for time
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  "₹${transaction.amount.abs()}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: transaction.amount < 0 ? Colors.red : Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -690,5 +841,17 @@ class DummyDataService {
 
   static List<String> getCategoriesFromBackend() {
     return ["Food", "Shopping", "Travel", "Others"];
+  }
+}
+
+/// Backend
+class MockBackend {
+  static List<Transaction> getTransactions() {
+    return [
+      Transaction(name: "Chetan Singh", amount: -50, date: "25 Jan'25", time: "11:00 am"),
+      Transaction(name: "Darshan", amount: -510, date: "24 Jan'25", time: "10:00 am"),
+      Transaction(name: "Anjali Patra", amount: 1200, date: "23 Jan'25", time: "09:00 am"),
+      Transaction(name: "Extra Transaction", amount: -200, date: "22 Jan'25", time: "08:00 am"),
+    ];
   }
 }

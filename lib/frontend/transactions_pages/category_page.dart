@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'dart:math';
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
+import 'package:brokeo/models/transaction_model.dart'; // <== new import
 
 class CategoryPage extends StatefulWidget {
   final CategoryCardData data;
@@ -460,7 +462,7 @@ class TransactionListWidget extends StatelessWidget {
                     final transaction = entry.value;
                     return Column(
                       children: [
-                        _transactionTile(transaction),
+                        _transactionTile(context, transaction),
                         if (index < transactions.length - 1)
                           Divider(color: Colors.grey[300]),
                       ],
@@ -473,11 +475,15 @@ class TransactionListWidget extends StatelessWidget {
   }
 
   /// Single Transaction Row (clickable, but onTap is commented out).
-  Widget _transactionTile(Transaction transaction) {
+  Widget _transactionTile(BuildContext context, Transaction transaction) {
     return InkWell(
       onTap: () {
-        // Commented out for now:
-        // print("Tapped on ${transaction.name}");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionDetailPage(transaction: transaction),
+          ),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -592,18 +598,4 @@ class DummyDataService {
           name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
     ];
   }
-}
-
-class Transaction {
-  final String name;
-  final double amount;
-  final String date; // e.g., "25 Jan'25"
-  final String time; // e.g., "11:00 am"
-
-  Transaction({
-    required this.name,
-    required this.amount,
-    required this.date,
-    required this.time,
-  });
 }
