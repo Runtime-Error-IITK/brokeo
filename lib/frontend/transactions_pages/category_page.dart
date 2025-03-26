@@ -298,8 +298,6 @@ class _CategoryPageState extends State<CategoryPage> {
               onPressed: () {
                 // Convert the updated budget string back to a double
                 // (handle parsing errors as needed)
-                double updatedBudget =
-                    double.tryParse(budgetValueAsString) ?? 0.0;
 
                 // TODO: Perform the update logic here
                 // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");

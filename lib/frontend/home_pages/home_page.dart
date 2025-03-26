@@ -3,8 +3,13 @@ import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:brokeo/models/transaction_model.dart'; // <== new import
-import 'package:brokeo/frontend/split_pages/manage_splits.dart'; // <== new import
+import 'package:brokeo/models/transaction_model.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
+import 'package:brokeo/frontend/profile_pages/budget_page.dart';
+import 'package:brokeo/frontend/transactions_pages/category_page.dart';
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
+import 'package:brokeo/frontend/split_pages/split_history.dart';
+import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 
 /// Home Page
 class HomePage extends StatefulWidget {
@@ -25,6 +30,11 @@ class _HomePageState extends State<HomePage> {
   bool showAllScheduledPayments = false;
   bool showAllSplits = false;
   bool showAllBudgetCategories = false;
+
+  final TextEditingController _catNameController = TextEditingController();
+  final TextEditingController _budgetController = TextEditingController();
+  String? _selectedEmoji;
+  final List<String> _emojiOptions = ['🍔', '🍕', '🎉', '💡', '📚'];
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +66,61 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       bottomNavigationBar: buildBottomNavigationBar(),
+    );
+  }
+
+  void _showAddCategoryDialog() {
+    _catNameController.clear();
+    _budgetController.clear();
+    _selectedEmoji = _emojiOptions.first;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Add Category"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _catNameController,
+              decoration: InputDecoration(labelText: "Category Name"),
+            ),
+            DropdownButton<String>(
+              value: _selectedEmoji,
+              items: _emojiOptions
+                  .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                  .toList(),
+              onChanged: (val) => setState(() => _selectedEmoji = val),
+            ),
+            TextField(
+              controller: _budgetController,
+              decoration: InputDecoration(
+                labelText: "Budget (optional)",
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              // Process the entered data.
+              String name = _catNameController.text.trim();
+              String emoji = _selectedEmoji ?? '';
+              int? budget = int.tryParse(_budgetController.text.trim());
+              print("New Category: $name, Emoji: $emoji, Budget: $budget");
+              Navigator.pop(context);
+            },
+            child: Text("Add"),
+          )
+        ],
+      ),
     );
   }
 
@@ -190,6 +255,7 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.add, size: 22, color: Colors.black54),
                     onPressed: () {
                       // TODO: Handle add transaction
+                      _showAddTransactionDialog(context);
                     },
                   ),
                   IconButton(
@@ -239,14 +305,89 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _showAddTransactionDialog(BuildContext context) {
+    String? amount;
+    String? merchant;
+    // Retrieve and sort merchants alphabetically
+    List<Merchant> merchantsList = MerchantBackend.getMerchants();
+    merchantsList.sort((a, b) => a.name.compareTo(b.name));
+    final merchantNames = merchantsList.map((m) => m.name).toList();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Add transaction"),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Amount input remains unchanged
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Amount",
+                      prefixText: "₹",
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      setState(() {
+                        amount = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  // Dropdown for selecting a merchant
+                  DropdownButtonFormField<String>(
+                    value: merchant,
+                    decoration: InputDecoration(
+                      labelText: "Merchant",
+                    ),
+                    items: merchantNames.map((name) {
+                      return DropdownMenuItem<String>(
+                        value: name,
+                        child: Text(name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        merchant = value;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // just close
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                print("Adding transaction: $amount, $merchant");
+                // TODO: Perform the adding process
+                Navigator.pop(context); // close dialog
+              },
+              child: Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Single Transaction Tile
   Widget _transactionTile(Transaction transaction, int index) {
     return InkWell(
       onTap: () {
-        setState(() {
-          expandedTransactionIndex =
-              (expandedTransactionIndex == index) ? -1 : index;
-        });
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionDetailPage(transaction: transaction),
+          ),
+        );
       },
       child: Column(
         children: [
@@ -324,6 +465,7 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.add, size: 22, color: Colors.black54),
                     onPressed: () {
                       // TODO: Handle "Add Category"
+                      _showAddCategoryDialog();
                     },
                   ),
                   IconButton(
@@ -372,12 +514,96 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // void _showAddCategoryDialog(BuildContext context) {
+  //   // Example categories from backend (replace with real fetch)
+  //   final List<String> categoriesFromBackend =
+  //       DummyDataService.getCategoriesFromBackend();
+
+  //   String? selectedCategory;
+  //   String? budgetValue;
+
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text("Add Category"),
+  //         content: StatefulBuilder(
+  //           builder: (context, setState) {
+  //             return Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 // Dropdown for category selection
+  //                 DropdownButtonFormField<String>(
+  //                   value: selectedCategory,
+  //                   decoration: InputDecoration(
+  //                     labelText: "Category Name",
+  //                   ),
+  //                   items: categoriesFromBackend.map((cat) {
+  //                     return DropdownMenuItem<String>(
+  //                       value: cat,
+  //                       child: Text(cat),
+  //                     );
+  //                   }).toList(),
+  //                   onChanged: (value) {
+  //                     setState(() {
+  //                       selectedCategory = value;
+  //                     });
+  //                   },
+  //                 ),
+  //                 SizedBox(height: 16),
+  //                 // TextField for budget input
+  //                 TextFormField(
+  //                   decoration: InputDecoration(
+  //                     labelText: "Budget",
+  //                     prefixText: "₹",
+  //                   ),
+  //                   keyboardType: TextInputType.number,
+  //                   onChanged: (value) {
+  //                     setState(() {
+  //                       budgetValue = value;
+  //                     });
+  //                   },
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context), // just close
+  //             child: Text("Cancel"),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               print(
+  //                   "Adding category: $selectedCategory with budget $budgetValue");
+  //               // TODO : Perform the adding process
+  //             },
+  //             child: Text("Confirm"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
 // Single Category tile
   Widget _buildCategoryTile(CategoryItem category) {
     return InkWell(
       onTap: () {
-        // TODO: Implement onTap logic for category
-        // For example, open category details or show a dialog.
+        final data = CategoryCardData(
+          name: category.name,
+          icon: Icons.category,
+          color: Colors.blue,
+          spent: 0,
+          budget: category.amount,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(data: data),
+          ),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -697,6 +923,11 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.add, size: 22, color: Colors.black54),
                     onPressed: () {
                       // TODO: Handle "Add Split" action
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChooseTransactionPage()),
+                      );
                     },
                   ),
                   IconButton(
@@ -790,13 +1021,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  final mockData = [
+      {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
+      {"name": "Darshan", "amount": 510.0, "isSettled": false},
+      {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
+      {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
+      {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
+      {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
+      {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
+      {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
+      {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
+    ];
+
   Widget _buildSplitTile(Split split) {
     bool isNegative = split.amount < 0;
     Color amountColor = isNegative ? Colors.red : Colors.green;
-
+    
     return InkWell(
       onTap: () {
-        // TODO: Implement onTap logic for each split (e.g., show detail view)
+        // TODO: Fix this bullshit error
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SplitHistoryPage(split: split.toMap()),
+          ),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -862,6 +1116,11 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.add, size: 22, color: Colors.black54),
                     onPressed: () {
                       // TODO: Handle "Add Budget Category" action
+                      // Navigate to budget_page.dart
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => BudgetPage()),
+                      );
                     },
                   ),
                   IconButton(
@@ -961,9 +1220,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBudgetCategoryTile(BudgetCategory category) {
+    
     return InkWell(
       onTap: () {
         // TODO: Implement onTap logic for each budget category
+        // Navigate to that category page
+        final category = CategoryCardData(
+          name: "Sury",
+          icon: Icons.food_bank,
+          color: Colors.red,
+          spent: 200,
+          budget: 1000,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CategoryPage(data: category),
+          ),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -1000,7 +1274,60 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
+  Widget buildCategoryCard(CategoryCardData data) {
+    return GestureDetector(
+      onTap: () {
+        if (data.name == "Add Category") {
+          // show popup
+          // _showAddCategoryDialog(context);
+          // e.g. showDialog(...)
+        } else {
+          // TODO: Navigate to the category's detail page
+          // e.g. Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryDetailPage(data)));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CategoryPage(data: data),
+            ),
+          );
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: data.color.withOpacity(0.1), // light background tint
+          border: Border.all(color: Colors.black, width: 1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Category name
+            Text(
+              data.name,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            // Icon
+            Icon(
+              data.icon,
+              size: 40,
+              color: data.color,
+            ),
+            SizedBox(height: 8),
+            // Spent/Budget
+            if (data.name != "Add Category")
+              Text(
+                "₹${data.spent.toStringAsFixed(0)}/₹${data.budget.toStringAsFixed(0)}",
+                style: TextStyle(fontSize: 14),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
   Widget buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
@@ -1124,7 +1451,7 @@ class Split {
 
   Split(this.name, this.amount);
 
-    factory Split.fromMap(Map<String, dynamic> map) {
+  factory Split.fromMap(Map<String, dynamic> map) {
     return Split(
       map['name'] as String,
       (map['amount'] as num).toDouble(),
@@ -1139,7 +1466,7 @@ class Split {
     };
   }
 
-  bool get isSettled => amount == 0;  // Calculated property
+  bool get isSettled => amount == 0; // Calculated property
 }
 
 class BudgetCategory {
@@ -1148,17 +1475,6 @@ class BudgetCategory {
   final double amount;
 
   BudgetCategory(this.emoji, this.name, this.amount);
-}
-
-class Merchant {
-  final String id;
-  final String name;
-  final String? category;
-  final double amount = 0;
-  final double spends = 0;
-  final List<Transaction> transactions = [];
-
-  Merchant(this.id, this.name, this.category);
 }
 
 /// Backend
@@ -1249,5 +1565,76 @@ class MockBackend {
       BudgetCategory("🎮", "Ress", 221),
       // Add more if needed
     ];
+  }
+}
+class DummyDataService {
+  static double getDailySafeToSpend() => 365.0;
+  static double getAmountSpent() => 3028.0;
+  static double getProgress() => 0.5; // 50% usage
+  static List<CategoryData> getCategories() {
+    return [
+      CategoryData(name: "Food", percentage: 0.4, color: Colors.red),
+      CategoryData(name: "Shopping", percentage: 0.3, color: Colors.blue),
+      CategoryData(name: "Travel", percentage: 0.2, color: Colors.green),
+      CategoryData(name: "Others", percentage: 0.1, color: Colors.grey),
+    ];
+  }
+
+  static List<CategoryCardData> getCategoriesData() {
+    return [
+      CategoryCardData(
+        name: "Food",
+        spent: 500,
+        budget: 1000,
+        icon: Icons.fastfood,
+        color: Colors.red,
+      ),
+      CategoryCardData(
+        name: "Shopping",
+        spent: 300,
+        budget: 500,
+        icon: Icons.shopping_cart,
+        color: Colors.blue,
+      ),
+      CategoryCardData(
+        name: "Travel",
+        spent: 200,
+        budget: 1000,
+        icon: Icons.flight,
+        color: Colors.green,
+      ),
+      CategoryCardData(
+        name: "Travel",
+        spent: 200,
+        budget: 1000,
+        icon: Icons.flight,
+        color: Colors.green,
+      ),
+      CategoryCardData(
+        name: "Travel",
+        spent: 200,
+        budget: 1000,
+        icon: Icons.flight,
+        color: Colors.green,
+      ),
+      CategoryCardData(
+        name: "Travel",
+        spent: 200,
+        budget: 1000,
+        icon: Icons.flight,
+        color: Colors.green,
+      ),
+      CategoryCardData(
+        name: "Add Category",
+        spent: 0,
+        budget: 0,
+        icon: Icons.add,
+        color: Colors.grey,
+      ),
+    ];
+  }
+
+  static List<String> getCategoriesFromBackend() {
+    return ["Food", "Shopping", "Travel", "Others"];
   }
 }

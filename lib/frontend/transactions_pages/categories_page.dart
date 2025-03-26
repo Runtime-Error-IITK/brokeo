@@ -4,7 +4,7 @@ import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
-import 'package:brokeo/models/transaction_model.dart'; // <== new import
+import 'package:brokeo/models/transaction_model.dart';
 import 'package:brokeo/frontend/transactions_pages/merchants_page.dart';
 
 /// Main CategoriesPage
@@ -70,11 +70,9 @@ class _CategoriesPageState extends State<CategoriesPage>
               onPressed: () {
                 _showAddTransactionDialog(context);
               },
-              child: Icon(Icons.add,
-                  color: Colors.white), // Icon color set to white
-              backgroundColor: Color.fromARGB(
-                  255, 97, 53, 186), // Match the color in the image
-              shape: CircleBorder(), // Ensure the shape is circular
+              child: Icon(Icons.add, color: Colors.white),
+              backgroundColor: Color.fromARGB(255, 97, 53, 186),
+              shape: CircleBorder(),
             )
           : null,
       bottomNavigationBar: buildBottomNavigationBar(),
@@ -370,9 +368,10 @@ class _CategoriesPageState extends State<CategoriesPage>
   void _showAddTransactionDialog(BuildContext context) {
     String? amount;
     String? merchant;
-    String? category;
-
-    // TODO: Backend
+    // Retrieve and sort merchants alphabetically by name.
+    List<Merchant> merchantsList = MerchantBackend.getMerchants();
+    merchantsList.sort((a, b) => a.name.compareTo(b.name));
+    final merchantNames = merchantsList.map((m) => m.name).toList();
 
     showDialog(
       context: context,
@@ -384,6 +383,7 @@ class _CategoriesPageState extends State<CategoriesPage>
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Amount input remains unchanged
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: "Amount",
@@ -397,32 +397,21 @@ class _CategoriesPageState extends State<CategoriesPage>
                     },
                   ),
                   SizedBox(height: 16),
-                  TextFormField(
+                  // Replace merchant text field with dropdown listing merchants
+                  DropdownButtonFormField<String>(
+                    value: merchant,
                     decoration: InputDecoration(
                       labelText: "Merchant",
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        merchant = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: category,
-                    decoration: InputDecoration(
-                      labelText: "Category",
-                    ),
-                    items:
-                        DummyDataService.getCategoriesFromBackend().map((cat) {
+                    items: merchantNames.map((name) {
                       return DropdownMenuItem<String>(
-                        value: cat,
-                        child: Text(cat),
+                        value: name,
+                        child: Text(name),
                       );
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        category = value;
+                        merchant = value;
                       });
                     },
                   ),
@@ -437,7 +426,7 @@ class _CategoriesPageState extends State<CategoriesPage>
             ),
             TextButton(
               onPressed: () {
-                print("Adding transaction: $amount, $merchant, $category");
+                print("Adding transaction: $amount, $merchant");
                 // TODO: Perform the adding process
                 Navigator.pop(context); // close dialog
               },
@@ -579,7 +568,7 @@ class _CategoriesPageState extends State<CategoriesPage>
 
 // Merchant
   Widget _buildMerchants() {
-    List<Merchant> merchants = merchantBackend.getMerchants();
+    List<Merchant> merchants = MerchantBackend.getMerchants();
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
       itemCount: merchants.length,
@@ -653,6 +642,56 @@ class _CategoriesPageState extends State<CategoriesPage>
       ),
     );
   }
+
+  // void _showAddCategoryDialog() {
+  //   _catNameController.clear();
+  //   _budgetController.clear();
+  //   _selectedEmoji = _emojiOptions.first;
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text("Add Category"),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           TextField(
+  //             controller: _catNameController,
+  //             decoration: InputDecoration(labelText: "Category Name"),
+  //           ),
+  //           DropdownButton<String>(
+  //             value: _selectedEmoji,
+  //             items: _emojiOptions
+  //                 .map((e) => DropdownMenuItem(
+  //                       value: e,
+  //                       child: Text(e),
+  //                     ))
+  //                 .toList(),
+  //             onChanged: (val) => setState(() => _selectedEmoji = val),
+  //           ),
+  //           TextField(
+  //             controller: _budgetController,
+  //             decoration: InputDecoration(
+  //               labelText: "Budget (optional)",
+  //             ),
+  //             keyboardType: TextInputType.number,
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () {
+  //             String name = _catNameController.text.trim();
+  //             String emoji = _selectedEmoji ?? '';
+  //             int? budget = int.tryParse(_budgetController.text.trim());
+  //             print("New Category: $name, Emoji: $emoji, Budget: $budget");
+  //             Navigator.pop(context);
+  //           },
+  //           child: Text("Add"),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 /// DonutChartWidget: draws a donut chart + legend for up to 3 categories + "Others"
@@ -964,74 +1003,6 @@ class MockBackend {
           amount: -200,
           date: "22 Jan'25",
           time: "08:00 am"),
-    ];
-  }
-}
-
-/// Merchant Backend - TODO: Link to original backend and integrate functionalities
-class Merchant {
-  String id = "123456789";
-  String name = "sample";
-  String alaisname = "sample";
-  String category = "Others";
-  List<Transaction> transactions = [
-    Transaction(
-        name: "CC Canteen", amount: 200, date: "31 Jan'25", time: "7:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 150, date: "18 Jan'25", time: "2:30 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    Transaction(
-        name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-  ];
-  double amount = 0;
-  int spends = 0;
-
-  void updateAmountSpends() {
-    spends = 0;
-    amount = 0.0;
-    Transaction trans;
-    for (trans in transactions) {
-      spends = spends + 1;
-      amount = amount + trans.amount;
-    }
-  }
-
-  void addTransactions(Transaction trans) {
-    transactions.add(trans);
-    updateAmountSpends();
-  }
-
-  Merchant(String id, String name, String? cat) {
-    this.id = id;
-    this.name = name;
-    this.category = cat ?? this.category;
-    this.alaisname = name;
-  }
-}
-
-class merchantBackend {
-  static List<Merchant> getMerchants() {
-    return [
-      Merchant("1230ABCD", "CC Canteen", null),
-      Merchant("1231ABCD", "Hall 12 Canteen", null),
-      Merchant("1232ABCD", "Z Square", null),
-      Merchant("1234ABCD", "New Merchant", null)
-      // Add more if needed
     ];
   }
 }

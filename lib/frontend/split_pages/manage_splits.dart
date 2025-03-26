@@ -1,9 +1,7 @@
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
-
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
-//import 'package:brokeo/frontend/split_pages/split_detail_page.dart';
 import 'package:brokeo/frontend/split_pages/split_history.dart';
 
 class ManageSplitsPage extends StatefulWidget {

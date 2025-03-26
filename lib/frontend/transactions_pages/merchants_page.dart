@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/models/transaction_model.dart'; // <== new import
@@ -276,8 +275,6 @@ class _MerchantsPageState extends State<MerchantsPage> {
               onPressed: () {
                 // Convert the updated budget string back to a double
                 // (handle parsing errors as needed)
-                String updatedMerchant = initialMerchantName;
-
                 // TODO: Perform the update logic here
                 // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
                 Navigator.pop(context); // close dialog

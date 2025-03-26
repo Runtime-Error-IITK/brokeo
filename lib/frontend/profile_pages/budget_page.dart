@@ -14,11 +14,10 @@ class _BudgetPageState extends State<BudgetPage> {
     "Education": {"budget": 0.0, "emoji": "📚"},
   };
 
-  void _addNewCategory(String categoryName, String emoji) {
-    setState(() {
-      _categoryBudgets[categoryName] = {"budget": 0.0, "emoji": emoji};
-    });
-  }
+  final TextEditingController _catNameController = TextEditingController();
+  final TextEditingController _budgetController = TextEditingController();
+  String? _selectedEmoji;
+  final List<String> _emojiOptions = ['🍔', '🍕', '🎉', '💡', '📚'];
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +120,7 @@ class _BudgetPageState extends State<BudgetPage> {
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {
-                  _showAddCategoryDialog(context);
+                  _showAddCategoryDialog();
                 },
                 icon: Icon(Icons.add, color: Theme.of(context).iconTheme.color),
                 label: Text(
@@ -165,71 +164,52 @@ class _BudgetPageState extends State<BudgetPage> {
     );
   }
 
-  void _showAddCategoryDialog(BuildContext context) {
-    String? newCategoryName;
-    String? selectedEmoji = "📁";
-
+  void _showAddCategoryDialog() {
+    _catNameController.clear();
+    _budgetController.clear();
+    _selectedEmoji = _emojiOptions.first;
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Add New Category"),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    decoration: InputDecoration(labelText: "Category Name"),
-                    onChanged: (value) {
-                      newCategoryName = value;
-                    },
-                  ),
-                  SizedBox(height: Theme.of(context).spacingScheme.small),
-                  DropdownButtonFormField<String>(
-                    value: selectedEmoji,
-                    decoration: InputDecoration(labelText: "Select Emoji"),
-                    items: [
-                      "🍔",
-                      "🛍️",
-                      "✈️",
-                      "📚",
-                      "🏠",
-                      "🚗",
-                      "📁",
-                    ].map((emoji) {
-                      return DropdownMenuItem<String>(
-                        value: emoji,
-                        child: Text(emoji, style: TextStyle(fontSize: 18)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedEmoji = value;
-                      });
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
+      builder: (context) => AlertDialog(
+        title: Text("Add Category"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _catNameController,
+              decoration: InputDecoration(labelText: "Category Name"),
             ),
-            TextButton(
-              onPressed: () {
-                if (newCategoryName != null && selectedEmoji != null) {
-                  _addNewCategory(newCategoryName!, selectedEmoji!);
-                }
-                Navigator.pop(context);
-              },
-              child: Text("Add"),
+            DropdownButton<String>(
+              value: _selectedEmoji,
+              items: _emojiOptions
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (val) => setState(() => _selectedEmoji = val),
+            ),
+            TextField(
+              controller: _budgetController,
+              decoration: InputDecoration(labelText: "Budget (optional)"),
+              keyboardType: TextInputType.number,
             ),
           ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              String name = _catNameController.text.trim();
+              String emoji = _selectedEmoji ?? '';
+              int? budget = int.tryParse(_budgetController.text.trim());
+              print("New Category: $name, Emoji: $emoji, Budget: $budget");
+              Navigator.pop(context);
+            },
+            child: Text("Add"),
+          ),
+        ],
+      ),
     );
   }
 }
