@@ -1,12 +1,15 @@
 import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/login_pages/login_page1.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/split_pages/split_history.dart';
 // import 'package:brokeo/frontend/login_pages/login_page1.dart';
 // import 'package:brokeo/frontend/home_pages/home_page.dart';
 // import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 // import 'package:brokeo/frontend/login_pages/login_page1.dart';
 // import 'package:brokeo/frontend/login_pages/login_page3.dart';
 import 'package:flutter/material.dart';
+import 'package:brokeo/frontend/split_pages/split_between.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,10 +20,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,  // Remove debug banner
-      home: HomePage(name: "Darshan", budget: 5000,),  // Set LoginPage1 as the home page
+      home: ManageSplitsPage(),  // Set LoginPage1 as the home page
     );
   }
 }
+
+
 // class MyApp extends StatelessWidget {
 //   const MyApp({super.key});
 

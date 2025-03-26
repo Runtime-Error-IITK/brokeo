@@ -1,7 +1,10 @@
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
+
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
+//import 'package:brokeo/frontend/split_pages/split_detail_page.dart';
+import 'package:brokeo/frontend/split_pages/split_history.dart';
 
 class ManageSplitsPage extends StatefulWidget {
   @override
@@ -32,6 +35,10 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
       {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
       {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
       {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
     ];
 
     // Convert raw data to Split objects
@@ -52,39 +59,47 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
           Container(
             margin: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: const Color(0xFFEDE7F6), // Your specified background color
+              color: const Color(0xFFF0E4F4), // Light purple background
               borderRadius: BorderRadius.circular(16.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  // Total Balance
-                  _buildBalanceRow(
-                    label: "Total Balance",
-                    amount: 1441,
-                    amountColor: Colors.green[700]!,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // You Owe
-                  _buildBalanceRow(
-                    label: "You Owe",
-                    amount: 200,
-                    amountColor: Colors.red[700]!,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // You Are Owed
-                  _buildBalanceRow(
-                    label: "You Are Owed",
-                    amount: 1641,
-                    amountColor: Colors.green[700]!,
-                  ),
-                ],
-              ),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildBalanceRow(
+                  label: "Total Balance",
+                  amount: 1441,
+                  amountColor:
+                      Colors.green[800]!, // Darker green for better contrast
+                ),
+                const Divider(
+                  height: 24,
+                  color: Colors.black54, // Dark divider
+                  thickness: 0.75,
+                ),
+                _buildBalanceRow(
+                  label: "You Owe",
+                  amount: 200,
+                  amountColor:
+                      Colors.red[800]!, // Darker red for better contrast
+                ),
+                const SizedBox(height: 12),
+                _buildBalanceRow(
+                  label: "You Are Owed",
+                  amount: 1641,
+                  amountColor: Colors.green[800]!,
+                ),
+              ],
             ),
-          ), // Dynamic ListView with dividers
+          ),
+
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadSplits,
@@ -127,37 +142,43 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
 
   Widget _buildBalanceRow({
     required String label,
-    required int amount,
+    required double amount,
     required Color amountColor,
   }) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 16,
+            color: Colors.black, // Black text for labels
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const Spacer(),
         Text(
-          "₹${amount.toString()}",
+          "₹${amount.toStringAsFixed(2)}",
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: amountColor,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: amountColor, // Green/red for amounts
           ),
         ),
       ],
     );
   }
 
+
+  
   Widget _buildSplitTile(brokeo_split.Split split) {
     return InkWell(
       onTap: () {
-        // Add navigation if needed
-        // Navigator.push(context, MaterialPageRoute(builder: (_) => SplitDetailPage(split)));
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SplitHistoryPage(split: split.toMap()),
+        ),
+      );
       },
       child: Column(
         children: [
@@ -187,14 +208,6 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
                           color: Colors.black87,
                         ),
                       ),
-                      // Optional: Add date/time if available
-                      // Text(
-                      //   "12:30 PM",
-                      //   style: TextStyle(
-                      //     fontSize: 12,
-                      //     color: Colors.black54,
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
@@ -213,7 +226,6 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
       ),
     );
   }
-
   Widget buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,

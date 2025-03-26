@@ -997,6 +997,14 @@ class Split {
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'amount': amount,
+      'isSettled': isSettled,
+    };
+  }
+
   bool get isSettled => amount == 0;  // Calculated property
 }
 
