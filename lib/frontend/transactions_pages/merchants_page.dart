@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/models/transaction_model.dart'; // <== new import
+import 'package:brokeo/frontend/home_pages/home_page.dart'; // Import HomePage
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart'; // Import CategoriesPage
+import 'package:brokeo/frontend/split_pages/manage_splits.dart'; // Import ManageSplitsPage
 
 class MerchantsPage extends StatefulWidget {
   final Merchant data;
@@ -156,13 +158,22 @@ class _MerchantsPageState extends State<MerchantsPage> {
         }
         // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage(name: "User", budget: 5000)),
+          );
         } else if (index == 1) {
-          // Already on Categories/Transactions page.
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
+          );
         } else if (index == 2) {
           // TODO: Navigate to Analytics Page
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
+          );
         }
       },
       type: BottomNavigationBarType.fixed,
@@ -276,8 +287,6 @@ class _MerchantsPageState extends State<MerchantsPage> {
               onPressed: () {
                 // Convert the updated budget string back to a double
                 // (handle parsing errors as needed)
-                String updatedMerchant = initialMerchantName;
-
                 // TODO: Perform the update logic here
                 // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
                 Navigator.pop(context); // close dialog

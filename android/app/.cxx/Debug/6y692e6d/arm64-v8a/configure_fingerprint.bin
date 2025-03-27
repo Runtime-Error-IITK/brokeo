@@ -2,6 +2,32 @@ C/C++ Structured Logm
 k
 iC:\Users\singh\AppData\Local\Flutter\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txtC
 A
+<<<<<<< HEAD
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	Ø¬Í”Ý2§ ÍÒÔØ2ˆ
+…
+‚C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\additional_project_files.txt	Ø¬Í”Ý2 òìË”Ý2„
+
+C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\android_gradle_build.json	Ø¬Í”Ý2	 †íË”Ý2Š
+‡
+„C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\android_gradle_build_mini.json	Ø¬Í”Ý2è ¤íË”Ý2u
+s
+qC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\build.ninja	Ø¬Í”Ý2€Ö ÒëË”Ý2y
+w
+uC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\build.ninja.txt	Ø¬Í”Ý2~
+|
+zC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\build_file_index.txt	Ø¬Í”Ý2i »íË”Ý2
+}
+{C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\compile_commands.json	Ø¬Í”Ý2	„
+
+C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\compile_commands.json.bin	Ø¬Í”Ý2
+‹
+ˆ
+…C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\metadata_generation_command.txt	Ø¬Í”Ý2²	 ²íË”Ý2|
+z
+xC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\prefab_config.json	Ø¬Í”Ý2( ²íË”Ý2
+
+}C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\symbol_folder_index.txt	Ø¬Í”Ý2t ¸íË”Ý2
+=======
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	‚Ý„ìÜ2§ ÍÒÔØ2ˆ
 …
 ‚C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\additional_project_files.txt	‚Ý„ìÜ2 ‚¶û§Û2„
@@ -26,3 +52,4 @@ z
 xC:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\prefab_config.json	‚Ý„ìÜ2( Ž·û§Û2
 
 }C:\Users\singh\Desktop\IITK\CS253 Project App Brokeo\brokeo\android\app\.cxx\Debug\6y692e6d\arm64-v8a\symbol_folder_index.txt	‚Ý„ìÜ2t ‘·û§Û2
+>>>>>>> 9ba5146b386dd15de316f75963f309ecc6691af6

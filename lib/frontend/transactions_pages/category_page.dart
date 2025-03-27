@@ -3,6 +3,8 @@ import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/models/transaction_model.dart'; // <== new import
+import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 
 class CategoryPage extends StatefulWidget {
   final CategoryCardData data;
@@ -151,14 +153,33 @@ class _CategoryPageState extends State<CategoryPage> {
           });
         }
         // Navigation logic based on index:
+        // Navigation logic based on index:
         if (index == 0) {
           // TODO: Navigate to Home Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(name: "Darshan", budget: 5000),
+            ),
+          );
         } else if (index == 1) {
-          // Already on Categories/Transactions page.
+          // Already on Categories/Transactions page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoriesPage(),
+            ),
+          );
         } else if (index == 2) {
           // TODO: Navigate to Analytics Page
         } else if (index == 3) {
           // TODO: Navigate to Split Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ManageSplitsPage(),
+            ),
+          );
         }
       },
       type: BottomNavigationBarType.fixed,
@@ -277,8 +298,6 @@ class _CategoryPageState extends State<CategoryPage> {
               onPressed: () {
                 // Convert the updated budget string back to a double
                 // (handle parsing errors as needed)
-                double updatedBudget =
-                    double.tryParse(budgetValueAsString) ?? 0.0;
 
                 // TODO: Perform the update logic here
                 // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
@@ -481,7 +500,8 @@ class TransactionListWidget extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TransactionDetailPage(transaction: transaction),
+            builder: (context) =>
+                TransactionDetailPage(transaction: transaction),
           ),
         );
       },

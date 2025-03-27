@@ -10,7 +10,8 @@ class TransactionDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Credit Transaction"),
+        // Updated title based on transaction amount
+        title: Text(transaction.amount < 0 ? "Debit Transaction" : "Credit Transaction"),
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
         elevation: 0,
@@ -24,12 +25,13 @@ class TransactionDetailPage extends StatelessWidget {
               "Amount",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            // Updated amount display without negative sign and specifying type
             Text(
-              "₹${transaction.amount.toStringAsFixed(0)}",
+              "₹${transaction.amount.abs().toStringAsFixed(0)} ${transaction.amount < 0 ? 'Debited' : 'Credited'}",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
-              "${_convertNumberToWords(transaction.amount.toInt())} Rupees Only",
+              "${_convertNumberToWords(transaction.amount.abs().toInt())} Rupees Only",
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
             SizedBox(height: 20),
