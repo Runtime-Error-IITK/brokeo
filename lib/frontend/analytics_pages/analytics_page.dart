@@ -16,23 +16,26 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   int _currentIndex = 2;
   String _selectedFilter = 'Daily';
   final List<String> _filters = ['Daily', 'Weekly', 'Monthly'];
-  
+
   // Mock data for demonstration
   final Map<String, Map<String, dynamic>> _data = {
     'Daily': {
       'spends': [1200, 800, 1500, 900, 1300, 700, 1000],
       'received': [500, 1200, 800, 600, 900, 1300, 700],
-      'dates': List.generate(7, (i) => DateTime.now().subtract(Duration(days: 6 - i))),
+      'dates': List.generate(
+          7, (i) => DateTime.now().subtract(Duration(days: 6 - i))),
     },
     'Weekly': {
       'spends': [4500, 5200, 4800, 5100, 4900, 5300, 5000],
       'received': [3800, 4200, 4000, 4100, 3900, 4300, 4100],
-      'dates': List.generate(7, (i) => DateTime.now().subtract(Duration(days: (6 - i) * 7))),
+      'dates': List.generate(
+          7, (i) => DateTime.now().subtract(Duration(days: (6 - i) * 7))),
     },
     'Monthly': {
       'spends': [18000, 19500, 21000, 18500, 20000, 19000, 20500],
       'received': [16500, 17500, 18500, 17000, 18000, 17500, 19000],
-      'dates': List.generate(7, (i) => DateTime(DateTime.now().year, DateTime.now().month - (6 - i))),
+      'dates': List.generate(7,
+          (i) => DateTime(DateTime.now().year, DateTime.now().month - (6 - i))),
     },
   };
 
@@ -41,14 +44,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     final currentData = _data[_selectedFilter]!;
     final dates = currentData['dates'] as List<DateTime>;
     final labels = _generateLabels(dates);
-    
+
     final spends = (currentData['spends'] as List)
         .map((e) => (e as num).toDouble())
         .toList();
     final received = (currentData['received'] as List)
         .map((e) => (e as num).toDouble())
         .toList();
-    
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -71,7 +74,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                       child: Text(value, style: TextStyle(color: Colors.black)),
                     );
                   }).toList(),
-                  onChanged: (newValue) => setState(() => _selectedFilter = newValue!),
+                  onChanged: (newValue) =>
+                      setState(() => _selectedFilter = newValue!),
                 ),
               ),
             ],
@@ -84,6 +88,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     _buildChartSection(
                       title: 'Spends Overview',
                       child: Container(
+                        width: double.infinity,
                         height: 300,
                         padding: EdgeInsets.only(bottom: 20),
                         child: BarChart(
@@ -102,7 +107,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                           spends: spends,
                           received: received,
                           labels: labels,
-                          maxValue: [...spends, ...received].reduce((a, b) => a > b ? a : b),
+                          maxValue: [...spends, ...received]
+                              .reduce((a, b) => a > b ? a : b),
                         ),
                       ),
                     ),
@@ -120,11 +126,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   }
 
   List<String> _generateLabels(List<DateTime> dates) {
-    final format = _selectedFilter == 'Monthly' 
-      ? DateFormat('MMM') 
-      : _selectedFilter == 'Weekly' 
-        ? DateFormat('dd/MM') 
-        : DateFormat('dd/MM');
+    final format = _selectedFilter == 'Monthly'
+        ? DateFormat('MMM')
+        : _selectedFilter == 'Weekly'
+            ? DateFormat('dd/MM')
+            : DateFormat('dd/MM');
     return dates.map((d) => format.format(d)).toList();
   }
 
@@ -140,7 +146,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             children: [
               Text(
                 title,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               SizedBox(height: 20),
               child,
@@ -175,14 +184,17 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   void _exportToCSV(Map<String, dynamic> data, List<DateTime> dates) async {
     final csvData = StringBuffer();
     csvData.writeln('Date,Spent,Received');
-    
+
     for (int i = 0; i < dates.length; i++) {
       csvData.writeln('${_generateLabels([dates[i]]).first},'
           '${data['spends']![i]},'
           '${data['received']![i]}');
     }
     await Share.shareXFiles(
-      [XFile.fromData(Uint8List.fromList(csvData.toString().codeUnits), mimeType: 'text/csv', name: 'analytics.csv')],
+      [
+        XFile.fromData(Uint8List.fromList(csvData.toString().codeUnits),
+            mimeType: 'text/csv', name: 'analytics.csv')
+      ],
       subject: 'Analytics Data',
     );
   }
@@ -200,7 +212,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => brokeo_home.HomePage(name: "Darshan", budget: 5000),
+              builder: (context) =>
+                  brokeo_home.HomePage(name: "Darshan", budget: 5000),
             ),
           );
         } else if (index == 1) {
@@ -232,7 +245,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
         BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
-        BottomNavigationBarItem(icon: Icon(Icons.analytics), label: "Analytics"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.analytics), label: "Analytics"),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
       ],
     );
@@ -244,12 +258,17 @@ class BarChart extends StatelessWidget {
   final List<String> labels;
   final double maxValue;
 
-  const BarChart({super.key, required this.spends, required this.labels, required this.maxValue});
+  const BarChart(
+      {super.key,
+      required this.spends,
+      required this.labels,
+      required this.maxValue});
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _BarChartPainter(spends: spends, labels: labels, maxValue: maxValue),
+      painter:
+          _BarChartPainter(spends: spends, labels: labels, maxValue: maxValue),
     );
   }
 }
@@ -259,18 +278,20 @@ class _BarChartPainter extends CustomPainter {
   final List<String> labels;
   final double maxValue;
 
-  _BarChartPainter({required this.spends, required this.labels, required this.maxValue});
+  _BarChartPainter(
+      {required this.spends, required this.labels, required this.maxValue});
 
   @override
   void paint(Canvas canvas, Size size) {
-    const barPadding = 20.0;
-    final barWidth = (size.width - (barPadding * (spends.length - 1))) / spends.length;
+    const barPadding = 30.0;
+    final barWidth =
+        (size.width - (barPadding * (spends.length - 1))) / spends.length;
     final scaleY = (size.height * 0.8) / maxValue; // Adjusted space for labels
     final textStyle = TextStyle(color: Colors.black, fontSize: 12);
-
+    double barSeparation = size.width / 12;
     for (int i = 0; i < spends.length; i++) {
       final barHeight = spends[i] * scaleY;
-      final x = i * (barWidth + barPadding);
+      final x = i * (barWidth + barSeparation);
       final y = size.height - barHeight - 20; // Space for labels
 
       // Draw bar with red color
@@ -286,7 +307,7 @@ class _BarChartPainter extends CustomPainter {
       )..layout();
       textPainter.paint(
         canvas,
-        Offset(x + barWidth/2 - textPainter.width/2, size.height - 15),
+        Offset(x + barWidth / 2 - textPainter.width / 2, size.height - 15),
       );
     }
   }
@@ -294,8 +315,8 @@ class _BarChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BarChartPainter oldDelegate) {
     return oldDelegate.spends != spends ||
-           oldDelegate.labels != labels ||
-           oldDelegate.maxValue != maxValue;
+        oldDelegate.labels != labels ||
+        oldDelegate.maxValue != maxValue;
   }
 }
 
@@ -305,7 +326,8 @@ class LineChart extends StatelessWidget {
   final List<String> labels;
   final double maxValue;
 
-  const LineChart({super.key, 
+  const LineChart({
+    super.key,
     required this.spends,
     required this.received,
     required this.labels,
@@ -315,13 +337,13 @@ class LineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _LineChartPainter(
-        spends: spends,
-        received: received,
-        labels: labels,
-        maxValue: maxValue,
-      ),
-    );
+        painter: _LineChartPainter(
+          spends: spends,
+          received: received,
+          labels: labels,
+          maxValue: maxValue,
+        ),
+        size: Size(double.infinity, 50));
   }
 }
 
@@ -340,7 +362,7 @@ class _LineChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final pointPadding = size.width / (spends.length + 1);
+    final pointPadding = size.width / 8;
     final scaleY = (size.height * 0.8) / maxValue;
     final textStyle = TextStyle(color: Colors.black, fontSize: 12);
 
@@ -357,19 +379,22 @@ class _LineChartPainter extends CustomPainter {
       )..layout();
       textPainter.paint(
         canvas,
-        Offset(x - textPainter.width/2, size.height - 15),
+        Offset(x - textPainter.width / 2, size.height - 15),
       );
     }
   }
-  
-  void _drawLine(Canvas canvas, Size size, List<double> data, double pointPadding, double scaleY, Color color) {
+
+  void _drawLine(Canvas canvas, Size size, List<double> data,
+      double pointPadding, double scaleY, Color color) {
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 2;
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
     final path = Path();
     for (int i = 0; i < data.length; i++) {
+      print(size.width);
       final x = (i + 1) * pointPadding;
-      final y = size.height - data[i] * scaleY - 20;
+      final y = size.height - data[i] * scaleY;
       if (i == 0) {
         path.moveTo(x, y);
       } else {
@@ -379,12 +404,12 @@ class _LineChartPainter extends CustomPainter {
     }
     canvas.drawPath(path, paint);
   }
-  
+
   @override
   bool shouldRepaint(covariant _LineChartPainter oldDelegate) {
     return oldDelegate.spends != spends ||
-           oldDelegate.received != received ||
-           oldDelegate.labels != labels ||
-           oldDelegate.maxValue != maxValue;
+        oldDelegate.received != received ||
+        oldDelegate.labels != labels ||
+        oldDelegate.maxValue != maxValue;
   }
 }

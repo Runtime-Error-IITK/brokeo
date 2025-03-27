@@ -239,5 +239,6 @@ class SpacingScheme {
   final double medium;
   final double large;
 
-  SpacingScheme({required this.small, required this.medium, required this.large});
+  SpacingScheme(
+      {required this.small, required this.medium, required this.large});
 }
