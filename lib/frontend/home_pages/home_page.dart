@@ -232,9 +232,17 @@ class _HomePageState extends State<HomePage> {
     // If not showing all transactions, take only the top 3
     List<Transaction> transactionsToShow =
         showAllTransactions ? transactions : transactions.take(3).toList();
-
-    return Padding(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -442,8 +450,17 @@ class _HomePageState extends State<HomePage> {
     List<CategoryItem> categoriesToShow =
         showAllCategories ? categories : categories.take(3).toList();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -777,8 +794,18 @@ class _HomePageState extends State<HomePage> {
     List<ScheduledPayment> paymentsToShow =
         showAllScheduledPayments ? payments : payments.take(3).toList();
 
-    return Padding(
+
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -899,9 +926,17 @@ class _HomePageState extends State<HomePage> {
 
     // Show top 3 splits by default
     List<Split> splitsToShow = showAllSplits ? splits : splits.take(3).toList();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -1092,9 +1127,18 @@ class _HomePageState extends State<HomePage> {
     // 2) Show top 3 categories by default
     List<BudgetCategory> categoriesToShow =
         showAllBudgetCategories ? categories : categories.take(3).toList();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -1177,6 +1221,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+    
   }
 
   Widget _buildBudgetTile(String label, double amount) {
@@ -1339,24 +1384,24 @@ class _HomePageState extends State<HomePage> {
         }
         // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
-        } else if (index == 1) {
-          // Already on Categories/Tran sactions page
-          Navigator.push(
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => CategoriesPage(),
-            ),
+            MaterialPageRoute(builder: (context) => HomePage(name: widget.name, budget: widget.budget)),
+            (route) => false,
+          );
+        } else if (index == 1) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
+            (route) => false,
           );
         } else if (index == 2) {
           // TODO: Navigate to Analytics Page
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
-          Navigator.push(
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => ManageSplitsPage(),
-            ),
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
+            (route) => false,
           );
         }
       },
