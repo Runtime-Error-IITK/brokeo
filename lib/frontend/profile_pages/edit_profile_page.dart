@@ -6,6 +6,27 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _budgetController = TextEditingController();
+
+  String? _selectedCountry = "India";
+  String? _selectedGender = "Male";
+  String? _selectedCurrency = "Indian Rupee";
+
+  @override
+  void initState() {
+    super.initState();
+    // Set default values
+    _nameController.text = "Aujasvit Datta";
+    _emailController.text = "aujasvit@dhichik.com";
+    _phoneController.text = "123-456-7890";
+    _addressController.text = "Hall X, IIT X";
+    _budgetController.text = "500";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,98 +46,122 @@ class _EditProfilePageState extends State<EditProfilePage> {
         centerTitle: true,
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Color(0xFFF3E5F5)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        // decoration: BoxDecoration(
+        //   gradient: LinearGradient(
+        //     colors: [Colors.white, Color(0xFFF3E5F5)],
+        //     begin: Alignment.bottomCenter,
+        //     end: Alignment.topCenter,
+        //   ),
+        // ),
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTextField("Full Name", "Aujasvit Datta"),
-                _buildTextField("E-Mail", "aujasvit@dhichik.com"),
-                _buildTextField("Phone Number", "123-456-7890"),
-                _buildDropdownField("Country", ["United States", "India"]),
-                _buildDropdownField("Gender", ["Male", "Female"]),
-                _buildTextField("Address", "Hall X, IIT X"),
-                _buildDropdownField("Currency", ["Indian Rupee", "USD"]),
-                _buildTextField("Budget", "₹500"),
-                SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Save profile changes
-                  },
-                  child: Text(
-                    "Submit",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                // Name Input
+
+                SizedBox(height: 8),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: "Full Name",
+                    border: OutlineInputBorder(),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                ),
+                SizedBox(height: 16),
+
+                // Email Input
+
+                SizedBox(height: 8),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: "E-Mail",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                SizedBox(height: 16),
+
+                // Phone Input
+
+                SizedBox(height: 8),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    labelText: "Phone Number",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                SizedBox(height: 16),
+
+                // Address Input
+                SizedBox(height: 8),
+                TextFormField(
+                  controller: _addressController,
+                  decoration: InputDecoration(
+                    labelText: "Address",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16),
+
+               
+                // Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        // Save logic
+                        print("Name: ${_nameController.text}");
+                        print("Email: ${_emailController.text}");
+                        print("Phone: ${_phoneController.text}");
+                        print("Address: ${_addressController.text}");
+                        print("Budget: ${_budgetController.text}");
+                        print("Country: $_selectedCountry");
+                        print("Gender: $_selectedGender");
+                        print("Currency: $_selectedCurrency");
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 24.0, vertical: 12.0),
+                      ),
+                      child: Text(
+                        "Save",
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                      ),
                     ),
-                  ),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Cancel logic
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 24.0, vertical: 12.0),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSecondary,
+                            ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(String label, String placeholder) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextField(
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: placeholder,
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDropdownField(String label, List<String> options) {
-    String? selectedValue = options.first;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: DropdownButtonFormField<String>(
-        value: selectedValue,
-        decoration: InputDecoration(
-          labelText: label,
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-        ),
-        items: options
-            .map((option) => DropdownMenuItem(
-                  value: option,
-                  child: Text(option),
-                ))
-            .toList(),
-        onChanged: (value) {
-          setState(() {
-            selectedValue = value;
-          });
-        },
       ),
     );
   }
