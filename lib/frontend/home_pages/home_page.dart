@@ -3,8 +3,13 @@ import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:brokeo/models/transaction_model.dart'; // <== new import
-import 'package:brokeo/frontend/split_pages/manage_splits.dart'; // <== new import
+import 'package:brokeo/models/transaction_model.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
+import 'package:brokeo/frontend/profile_pages/budget_page.dart';
+import 'package:brokeo/frontend/transactions_pages/category_page.dart';
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
+import 'package:brokeo/frontend/split_pages/split_history.dart';
+import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 
 /// Home Page
 class HomePage extends StatefulWidget {
@@ -25,6 +30,11 @@ class _HomePageState extends State<HomePage> {
   bool showAllScheduledPayments = false;
   bool showAllSplits = false;
   bool showAllBudgetCategories = false;
+
+  final TextEditingController _catNameController = TextEditingController();
+  final TextEditingController _budgetController = TextEditingController();
+  String? _selectedEmoji;
+  final List<String> _emojiOptions = ['🍔', '🍕', '🎉', '💡', '📚'];
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +66,61 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       bottomNavigationBar: buildBottomNavigationBar(),
+    );
+  }
+
+  void _showAddCategoryDialog() {
+    _catNameController.clear();
+    _budgetController.clear();
+    _selectedEmoji = _emojiOptions.first;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Add Category"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _catNameController,
+              decoration: InputDecoration(labelText: "Category Name"),
+            ),
+            DropdownButton<String>(
+              value: _selectedEmoji,
+              items: _emojiOptions
+                  .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                  .toList(),
+              onChanged: (val) => setState(() => _selectedEmoji = val),
+            ),
+            TextField(
+              controller: _budgetController,
+              decoration: InputDecoration(
+                labelText: "Budget (optional)",
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              // Process the entered data.
+              String name = _catNameController.text.trim();
+              String emoji = _selectedEmoji ?? '';
+              int? budget = int.tryParse(_budgetController.text.trim());
+              print("New Category: $name, Emoji: $emoji, Budget: $budget");
+              Navigator.pop(context);
+            },
+            child: Text("Add"),
+          )
+        ],
+      ),
     );
   }
 
@@ -167,9 +232,17 @@ class _HomePageState extends State<HomePage> {
     // If not showing all transactions, take only the top 3
     List<Transaction> transactionsToShow =
         showAllTransactions ? transactions : transactions.take(3).toList();
-
-    return Padding(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -190,6 +263,7 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.add, size: 22, color: Colors.black54),
                     onPressed: () {
                       // TODO: Handle add transaction
+                      _showAddTransactionDialog(context);
                     },
                   ),
                   IconButton(
@@ -239,14 +313,89 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _showAddTransactionDialog(BuildContext context) {
+    String? amount;
+    String? merchant;
+    // Retrieve and sort merchants alphabetically
+    List<Merchant> merchantsList = MerchantBackend.getMerchants();
+    merchantsList.sort((a, b) => a.name.compareTo(b.name));
+    final merchantNames = merchantsList.map((m) => m.name).toList();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Add transaction"),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Amount input remains unchanged
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Amount",
+                      prefixText: "₹",
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      setState(() {
+                        amount = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  // Dropdown for selecting a merchant
+                  DropdownButtonFormField<String>(
+                    value: merchant,
+                    decoration: InputDecoration(
+                      labelText: "Merchant",
+                    ),
+                    items: merchantNames.map((name) {
+                      return DropdownMenuItem<String>(
+                        value: name,
+                        child: Text(name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        merchant = value;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // just close
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                print("Adding transaction: $amount, $merchant");
+                // TODO: Perform the adding process
+                Navigator.pop(context); // close dialog
+              },
+              child: Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Single Transaction Tile
   Widget _transactionTile(Transaction transaction, int index) {
     return InkWell(
       onTap: () {
-        setState(() {
-          expandedTransactionIndex =
-              (expandedTransactionIndex == index) ? -1 : index;
-        });
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TransactionDetailPage(transaction: transaction),
+          ),
+        );
       },
       child: Column(
         children: [
@@ -301,8 +450,17 @@ class _HomePageState extends State<HomePage> {
     List<CategoryItem> categoriesToShow =
         showAllCategories ? categories : categories.take(3).toList();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -324,6 +482,7 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.add, size: 22, color: Colors.black54),
                     onPressed: () {
                       // TODO: Handle "Add Category"
+                      _showAddCategoryDialog();
                     },
                   ),
                   IconButton(
@@ -372,12 +531,96 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // void _showAddCategoryDialog(BuildContext context) {
+  //   // Example categories from backend (replace with real fetch)
+  //   final List<String> categoriesFromBackend =
+  //       DummyDataService.getCategoriesFromBackend();
+
+  //   String? selectedCategory;
+  //   String? budgetValue;
+
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text("Add Category"),
+  //         content: StatefulBuilder(
+  //           builder: (context, setState) {
+  //             return Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 // Dropdown for category selection
+  //                 DropdownButtonFormField<String>(
+  //                   value: selectedCategory,
+  //                   decoration: InputDecoration(
+  //                     labelText: "Category Name",
+  //                   ),
+  //                   items: categoriesFromBackend.map((cat) {
+  //                     return DropdownMenuItem<String>(
+  //                       value: cat,
+  //                       child: Text(cat),
+  //                     );
+  //                   }).toList(),
+  //                   onChanged: (value) {
+  //                     setState(() {
+  //                       selectedCategory = value;
+  //                     });
+  //                   },
+  //                 ),
+  //                 SizedBox(height: 16),
+  //                 // TextField for budget input
+  //                 TextFormField(
+  //                   decoration: InputDecoration(
+  //                     labelText: "Budget",
+  //                     prefixText: "₹",
+  //                   ),
+  //                   keyboardType: TextInputType.number,
+  //                   onChanged: (value) {
+  //                     setState(() {
+  //                       budgetValue = value;
+  //                     });
+  //                   },
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context), // just close
+  //             child: Text("Cancel"),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               print(
+  //                   "Adding category: $selectedCategory with budget $budgetValue");
+  //               // TODO : Perform the adding process
+  //             },
+  //             child: Text("Confirm"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
 // Single Category tile
   Widget _buildCategoryTile(CategoryItem category) {
     return InkWell(
       onTap: () {
-        // TODO: Implement onTap logic for category
-        // For example, open category details or show a dialog.
+        final data = CategoryCardData(
+          name: category.name,
+          icon: Icons.category,
+          color: Colors.blue,
+          spent: 0,
+          budget: category.amount,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(data: data),
+          ),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -412,13 +655,157 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // /// Merchants List
+  // Widget _buildMerchants(List<Transaction> transactions) {
+  //   // If not showing all transactions, take only the top 3
+  //   List<Transaction> transactionsToShow =
+  //       showAllTransactions ? transactions : transactions.take(3).toList();
+
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+  //     child: Card(
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+  //       color: Color(0xFFEDE7F6),
+  //       elevation: 0,
+  //       child: Padding(
+  //         padding: const EdgeInsets.all(12),
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             /// Header with "Transactions" Title & Icons
+  //             Row(
+  //               children: [
+  //                 Text("Transactions",
+  //                     style:
+  //                         TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+  //                 Spacer(),
+  //                 // IconButton(
+  //                 //   icon: Icon(Icons.add, size: 22, color: Colors.black54),
+  //                 //   onPressed: () {
+  //                 //     // TODO: Handle add transaction
+  //                 //   },
+  //                 // ),
+  //                 IconButton(
+  //                   icon: Icon(
+  //                     showAllTransactions
+  //                         ? Icons.expand_less
+  //                         : Icons.expand_more,
+  //                     size: 22,
+  //                     color: Colors.black54,
+  //                   ),
+  //                   onPressed: () {
+  //                     setState(() {
+  //                       showAllTransactions = !showAllTransactions;
+  //                     });
+  //                   },
+  //                 ),
+  //               ],
+  //             ),
+  //             SizedBox(height: 10),
+
+  //             /// Transaction List or Empty Message
+  //             transactions.isEmpty
+  //                 ? Center(
+  //                     child: Text(
+  //                       "No Transactions Yet",
+  //                       style: TextStyle(
+  //                           fontSize: 16,
+  //                           fontWeight: FontWeight.bold,
+  //                           color: Colors.black54),
+  //                     ),
+  //                   )
+  //                 : Column(
+  //                     children: transactionsToShow.asMap().entries.map((entry) {
+  //                       return Column(
+  //                         children: [
+  //                           _merchantTile(entry.value, entry.key),
+  //                           if (entry.key < transactionsToShow.length - 1)
+  //                             Divider(color: Colors.grey[300]),
+  //                         ],
+  //                       );
+  //                     }).toList(),
+  //                   ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // /// Single Transaction Tile
+  // Widget _merchantTile(Transaction transaction, int index) {
+  //   return InkWell(
+  //     onTap: () {
+  //       setState(() {
+  //         expandedTransactionIndex =
+  //             (expandedTransactionIndex == index) ? -1 : index;
+  //       });
+  //     },
+  //     child: Column(
+  //       children: [
+  //         Padding(
+  //           padding: const EdgeInsets.symmetric(vertical: 5),
+  //           child: Row(
+  //             children: [
+  //               CircleAvatar(
+  //                 backgroundColor: Colors.purple[100],
+  //                 child: Text(
+  //                   transaction.name[0],
+  //                   style: TextStyle(
+  //                       fontWeight: FontWeight.bold, color: Colors.purple),
+  //                 ),
+  //               ),
+  //               SizedBox(width: 12),
+  //               Expanded(
+  //                 child: Text(
+  //                   transaction.name,
+  //                   style: TextStyle(fontSize: 14, color: Colors.black87),
+  //                 ),
+  //               ),
+  //               Text(
+  //                 "₹${transaction.amount.abs()}",
+  //                 style: TextStyle(
+  //                   fontSize: 14,
+  //                   fontWeight: FontWeight.bold,
+  //                   color: transaction.amount < 0 ? Colors.red : Colors.green,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         if (expandedTransactionIndex == index)
+  //           Padding(
+  //             padding: const EdgeInsets.only(left: 50, right: 10, bottom: 8),
+  //             child: Align(
+  //               alignment: Alignment.centerLeft,
+  //               child: Text(
+  //                 "Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}\nCategory: Groceries",
+  //                 style: TextStyle(fontSize: 12, color: Colors.black54),
+  //               ),
+  //             ),
+  //           ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildScheduledPayments(List<ScheduledPayment> payments) {
     // If not expanded, only show top 3
     List<ScheduledPayment> paymentsToShow =
         showAllScheduledPayments ? payments : payments.take(3).toList();
 
-    return Padding(
+
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -539,9 +926,17 @@ class _HomePageState extends State<HomePage> {
 
     // Show top 3 splits by default
     List<Split> splitsToShow = showAllSplits ? splits : splits.take(3).toList();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -563,6 +958,11 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.add, size: 22, color: Colors.black54),
                     onPressed: () {
                       // TODO: Handle "Add Split" action
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChooseTransactionPage()),
+                      );
                     },
                   ),
                   IconButton(
@@ -656,13 +1056,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  final mockData = [
+      {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
+      {"name": "Darshan", "amount": 510.0, "isSettled": false},
+      {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
+      {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
+      {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
+      {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
+      {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
+      {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
+      {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+      {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
+    ];
+
   Widget _buildSplitTile(Split split) {
     bool isNegative = split.amount < 0;
     Color amountColor = isNegative ? Colors.red : Colors.green;
-
+    
     return InkWell(
       onTap: () {
-        // TODO: Implement onTap logic for each split (e.g., show detail view)
+        // TODO: Fix this bullshit error
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SplitHistoryPage(split: split.toMap()),
+          ),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -704,9 +1127,18 @@ class _HomePageState extends State<HomePage> {
     // 2) Show top 3 categories by default
     List<BudgetCategory> categoriesToShow =
         showAllBudgetCategories ? categories : categories.take(3).toList();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+          stops: [0.0, 0.5, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: Color(0xFFEDE7F6),
@@ -728,6 +1160,11 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(Icons.add, size: 22, color: Colors.black54),
                     onPressed: () {
                       // TODO: Handle "Add Budget Category" action
+                      // Navigate to budget_page.dart
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => BudgetPage()),
+                      );
                     },
                   ),
                   IconButton(
@@ -784,6 +1221,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+    
   }
 
   Widget _buildBudgetTile(String label, double amount) {
@@ -827,9 +1265,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBudgetCategoryTile(BudgetCategory category) {
+    
     return InkWell(
       onTap: () {
         // TODO: Implement onTap logic for each budget category
+        // Navigate to that category page
+        final category = CategoryCardData(
+          name: "Sury",
+          icon: Icons.food_bank,
+          color: Colors.red,
+          spent: 200,
+          budget: 1000,
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CategoryPage(data: category),
+          ),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -866,7 +1319,60 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
+  Widget buildCategoryCard(CategoryCardData data) {
+    return GestureDetector(
+      onTap: () {
+        if (data.name == "Add Category") {
+          // show popup
+          // _showAddCategoryDialog(context);
+          // e.g. showDialog(...)
+        } else {
+          // TODO: Navigate to the category's detail page
+          // e.g. Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryDetailPage(data)));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CategoryPage(data: data),
+            ),
+          );
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: data.color.withOpacity(0.1), // light background tint
+          border: Border.all(color: Colors.black, width: 1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Category name
+            Text(
+              data.name,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            // Icon
+            Icon(
+              data.icon,
+              size: 40,
+              color: data.color,
+            ),
+            SizedBox(height: 8),
+            // Spent/Budget
+            if (data.name != "Add Category")
+              Text(
+                "₹${data.spent.toStringAsFixed(0)}/₹${data.budget.toStringAsFixed(0)}",
+                style: TextStyle(fontSize: 14),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
   Widget buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
@@ -878,24 +1384,24 @@ class _HomePageState extends State<HomePage> {
         }
         // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
-        } else if (index == 1) {
-          // Already on Categories/Tran sactions page
-          Navigator.push(
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => CategoriesPage(),
-            ),
+            MaterialPageRoute(builder: (context) => HomePage(name: widget.name, budget: widget.budget)),
+            (route) => false,
+          );
+        } else if (index == 1) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
+            (route) => false,
           );
         } else if (index == 2) {
           // TODO: Navigate to Analytics Page
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
-          Navigator.push(
+          Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => ManageSplitsPage(),
-            ),
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
+            (route) => false,
           );
         }
       },
@@ -990,14 +1496,22 @@ class Split {
 
   Split(this.name, this.amount);
 
-    factory Split.fromMap(Map<String, dynamic> map) {
+  factory Split.fromMap(Map<String, dynamic> map) {
     return Split(
       map['name'] as String,
       (map['amount'] as num).toDouble(),
     );
   }
 
-  bool get isSettled => amount == 0;  // Calculated property
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'amount': amount,
+      'isSettled': isSettled,
+    };
+  }
+
+  bool get isSettled => amount == 0; // Calculated property
 }
 
 class BudgetCategory {
@@ -1012,10 +1526,26 @@ class BudgetCategory {
 class MockBackend {
   static List<Transaction> getTransactions(BuildContext context) {
     return [
-      Transaction(name: "Sourav das", amount: -5000, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
-      Transaction(name: "Darshan", amount: -510, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
-      Transaction(name: "Anjali Patra", amount: 1200, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
-      Transaction(name: "Extra Transaction", amount: -200, date: DateFormat('yyyy-MM-dd').format(DateTime.now()), time: TimeOfDay.now().format(context)),
+      Transaction(
+          name: "Sourav das",
+          amount: -5000,
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          time: TimeOfDay.now().format(context)),
+      Transaction(
+          name: "Darshan",
+          amount: -510,
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          time: TimeOfDay.now().format(context)),
+      Transaction(
+          name: "Anjali Patra",
+          amount: 1200,
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          time: TimeOfDay.now().format(context)),
+      Transaction(
+          name: "Extra Transaction",
+          amount: -200,
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          time: TimeOfDay.now().format(context)),
     ];
   }
 
@@ -1053,6 +1583,16 @@ class MockBackend {
     ];
   }
 
+  static List<Merchant> getMerchants() {
+    return [
+      Merchant("1230ABCD", "CC Canteen", null),
+      Merchant("1231ABCD", "Hall 12 Canteen", null),
+      Merchant("1232ABCD", "Z Square", null),
+      Merchant("1234ABCD", "New Merchant", null)
+      // Add more if needed
+    ];
+  }
+
   // Dummy methods returning fixed values
   static double getTotalBalance() => 1200; // e.g., ₹1200
   static double getYouOwe() => 600; // e.g., ₹600
@@ -1070,5 +1610,76 @@ class MockBackend {
       BudgetCategory("🎮", "Ress", 221),
       // Add more if needed
     ];
+  }
+}
+class DummyDataService {
+  static double getDailySafeToSpend() => 365.0;
+  static double getAmountSpent() => 3028.0;
+  static double getProgress() => 0.5; // 50% usage
+  static List<CategoryData> getCategories() {
+    return [
+      CategoryData(name: "Food", percentage: 0.4, color: Colors.red),
+      CategoryData(name: "Shopping", percentage: 0.3, color: Colors.blue),
+      CategoryData(name: "Travel", percentage: 0.2, color: Colors.green),
+      CategoryData(name: "Others", percentage: 0.1, color: Colors.grey),
+    ];
+  }
+
+  static List<CategoryCardData> getCategoriesData() {
+    return [
+      CategoryCardData(
+        name: "Food",
+        spent: 500,
+        budget: 1000,
+        icon: Icons.fastfood,
+        color: Colors.red,
+      ),
+      CategoryCardData(
+        name: "Shopping",
+        spent: 300,
+        budget: 500,
+        icon: Icons.shopping_cart,
+        color: Colors.blue,
+      ),
+      CategoryCardData(
+        name: "Travel",
+        spent: 200,
+        budget: 1000,
+        icon: Icons.flight,
+        color: Colors.green,
+      ),
+      CategoryCardData(
+        name: "Travel",
+        spent: 200,
+        budget: 1000,
+        icon: Icons.flight,
+        color: Colors.green,
+      ),
+      CategoryCardData(
+        name: "Travel",
+        spent: 200,
+        budget: 1000,
+        icon: Icons.flight,
+        color: Colors.green,
+      ),
+      CategoryCardData(
+        name: "Travel",
+        spent: 200,
+        budget: 1000,
+        icon: Icons.flight,
+        color: Colors.green,
+      ),
+      CategoryCardData(
+        name: "Add Category",
+        spent: 0,
+        budget: 0,
+        icon: Icons.add,
+        color: Colors.grey,
+      ),
+    ];
+  }
+
+  static List<String> getCategoriesFromBackend() {
+    return ["Food", "Shopping", "Travel", "Others"];
   }
 }

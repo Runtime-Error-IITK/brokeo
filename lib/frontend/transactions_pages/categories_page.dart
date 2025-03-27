@@ -1,9 +1,11 @@
 import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
-import 'package:brokeo/models/transaction_model.dart'; // <== new import
+import 'package:brokeo/models/transaction_model.dart';
+import 'package:brokeo/frontend/transactions_pages/merchants_page.dart';
 
 /// Main CategoriesPage
 class CategoriesPage extends StatefulWidget {
@@ -11,7 +13,8 @@ class CategoriesPage extends StatefulWidget {
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
-class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProviderStateMixin {
+class _CategoriesPageState extends State<CategoriesPage>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 1;
   late TabController _tabController;
   bool showTransactions = false;
@@ -19,7 +22,8 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 0); // Change initialIndex to 0
+    _tabController = TabController(
+        length: 3, vsync: this, initialIndex: 0); // Change initialIndex to 0
   }
 
   @override
@@ -54,21 +58,23 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                       buildCategoryGrid(),
                     ],
                   ),
-                  Center(child: Text("Merchants View")),
+                  _buildMerchants(), //Center(child: Text("Merchants View")),
                 ],
               ),
             ),
           ],
         ),
       ),
-      floatingActionButton: _tabController.index == 0 ? FloatingActionButton(
-        onPressed: () {
-          _showAddTransactionDialog(context);
-        },
-        child: Icon(Icons.add, color: Colors.white), // Icon color set to white
-        backgroundColor: Color.fromARGB(255, 97, 53, 186), // Match the color in the image
-        shape: CircleBorder(), // Ensure the shape is circular
-      ) : null,
+      floatingActionButton: _tabController.index == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                _showAddTransactionDialog(context);
+              },
+              child: Icon(Icons.add, color: Colors.white),
+              backgroundColor: Color.fromARGB(255, 97, 53, 186),
+              shape: CircleBorder(),
+            )
+          : null,
       bottomNavigationBar: buildBottomNavigationBar(),
     );
   }
@@ -362,9 +368,10 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
   void _showAddTransactionDialog(BuildContext context) {
     String? amount;
     String? merchant;
-    String? category;
-
-    // TODO: Backend
+    // Retrieve and sort merchants alphabetically by name.
+    List<Merchant> merchantsList = MerchantBackend.getMerchants();
+    merchantsList.sort((a, b) => a.name.compareTo(b.name));
+    final merchantNames = merchantsList.map((m) => m.name).toList();
 
     showDialog(
       context: context,
@@ -376,6 +383,7 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Amount input remains unchanged
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: "Amount",
@@ -389,31 +397,21 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                     },
                   ),
                   SizedBox(height: 16),
-                  TextFormField(
+                  // Replace merchant text field with dropdown listing merchants
+                  DropdownButtonFormField<String>(
+                    value: merchant,
                     decoration: InputDecoration(
                       labelText: "Merchant",
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        merchant = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: category,
-                    decoration: InputDecoration(
-                      labelText: "Category",
-                    ),
-                    items: DummyDataService.getCategoriesFromBackend().map((cat) {
+                    items: merchantNames.map((name) {
                       return DropdownMenuItem<String>(
-                        value: cat,
-                        child: Text(cat),
+                        value: name,
+                        child: Text(name),
                       );
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        category = value;
+                        merchant = value;
                       });
                     },
                   ),
@@ -428,7 +426,7 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
             ),
             TextButton(
               onPressed: () {
-                print("Adding transaction: $amount, $merchant, $category");
+                print("Adding transaction: $amount, $merchant");
                 // TODO: Perform the adding process
                 Navigator.pop(context); // close dialog
               },
@@ -460,10 +458,22 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
           );
         } else if (index == 1) {
           // Already on Categories/Transactions page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoriesPage(),
+            ),
+          );
         } else if (index == 2) {
           // TODO: Navigate to Analytics Page
         } else if (index == 3) {
           // TODO: Navigate to Split Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ManageSplitsPage(),
+            ),
+          );
         }
       },
       type: BottomNavigationBarType.fixed,
@@ -505,7 +515,8 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TransactionDetailPage(transaction: transaction),
+            builder: (context) =>
+                TransactionDetailPage(transaction: transaction),
           ),
         );
       },
@@ -554,6 +565,133 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
       ),
     );
   }
+
+// Merchant
+  Widget _buildMerchants() {
+    List<Merchant> merchants = MerchantBackend.getMerchants();
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      itemCount: merchants.length,
+      itemBuilder: (context, index) {
+        return Column(
+          children: [
+            _merchantTile(merchants[index], index),
+            if (index < merchants.length - 1) Divider(color: Colors.grey[300]),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _merchantTile(Merchant merchant, int index) {
+    merchant.updateAmountSpends();
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MerchantsPage(data: merchant),
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.purple[100],
+                  child: Text(
+                    merchant.name[0],
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.purple),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    merchant.name,
+                    style: TextStyle(fontSize: 14, color: Colors.black87),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        "₹${merchant.amount.abs()}",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      Text(
+                        merchant.spends.toString(), // Placeholder for time
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // void _showAddCategoryDialog() {
+  //   _catNameController.clear();
+  //   _budgetController.clear();
+  //   _selectedEmoji = _emojiOptions.first;
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text("Add Category"),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           TextField(
+  //             controller: _catNameController,
+  //             decoration: InputDecoration(labelText: "Category Name"),
+  //           ),
+  //           DropdownButton<String>(
+  //             value: _selectedEmoji,
+  //             items: _emojiOptions
+  //                 .map((e) => DropdownMenuItem(
+  //                       value: e,
+  //                       child: Text(e),
+  //                     ))
+  //                 .toList(),
+  //             onChanged: (val) => setState(() => _selectedEmoji = val),
+  //           ),
+  //           TextField(
+  //             controller: _budgetController,
+  //             decoration: InputDecoration(
+  //               labelText: "Budget (optional)",
+  //             ),
+  //             keyboardType: TextInputType.number,
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () {
+  //             String name = _catNameController.text.trim();
+  //             String emoji = _selectedEmoji ?? '';
+  //             int? budget = int.tryParse(_budgetController.text.trim());
+  //             print("New Category: $name, Emoji: $emoji, Budget: $budget");
+  //             Navigator.pop(context);
+  //           },
+  //           child: Text("Add"),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 /// DonutChartWidget: draws a donut chart + legend for up to 3 categories + "Others"
@@ -848,10 +986,23 @@ class DummyDataService {
 class MockBackend {
   static List<Transaction> getTransactions() {
     return [
-      Transaction(name: "Chetan Singh", amount: -50, date: "25 Jan'25", time: "11:00 am"),
-      Transaction(name: "Darshan", amount: -510, date: "24 Jan'25", time: "10:00 am"),
-      Transaction(name: "Anjali Patra", amount: 1200, date: "23 Jan'25", time: "09:00 am"),
-      Transaction(name: "Extra Transaction", amount: -200, date: "22 Jan'25", time: "08:00 am"),
+      Transaction(
+          name: "Chetan Singh",
+          amount: -50,
+          date: "25 Jan'25",
+          time: "11:00 am"),
+      Transaction(
+          name: "Darshan", amount: -510, date: "24 Jan'25", time: "10:00 am"),
+      Transaction(
+          name: "Anjali Patra",
+          amount: 1200,
+          date: "23 Jan'25",
+          time: "09:00 am"),
+      Transaction(
+          name: "Extra Transaction",
+          amount: -200,
+          date: "22 Jan'25",
+          time: "08:00 am"),
     ];
   }
 }

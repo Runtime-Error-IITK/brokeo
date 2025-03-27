@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/models/transaction_model.dart'; // <== new import
-import 'package:brokeo/frontend/home_pages/home_page.dart';
-import 'package:brokeo/frontend/split_pages/manage_splits.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart'; // Import HomePage
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart'; // Import CategoriesPage
+import 'package:brokeo/frontend/split_pages/manage_splits.dart'; // Import ManageSplitsPage
 
-class CategoryPage extends StatefulWidget {
-  final CategoryCardData data;
+class MerchantsPage extends StatefulWidget {
+  final Merchant data;
 
-  const CategoryPage({Key? key, required this.data}) : super(key: key);
+  const MerchantsPage({Key? key, required this.data}) : super(key: key);
 
   @override
-  _CategoryPageState createState() => _CategoryPageState();
+  _MerchantsPageState createState() => _MerchantsPageState();
 }
 
-class _CategoryPageState extends State<CategoryPage> {
+class _MerchantsPageState extends State<MerchantsPage> {
   int _currentIndex = 1;
 
   @override
   Widget build(BuildContext context) {
-    final CategoryCardData data = widget.data;
-    final int totalSpends = DummyDataService.getSpendsCount(data.name);
-    List<Transaction> transactions =
-        DummyDataService.getTransactions(data.name);
+    final Merchant data = widget.data;
+    final int totalSpends = data.spends;
+    final double totalAmount = data.amount;
+    List<Transaction> transactions = data.transactions;
     return Scaffold(
-      appBar: buildCustomAppBar(context, totalSpends),
+      appBar: buildCustomAppBar(context, totalSpends, totalAmount),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -45,7 +45,8 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   /// Builds the complete custom AppBar in one function.
-  AppBar buildCustomAppBar(BuildContext context, int totalSpends) {
+  AppBar buildCustomAppBar(
+      BuildContext context, int totalSpends, double totalAmount) {
     final data = widget.data;
     return AppBar(
       backgroundColor: const Color.fromARGB(255, 243, 225, 247),
@@ -59,12 +60,6 @@ class _CategoryPageState extends State<CategoryPage> {
       title: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Category icon placed alone on the left
-          Icon(
-            data.icon,
-            color: data.color,
-            size: 30,
-          ),
           SizedBox(width: 20), // Extra spacing between the icon and the text
           // Texts in a Column to the right of the icon
           Expanded(
@@ -74,16 +69,24 @@ class _CategoryPageState extends State<CategoryPage> {
                 Text(
                   data.name,
                   style: TextStyle(
+                    color: Colors.black,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
                 Text(
-                  "$totalSpends Spends - ₹${data.spent.toStringAsFixed(0)}/₹${data.budget.toStringAsFixed(0)}",
+                  data.category,
                   style: TextStyle(
-                    fontSize: 13,
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  "Spends: $totalSpends - Amount Paid: ₹$totalAmount",
+                  style: TextStyle(
                     color: Colors.black54,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -107,7 +110,7 @@ class _CategoryPageState extends State<CategoryPage> {
                 _showEditCategoryDialog(
                   context,
                   data.name, // e.g., "Food and Drinks"
-                  data.budget, // e.g., "4000"
+                  data.category, // e.g., "4000"
                 );
               },
             ),
@@ -131,8 +134,9 @@ class _CategoryPageState extends State<CategoryPage> {
 
   Widget buildBarChart() {
     // Example data from backend:
-    final CategoryCardData data = widget.data;
-    final chartData = DummyDataService.getBarChartData(data.name);
+    final Merchant data = widget.data;
+    final chartData = DummyDataService.getBarChartData(
+        data.name); // TODO: Implement actual logic here
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -153,32 +157,22 @@ class _CategoryPageState extends State<CategoryPage> {
           });
         }
         // Navigation logic based on index:
-        // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(name: "Darshan", budget: 5000),
-            ),
+            MaterialPageRoute(builder: (context) => HomePage(name: "User", budget: 5000)),
           );
         } else if (index == 1) {
-          // Already on Categories/Transactions page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => CategoriesPage(),
-            ),
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
           );
         } else if (index == 2) {
           // TODO: Navigate to Analytics Page
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => ManageSplitsPage(),
-            ),
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
           );
         }
       },
@@ -199,14 +193,14 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   void _showDeleteConfirmationDialog(
-      BuildContext context, String categoryName) {
+      BuildContext context, String merchantName) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Delete Category"),
+          title: Text("Delete Merchant"),
           content:
-              Text("Are you sure you want to delete category $categoryName?"),
+              Text("Are you sure you want to delete merchant $merchantName?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context), // close dialog
@@ -233,29 +227,39 @@ class _CategoryPageState extends State<CategoryPage> {
 
   void _showEditCategoryDialog(
     BuildContext context,
-    String initialCategoryName,
-    double initialBudget, // double
+    String initialMerchantName,
+    String initialCategory, // double
   ) {
-    // Convert the double to a string for the text field
-    String budgetValueAsString = initialBudget.toString();
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Edit Category"),
+          title: Text("Edit Merchant"),
           content: StatefulBuilder(
             builder: (context, setState) {
-              String? selectedCategory = initialCategoryName;
-              String? budgetValue =
-                  budgetValueAsString; // Start with the string
+              String? selectedMerchant = initialMerchantName;
+              String? categoryValue = initialCategory; // Start with the string
 
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // For the category name, if you're using a dropdown
+                  // TextField for budget input
+                  TextFormField(
+                    initialValue: selectedMerchant,
+                    decoration: InputDecoration(
+                      labelText: "Merchant",
+                    ),
+                    keyboardType: TextInputType.name,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedMerchant = value;
+                        initialMerchantName = value; //?? initialMerchantName;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: selectedCategory,
+                    value: categoryValue,
                     decoration: InputDecoration(labelText: "Category Name"),
                     items:
                         DummyDataService.getCategoriesFromBackend().map((cat) {
@@ -266,22 +270,7 @@ class _CategoryPageState extends State<CategoryPage> {
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        selectedCategory = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  // TextField for budget input
-                  TextFormField(
-                    initialValue: budgetValue,
-                    decoration: InputDecoration(
-                      labelText: "Budget",
-                      prefixText: "₹",
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      setState(() {
-                        budgetValue = value;
+                        categoryValue = value;
                       });
                     },
                   ),
@@ -298,7 +287,6 @@ class _CategoryPageState extends State<CategoryPage> {
               onPressed: () {
                 // Convert the updated budget string back to a double
                 // (handle parsing errors as needed)
-
                 // TODO: Perform the update logic here
                 // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
                 Navigator.pop(context); // close dialog
