@@ -6,18 +6,17 @@ class BudgetPage extends StatefulWidget {
 }
 
 class _BudgetPageState extends State<BudgetPage> {
-  double _totalBudget = 0.0;
+  double _totalBudget = 1000;
   Map<String, Map<String, dynamic>> _categoryBudgets = {
-    "Food and Drinks": {"budget": 0.0, "emoji": "🍔"},
-    "Shopping": {"budget": 0.0, "emoji": "🛍️"},
-    "Travel": {"budget": 0.0, "emoji": "✈️"},
-    "Education": {"budget": 0.0, "emoji": "📚"},
+    "Food and Drinks": {"budget": 500.0, "emoji": "🍔"},
+    "Shopping": {"budget": 200.0, "emoji": "🛍️"},
+    "Travel": {"budget": 200.0, "emoji": "✈️"},
+    "Education": {"budget": 100.0, "emoji": "📚"},
   };
 
   final TextEditingController _catNameController = TextEditingController();
   final TextEditingController _budgetController = TextEditingController();
-  String? _selectedEmoji;
-  final List<String> _emojiOptions = ['🍔', '🍕', '🎉', '💡', '📚'];
+  final TextEditingController _emojiController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +32,7 @@ class _BudgetPageState extends State<BudgetPage> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: Theme.of(context).paddingScheme.horizontal,
-          vertical: Theme.of(context).paddingScheme.vertical,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -45,7 +41,7 @@ class _BudgetPageState extends State<BudgetPage> {
               "Total Budget",
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            SizedBox(height: Theme.of(context).spacingScheme.small),
+            SizedBox(height: 8.0),
             TextFormField(
               initialValue: _totalBudget.toStringAsFixed(0),
               decoration: InputDecoration(
@@ -60,39 +56,35 @@ class _BudgetPageState extends State<BudgetPage> {
                 });
               },
             ),
-            SizedBox(height: Theme.of(context).spacingScheme.medium),
+            SizedBox(height: 16.0),
 
             // Category Budgets
             Text(
               "Category Budgets",
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            SizedBox(height: Theme.of(context).spacingScheme.small),
+            SizedBox(height: 8.0),
             ..._categoryBudgets.entries.map((entry) {
               return Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: Theme.of(context).spacingScheme.small,
-                ),
+                padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.1),
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primary.withOpacity(0.1),
                       child: Text(
                         entry.value["emoji"],
                         style: TextStyle(fontSize: 18),
                       ),
                     ),
-                    SizedBox(width: Theme.of(context).spacingScheme.small),
+                    SizedBox(width: 8.0),
                     Expanded(
                       child: Text(
                         entry.key,
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ),
-                    SizedBox(width: Theme.of(context).spacingScheme.small),
+                    SizedBox(width: 8.0),
                     Expanded(
                       child: TextFormField(
                         initialValue: entry.value["budget"].toStringAsFixed(0),
@@ -116,7 +108,7 @@ class _BudgetPageState extends State<BudgetPage> {
             }).toList(),
 
             // Add New Category Button
-            SizedBox(height: Theme.of(context).spacingScheme.medium),
+            SizedBox(height: 16.0),
             Center(
               child: ElevatedButton.icon(
                 onPressed: () {
@@ -134,7 +126,7 @@ class _BudgetPageState extends State<BudgetPage> {
             ),
 
             // Save Button
-            SizedBox(height: Theme.of(context).spacingScheme.medium),
+            SizedBox(height: 16.0),
             Center(
               child: ElevatedButton(
                 onPressed: () {
@@ -144,10 +136,7 @@ class _BudgetPageState extends State<BudgetPage> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.secondary,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Theme.of(context).spacingScheme.large,
-                    vertical: Theme.of(context).spacingScheme.medium,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                 ),
                 child: Text(
                   "Save",
@@ -167,7 +156,8 @@ class _BudgetPageState extends State<BudgetPage> {
   void _showAddCategoryDialog() {
     _catNameController.clear();
     _budgetController.clear();
-    _selectedEmoji = _emojiOptions.first;
+    _emojiController.clear();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -179,12 +169,9 @@ class _BudgetPageState extends State<BudgetPage> {
               controller: _catNameController,
               decoration: InputDecoration(labelText: "Category Name"),
             ),
-            DropdownButton<String>(
-              value: _selectedEmoji,
-              items: _emojiOptions
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (val) => setState(() => _selectedEmoji = val),
+            TextField(
+              controller: _emojiController,
+              decoration: InputDecoration(labelText: "Emoji"),
             ),
             TextField(
               controller: _budgetController,
@@ -201,9 +188,18 @@ class _BudgetPageState extends State<BudgetPage> {
           TextButton(
             onPressed: () {
               String name = _catNameController.text.trim();
-              String emoji = _selectedEmoji ?? '';
-              int? budget = int.tryParse(_budgetController.text.trim());
-              print("New Category: $name, Emoji: $emoji, Budget: $budget");
+              String emoji = _emojiController.text.trim();
+              double? budget = double.tryParse(_budgetController.text.trim());
+
+              if (name.isNotEmpty && emoji.isNotEmpty) {
+                setState(() {
+                  _categoryBudgets[name] = {
+                    "budget": budget ?? 0.0,
+                    "emoji": emoji,
+                  };
+                });
+              }
+
               Navigator.pop(context);
             },
             child: Text("Add"),
@@ -212,33 +208,4 @@ class _BudgetPageState extends State<BudgetPage> {
       ),
     );
   }
-}
-
-extension on ThemeData {
-  PaddingScheme get paddingScheme => PaddingScheme(
-        horizontal: 16.0,
-        vertical: 16.0,
-      );
-
-  SpacingScheme get spacingScheme => SpacingScheme(
-        small: 8.0,
-        medium: 16.0,
-        large: 24.0,
-      );
-}
-
-class PaddingScheme {
-  final double horizontal;
-  final double vertical;
-
-  PaddingScheme({required this.horizontal, required this.vertical});
-}
-
-class SpacingScheme {
-  final double small;
-  final double medium;
-  final double large;
-
-  SpacingScheme(
-      {required this.small, required this.medium, required this.large});
 }
