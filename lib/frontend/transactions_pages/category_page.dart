@@ -5,6 +5,7 @@ import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart'
 import 'package:brokeo/models/transaction_model.dart'; // <== new import
 import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 class CategoryPage extends StatefulWidget {
   final CategoryCardData data;
@@ -172,6 +173,12 @@ class _CategoryPageState extends State<CategoryPage> {
           );
         } else if (index == 2) {
           // TODO: Navigate to Analytics Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AnalyticsPage(),
+            ),
+          );
         } else if (index == 3) {
           // TODO: Navigate to Split Page
           Navigator.push(

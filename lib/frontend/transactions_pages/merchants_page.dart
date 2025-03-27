@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
-import 'package:brokeo/models/transaction_model.dart'; // <== new import
-import 'package:brokeo/frontend/home_pages/home_page.dart'; // Import HomePage
-import 'package:brokeo/frontend/transactions_pages/categories_page.dart'; // Import CategoriesPage
-import 'package:brokeo/frontend/split_pages/manage_splits.dart'; // Import ManageSplitsPage
+import 'package:brokeo/models/transaction_model.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 class MerchantsPage extends StatefulWidget {
   final Merchant data;
@@ -156,7 +157,6 @@ class _MerchantsPageState extends State<MerchantsPage> {
             _currentIndex = index;
           });
         }
-        // Navigation logic based on index:
         if (index == 0) {
           Navigator.pushReplacement(
             context,
@@ -168,7 +168,10 @@ class _MerchantsPageState extends State<MerchantsPage> {
             MaterialPageRoute(builder: (context) => CategoriesPage()),
           );
         } else if (index == 2) {
-          // TODO: Navigate to Analytics Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AnalyticsPage()),
+          );
         } else if (index == 3) {
           Navigator.pushReplacement(
             context,

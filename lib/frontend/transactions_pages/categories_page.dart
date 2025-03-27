@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/models/transaction_model.dart';
 import 'package:brokeo/frontend/transactions_pages/merchants_page.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 /// Main CategoriesPage
 class CategoriesPage extends StatefulWidget {
@@ -447,32 +448,25 @@ class _CategoriesPageState extends State<CategoriesPage>
             _currentIndex = index;
           });
         }
-        // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(name: "Darshan", budget: 5000),
-            ),
+            MaterialPageRoute(builder: (context) => HomePage(name: "User", budget: 5000)),
           );
         } else if (index == 1) {
-          // Already on Categories/Transactions page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => CategoriesPage(),
-            ),
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
           );
         } else if (index == 2) {
-          // TODO: Navigate to Analytics Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AnalyticsPage()),
+          );
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => ManageSplitsPage(),
-            ),
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
           );
         }
       },
