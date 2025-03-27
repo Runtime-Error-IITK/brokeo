@@ -51,8 +51,10 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       //backgroundColor: Color.fromARGB(255, 255, 247, 254),
+      
       body: Column(
         children: [
+          SizedBox(height: 30,),
 // Balance Summary Card
           Container(
             margin: const EdgeInsets.all(16.0),
