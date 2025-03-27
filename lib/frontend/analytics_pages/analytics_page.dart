@@ -111,8 +111,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               .reduce((a, b) => a > b ? a : b),
                         ),
                       ),
+                      legend: _buildLegend(),
                     ),
-                    _buildLegend(),
                     SizedBox(height: 20),
                   ],
                 ),
@@ -126,33 +126,55 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   }
 
   List<String> _generateLabels(List<DateTime> dates) {
-    final format = _selectedFilter == 'Monthly'
-        ? DateFormat('MMM')
-        : _selectedFilter == 'Weekly'
-            ? DateFormat('dd/MM')
-            : DateFormat('dd/MM');
-    return dates.map((d) => format.format(d)).toList();
+    if (_selectedFilter == 'Monthly') {
+      return dates.map((d) => DateFormat("MMM'yy").format(d)).toList();
+    } else if (_selectedFilter == 'Weekly') {
+      return List.generate(dates.length, (i) {
+        final start = dates[i];
+        final end = start.add(Duration(days: 6));
+        final startMonth = DateFormat("MMM'yy").format(start);
+        final endMonth = DateFormat("MMM'yy").format(end);
+        final range = '${DateFormat('dd').format(start)}-${DateFormat('dd').format(end)}';
+        return startMonth == endMonth ? '$range\n$startMonth' : '$range\n$startMonth/$endMonth';
+      });
+    } else {
+      return dates.map((d) {
+        final day = DateFormat('dd').format(d);
+        final month = DateFormat("MMM'yy").format(d);
+        return '$day\n$month';
+      }).toList();
+    }
   }
 
-  Widget _buildChartSection({required String title, required Widget child}) {
+  Widget _buildChartSection({required String title, required Widget child, Widget? legend}) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Card(
         elevation: 4,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  child,
+                ],
               ),
-              SizedBox(height: 20),
-              child,
+              if (legend != null)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: legend,
+                ),
             ],
           ),
         ),
@@ -162,10 +184,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
   Widget _buildLegend() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         _buildLegendItem(Colors.red, 'Spent'),
-        SizedBox(width: 20),
+        SizedBox(width: 10),
         _buildLegendItem(Colors.green, 'Received'),
       ],
     );
@@ -283,15 +305,39 @@ class _BarChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const barPadding = 30.0;
+    const yAxisOffset = 40.0; // Space for Y-axis values
+    const barPadding = 10.0; // Padding between bars
     final barWidth =
-        (size.width - (barPadding * (spends.length - 1))) / spends.length;
+        (size.width - yAxisOffset - (barPadding * (spends.length - 1))) /
+        spends.length * 0.95; // Adjusted bar width
     final scaleY = (size.height * 0.8) / maxValue; // Adjusted space for labels
-    final textStyle = TextStyle(color: Colors.black, fontSize: 12);
-    double barSeparation = size.width / 12;
+    final textStyle = TextStyle(color: Colors.black, fontSize: 9); // Consistent font size for date labels
+    final secondLineTextStyle = TextStyle(color: Colors.black, fontSize: 7); // Consistent font size for second line
+    final yAxisTextStyle = TextStyle(color: Colors.black, fontSize: 9); // Consistent font size for Y-axis labels
+
+    // Draw Y-axis labels and grid lines
+    final yDivisions = 5;
+    for (int i = 0; i <= yDivisions; i++) {
+      final yValue = maxValue / yDivisions * i;
+      final y = size.height - (yValue * scaleY) - 20;
+      final textPainter = TextPainter(
+        text: TextSpan(text: yValue.toStringAsFixed(0), style: yAxisTextStyle),
+        textDirection: ui.TextDirection.ltr,
+      )..layout();
+      textPainter.paint(canvas, Offset(0, y - textPainter.height / 2));
+      canvas.drawLine(
+        Offset(yAxisOffset, y),
+        Offset(size.width, y),
+        Paint()
+          ..color = Colors.grey.withOpacity(0.3) // Light grid line
+          ..strokeWidth = 1,
+      );
+    }
+
+    // Draw bars and labels
     for (int i = 0; i < spends.length; i++) {
       final barHeight = spends[i] * scaleY;
-      final x = i * (barWidth + barSeparation);
+      final x = yAxisOffset + i * (barWidth + barPadding);
       final y = size.height - barHeight - 20; // Space for labels
 
       // Draw bar with red color
@@ -301,14 +347,34 @@ class _BarChartPainter extends CustomPainter {
       );
 
       // Draw label
-      final textPainter = TextPainter(
-        text: TextSpan(text: labels[i], style: textStyle),
+      final labelParts = labels[i].split('\n');
+      final firstLine = labelParts[0];
+      final secondLine = labelParts.length > 1 ? labelParts[1] : '';
+
+      // Draw first line
+      final firstLinePainter = TextPainter(
+        text: TextSpan(text: firstLine, style: textStyle),
+        textAlign: TextAlign.center,
         textDirection: ui.TextDirection.ltr,
-      )..layout();
-      textPainter.paint(
+      )..layout(maxWidth: barWidth);
+      firstLinePainter.paint(
         canvas,
-        Offset(x + barWidth / 2 - textPainter.width / 2, size.height - 15),
+        Offset(x + barWidth / 2 - firstLinePainter.width / 2, size.height - 15),
       );
+
+      // Draw second line
+      if (secondLine.isNotEmpty) {
+        final secondLinePainter = TextPainter(
+          text: TextSpan(text: secondLine, style: secondLineTextStyle),
+          textAlign: TextAlign.center,
+          textDirection: ui.TextDirection.ltr,
+        )..layout(maxWidth: barWidth);
+        secondLinePainter.paint(
+          canvas,
+          Offset(x + barWidth / 2 - secondLinePainter.width / 2,
+              size.height), // Adjusted position for second line
+        );
+      }
     }
   }
 
@@ -364,37 +430,80 @@ class _LineChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final pointPadding = size.width / 8;
     final scaleY = (size.height * 0.8) / maxValue;
-    final textStyle = TextStyle(color: Colors.black, fontSize: 12);
+    final textStyle = TextStyle(color: Colors.black, fontSize: 9); // Consistent font size for date labels
+    final secondLineTextStyle = TextStyle(color: Colors.black, fontSize: 7); // Consistent font size for second line
+    final yAxisTextStyle = TextStyle(color: Colors.black, fontSize: 9); // Consistent font size for Y-axis labels
 
-    // Draw lines and points
-    _drawLine(canvas, size, spends, pointPadding, scaleY, Colors.red);
-    _drawLine(canvas, size, received, pointPadding, scaleY, Colors.green);
+    // Adjust the vertical offset to move the graph higher
+    const verticalOffset = -20.0;
 
-    // Draw labels
-    for (int i = 0; i < labels.length; i++) {
-      final x = (i + 1) * pointPadding;
+    // Draw Y-axis labels and grid lines
+    final yDivisions = 5;
+    for (int i = 0; i <= yDivisions; i++) {
+      final yValue = maxValue / yDivisions * i;
+      final y = size.height - (yValue * scaleY) + verticalOffset;
       final textPainter = TextPainter(
-        text: TextSpan(text: labels[i], style: textStyle),
+        text: TextSpan(text: yValue.toStringAsFixed(0), style: yAxisTextStyle),
         textDirection: ui.TextDirection.ltr,
       )..layout();
-      textPainter.paint(
-        canvas,
-        Offset(x - textPainter.width / 2, size.height - 15),
+      textPainter.paint(canvas, Offset(0, y - textPainter.height / 2));
+      canvas.drawLine(
+        Offset(30, y),
+        Offset(size.width, y),
+        Paint()
+          ..color = Colors.grey.withOpacity(0.3) // Light grid line
+          ..strokeWidth = 1,
       );
+    }
+
+    // Draw lines and points
+    _drawLine(canvas, size, spends, pointPadding, scaleY, Colors.red, verticalOffset);
+    _drawLine(canvas, size, received, pointPadding, scaleY, Colors.green, verticalOffset);
+
+    // Draw labels below the X-axis
+    for (int i = 0; i < labels.length; i++) {
+      final x = (i + 1) * pointPadding;
+      final labelParts = labels[i].split('\n');
+      final firstLine = labelParts[0];
+      final secondLine = labelParts.length > 1 ? labelParts[1] : '';
+
+      // Draw first line
+      final firstLinePainter = TextPainter(
+        text: TextSpan(text: firstLine, style: textStyle),
+        textAlign: TextAlign.center,
+        textDirection: ui.TextDirection.ltr,
+      )..layout(maxWidth: pointPadding);
+      firstLinePainter.paint(
+        canvas,
+        Offset(x - firstLinePainter.width / 2, size.height + 5 + verticalOffset),
+      );
+
+      // Draw second line
+      if (secondLine.isNotEmpty) {
+        final secondLinePainter = TextPainter(
+          text: TextSpan(text: secondLine, style: secondLineTextStyle),
+          textAlign: TextAlign.center,
+          textDirection: ui.TextDirection.ltr,
+        )..layout(maxWidth: pointPadding);
+        secondLinePainter.paint(
+          canvas,
+          Offset(x - secondLinePainter.width / 2,
+              size.height + 20 + verticalOffset), // Adjusted position for second line
+        );
+      }
     }
   }
 
   void _drawLine(Canvas canvas, Size size, List<double> data,
-      double pointPadding, double scaleY, Color color) {
+      double pointPadding, double scaleY, Color color, double verticalOffset) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
     final path = Path();
     for (int i = 0; i < data.length; i++) {
-      print(size.width);
       final x = (i + 1) * pointPadding;
-      final y = size.height - data[i] * scaleY;
+      final y = size.height - data[i] * scaleY + verticalOffset;
       if (i == 0) {
         path.moveTo(x, y);
       } else {
