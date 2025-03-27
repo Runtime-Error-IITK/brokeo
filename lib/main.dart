@@ -2,11 +2,14 @@ import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/login_pages/login_page1.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 // import 'package:brokeo/frontend/login_pages/login_page1.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
 // import 'package:brokeo/frontend/home_pages/home_page.dart';
 // import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 // import 'package:brokeo/frontend/login_pages/login_page1.dart';
 // import 'package:brokeo/frontend/login_pages/login_page3.dart';
+import 'package:brokeo/frontend/split_pages/choose_split_type.dart';
 import 'package:flutter/material.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,10 +20,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,  // Remove debug banner
-      home: HomePage(name: "Darshan", budget: 5000,),  // Set LoginPage1 as the home page
+      home:ChooseSplitTypePage(totalAmount: 500, selectedContacts: selectedContacts) ,  // Set LoginPage1 as the home page
     );
   }
 }
+List<brokeo_split.Split> selectedContacts = [
+  brokeo_split.Split("Chetan Singh", 50.0),
+  brokeo_split.Split("Darshan", 510.0),
+  brokeo_split.Split("Chinmay Jain", 75.0),
+  brokeo_split.Split("Aryan Kumar", 25.0),
+  brokeo_split.Split("Suryansh Verma", 160.0),
+  brokeo_split.Split("Anjali Patra", 1200.0),
+  brokeo_split.Split("Rudransh Verma", 0.0),
+  brokeo_split.Split("Moni Sinha", 50.0),
+  brokeo_split.Split("Sanjina S", 1.0),
+];
 // class MyApp extends StatelessWidget {
 //   const MyApp({super.key});
 
