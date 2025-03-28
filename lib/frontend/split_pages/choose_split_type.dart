@@ -2,6 +2,7 @@ import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 class ChooseSplitTypePage extends StatefulWidget {
   final Map<String, dynamic> transaction;
@@ -319,7 +320,7 @@ class _ChooseSplitTypePageState extends State<ChooseSplitTypePage> {
       case 1:
         return CategoriesPage();
       case 2:
-        return Placeholder(); // Replace with AnalyticsPage
+        return AnalyticsPage();
       default:
         return ManageSplitsPage();
     }

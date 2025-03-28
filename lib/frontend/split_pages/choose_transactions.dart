@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/split_pages/split_between.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 class ChooseTransactionPage extends StatefulWidget {
   @override
@@ -106,7 +107,12 @@ class _ChooseTransactionPageState extends State<ChooseTransactionPage> {
               ),
             );
           } else if (index == 2) {
-            // TODO: Analytics page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AnalyticsPage(),
+              ),
+            );
           }
         },
         type: BottomNavigationBarType.fixed,

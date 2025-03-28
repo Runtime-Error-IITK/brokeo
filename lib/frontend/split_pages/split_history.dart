@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 class SplitHistoryPage extends StatefulWidget {
   //final Map<String, dynamic> person;
@@ -234,7 +235,12 @@ class _SplitHistoryPageState extends State<SplitHistoryPage> {
             ),
           );
         } else if (index == 2) {
-          // TODO: Analytics page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AnalyticsPage(),
+            ),
+          );
         }
       },
       type: BottomNavigationBarType.fixed,

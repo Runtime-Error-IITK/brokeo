@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
 import 'package:brokeo/frontend/split_pages/split_history.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 class ManageSplitsPage extends StatefulWidget {
   @override
@@ -99,20 +100,17 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
           ),
 
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadSplits,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0), // Adds 8 padding left & right
-                child: ListView.separated(
-                  itemCount: splits.length,
-                  itemBuilder: (context, index) {
-                    final split = splits[index];
-                    return _buildSplitTile(split);
-                  },
-                  separatorBuilder: (context, index) => Divider(
-                    color: Colors.grey[300],
-                  ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0), // Adds 8 padding left & right
+              child: ListView.separated(
+                itemCount: splits.length,
+                itemBuilder: (context, index) {
+                  final split = splits[index];
+                  return _buildSplitTile(split);
+                },
+                separatorBuilder: (context, index) => Divider(
+                  color: Colors.grey[300],
                 ),
               ),
             ),
@@ -232,10 +230,8 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
             _currentIndex = index;
           });
         }
-        // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) =>
@@ -243,17 +239,20 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
             ),
           );
         } else if (index == 1) {
-          // Already on Categories/Transactions page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => CategoriesPage(),
             ),
           );
         } else if (index == 2) {
-          // TODO: Navigate to Analytics Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AnalyticsPage(),
+            ),
+          );
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
           Navigator.push(
             context,
             MaterialPageRoute(

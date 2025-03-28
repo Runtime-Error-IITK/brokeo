@@ -10,6 +10,7 @@ import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/frontend/split_pages/split_history.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 /// Home Page
 class HomePage extends StatefulWidget {
@@ -1396,7 +1397,11 @@ class _HomePageState extends State<HomePage> {
             (route) => false,
           );
         } else if (index == 2) {
-          // TODO: Navigate to Analytics Page
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => AnalyticsPage()),
+            (route) => false,
+          );
         } else if (index == 3) {
           Navigator.pushAndRemoveUntil(
             context,
