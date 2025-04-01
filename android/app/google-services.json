@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "325446046244",
+    "project_id": "brokeo",
+    "storage_bucket": "brokeo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325446046244:android:f15975b7405ecbd3803eb1",
+        "android_client_info": {
+          "package_name": "com.example.brokeo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8yTQcS1ejwJos0VsYxeapQI5Zue10MYc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

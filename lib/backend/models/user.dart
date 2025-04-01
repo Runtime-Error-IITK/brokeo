@@ -25,27 +25,6 @@ class User {
     return phoneNumber.hashCode;
   }
 
-  factory User.fromJson(String json) {
-    Map<String, dynamic> decodedJson = jsonDecode(json) as Map<String, dynamic>;
-    return User(
-      name: decodedJson[nameColumn] as String,
-      email: decodedJson[emailColumn] as String,
-      phoneNumber: decodedJson[phoneNumberColumn] as String,
-      budget: decodedJson[budgetColumn] as Map<String, dynamic>,
-    );
-  }
-
-  String toJson() {
-    //return json string
-
-    return jsonEncode({
-      nameColumn: name,
-      emailColumn: email,
-      phoneNumberColumn: phoneNumber,
-      budgetColumn: budget,
-    });
-  }
-
   void addEmail(String email) {
     //check email format
     //TODO: Add more robust error handling
