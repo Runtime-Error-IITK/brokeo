@@ -357,10 +357,10 @@ class BarChartWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: displayData.map((bar) {
             return SizedBox(
-              width: 40, // match or slightly exceed barWidth
+              width: 50, // match or slightly exceed barWidth
               child: Text(
                 bar.label,
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 12, color: Colors.black),
               ),
             );

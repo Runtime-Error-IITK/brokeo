@@ -85,7 +85,7 @@ class _MerchantsPageState extends ConsumerState<MerchantsPage> {
                   ),
                 ),
                 Text(
-                  "Spends: $totalSpends - Amount Paid: ₹$totalAmount",
+                  "$totalSpends Spends - ₹$totalAmount",
                   style: TextStyle(
                     color: Colors.black54,
                     fontSize: 12,
@@ -161,7 +161,8 @@ class _MerchantsPageState extends ConsumerState<MerchantsPage> {
         if (index == 0) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => HomePage(name: "User", budget: 5000)),
+            MaterialPageRoute(
+                builder: (context) => HomePage(name: "User", budget: 5000)),
           );
         } else if (index == 1) {
           Navigator.pushReplacement(

@@ -628,7 +628,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                         ),
                       ),
                       Text(
-                        merchant.spends.toString(), // Placeholder for time
+                        "${merchant.spends.toString()} Spends", // Placeholder for time
                         style: TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],
