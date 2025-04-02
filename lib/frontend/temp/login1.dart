@@ -1,72 +1,34 @@
-import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
-import 'package:brokeo/frontend/login_pages/login_page2.dart' show LoginPage2;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'dart:developer';
+
+import 'package:brokeo/frontend/login_pages/login_page2.dart';
 import 'package:flutter/material.dart';
-import 'package:intl_phone_field/intl_phone_field.dart' show IntlPhoneField;
-import 'package:intl_phone_field/phone_number.dart' show PhoneNumber;
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:intl_phone_field/phone_number.dart';
 
-class LoginPage1 extends ConsumerStatefulWidget {
-  const LoginPage1({super.key});
-
+class LoginPage1 extends StatefulWidget {
   @override
-  LoginPage1State createState() => LoginPage1State();
+  _LoginPage1State createState() => _LoginPage1State();
 }
 
-class LoginPage1State extends ConsumerState<LoginPage1> {
-  // You can add your state variables and methods here
-
+class _LoginPage1State extends State<LoginPage1> {
   PhoneNumber? phoneNumber;
 
-  @override
-  void initState() {
-    super.initState();
-    // Initialize any state variables or perform setup here
-  }
-
-  void _verifyPhone() async {
-    final auth = ref.read(firebaseAuthProvider);
-
-    await auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber.toString(),
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        final userCredential = await auth.signInWithCredential(credential);
-
-        if (context.mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => AuthPage(),
-            ),
-          );
-        } else {
-          return;
-        }
-      },
-      verificationFailed: (FirebaseAuthException error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Verification failed: ${error.message}")),
-        );
-      },
-      codeSent: (String verificationId, int? resendToken) {
+  void validateAndProceed() {
+    try {
+      if (phoneNumber != null && phoneNumber!.isValidNumber()) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => LoginPage2(
-                verificationId: verificationId, phoneNumber: phoneNumber!),
+            builder: (context) => LoginPage2(phoneNumber: phoneNumber!),
           ),
         );
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => LoginPage2(
-                verificationId: verificationId, phoneNumber: phoneNumber!),
-          ),
-        );
-      },
-    );
+      } else {
+        log("Invalid Number. Action not allowed.");
+      }
+    } catch (e) {
+      log("Exception: ${e.toString()}");
+    }
   }
 
   @override
@@ -162,7 +124,7 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
                 child: IconButton(
                   iconSize: 35,
                   icon: Icon(Icons.arrow_forward, color: Colors.white),
-                  onPressed: _verifyPhone,
+                  onPressed: validateAndProceed,
                 ),
               ),
             ],
