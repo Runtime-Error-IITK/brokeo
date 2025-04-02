@@ -395,7 +395,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TransactionDetailPage(transaction: transaction),
+            builder: (context) =>
+                TransactionDetailPage(transaction: transaction),
           ),
         );
       },
@@ -796,7 +797,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     List<ScheduledPayment> paymentsToShow =
         showAllScheduledPayments ? payments : payments.take(3).toList();
 
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
       decoration: BoxDecoration(
@@ -961,9 +961,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                     onPressed: () {
                       // TODO: Handle "Add Split" action
                       Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChooseTransactionPage()),
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChooseTransactionPage()),
                       );
                     },
                   ),
@@ -1059,26 +1059,26 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   final mockData = [
-      {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
-      {"name": "Darshan", "amount": 510.0, "isSettled": false},
-      {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
-      {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
-      {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
-      {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
-      {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
-      {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
-      {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
-      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-      {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
-    ];
+    {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
+    {"name": "Darshan", "amount": 510.0, "isSettled": false},
+    {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
+    {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
+    {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
+    {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
+    {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
+    {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
+    {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
+    {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+    {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+    {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+    {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+    {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
+  ];
 
   Widget _buildSplitTile(Split split) {
     bool isNegative = split.amount < 0;
     Color amountColor = isNegative ? Colors.red : Colors.green;
-    
+
     return InkWell(
       onTap: () {
         // TODO: Fix this bullshit error
@@ -1129,7 +1129,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 2) Show top 3 categories by default
     List<BudgetCategory> categoriesToShow =
         showAllBudgetCategories ? categories : categories.take(3).toList();
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
       decoration: BoxDecoration(
@@ -1223,7 +1223,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       ),
     );
-    
   }
 
   Widget _buildBudgetTile(String label, double amount) {
@@ -1267,7 +1266,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildBudgetCategoryTile(BudgetCategory category) {
-    
     return InkWell(
       onTap: () {
         // TODO: Implement onTap logic for each budget category
@@ -1282,7 +1280,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => CategoryPage(data: category),
+            builder: (context) => CategoryPage(data: category),
           ),
         );
       },
@@ -1321,6 +1319,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
     );
   }
+
   Widget buildCategoryCard(CategoryCardData data) {
     return GestureDetector(
       onTap: () {
@@ -1375,6 +1374,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
     );
   }
+
   Widget buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
@@ -1388,7 +1388,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (index == 0) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => HomePage(name: widget.name, budget: widget.budget)),
+            MaterialPageRoute(
+                builder: (context) =>
+                    HomePage(name: widget.name, budget: widget.budget)),
             (route) => false,
           );
         } else if (index == 1) {
@@ -1618,6 +1620,7 @@ class MockBackend {
     ];
   }
 }
+
 class DummyDataService {
   static double getDailySafeToSpend() => 365.0;
   static double getAmountSpent() => 3028.0;
