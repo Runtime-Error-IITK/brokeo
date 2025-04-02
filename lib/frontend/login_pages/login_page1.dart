@@ -1,4 +1,5 @@
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
+import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:brokeo/frontend/login_pages/login_page2.dart' show LoginPage2;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;

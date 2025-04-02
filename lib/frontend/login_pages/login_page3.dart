@@ -35,7 +35,6 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
     });
 
     if (_isNameValid && _isEmailValid && _isBudgetValid) {
-      //TODO : Store all the data in the database
       Navigator.push(
         context,
         MaterialPageRoute(

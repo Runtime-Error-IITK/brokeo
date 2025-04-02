@@ -1,5 +1,6 @@
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
     show firebaseAuthProvider;
+import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:firebase_auth/firebase_auth.dart' show PhoneAuthProvider;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
