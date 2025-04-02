@@ -36,14 +36,6 @@ class Category {
     );
   }
 
-  // factory Category.fromDatabaseCategory(DatabaseCategory databaseCategory) {
-  //   return Category(
-  //     name: databaseCategory.name,
-  //     categoryId: databaseCategory.categoryId,
-  //     budget: databaseCategory.budget,
-  //   );
-  // }
-
   @override
   String toString() {
     return "Category{name: $name, categoryId: $categoryId, budget: $budget, userId: $userId}";
@@ -110,53 +102,6 @@ class CloudCategory {
     };
   }
 }
-
-// class DatabaseCategory {
-//   String name;
-//   int categoryId;
-//   double budget;
-
-//   DatabaseCategory({
-//     required this.name,
-//     required this.categoryId,
-//     required this.budget,
-//   });
-
-//   // DatabaseCategory.fromRow(Map<String, dynamic> row)
-//   //     : categoryId = row[categoryIdColumn] as int,
-//   //       name = row[nameColumn] as String,
-//   //       budget = row[budgetColumn] as double;
-
-//   factory DatabaseCategory.fromRow(Map<String, Object?> row) {
-//     return DatabaseCategory(
-//       name: row[nameColumn] as String,
-//       categoryId: row[categoryIdColumn] as int,
-//       budget: row[budgetColumn] as double,
-//     );
-//   }
-
-//   factory DatabaseCategory.fromCategory(Category category) {
-//     return DatabaseCategory(
-//       name: category.name,
-//       categoryId: category.categoryId,
-//       budget: category.budget,
-//     );
-//   }
-
-//   @override
-//   String toString() =>
-//       "Category(name: $name, categoryId: $categoryId, budget: $budget)";
-
-//   @override
-//   bool operator ==(covariant Object other) {
-//     if (identical(this, other)) return true;
-
-//     return other is DatabaseCategory && other.categoryId == categoryId;
-//   }
-
-//   @override
-//   int get hashCode => categoryId.hashCode;
-// }
 
 const String nameColumn = "name";
 const String categoryIdColumn = "categoryId";

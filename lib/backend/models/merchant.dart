@@ -37,14 +37,6 @@ class Merchant {
     );
   }
 
-  // factory Merchant.fromDatabaseMerchant(DatabaseMerchant databaseMerchant) {
-  //   return Merchant(
-  //     merchantId: databaseMerchant.merchantId,
-  //     name: databaseMerchant.name,
-  //     categoryId: databaseMerchant.categoryId,
-  //   );
-  // }
-
   @override
   String toString() {
     return "Merchant{merchantId: $merchantId, name: $name, categoryId: $categoryId, userId: $userId}";
@@ -110,51 +102,6 @@ class CloudMerchant {
     };
   }
 }
-
-// class DatabaseMerchant {
-//   int merchantId;
-//   String name;
-//   int categoryId;
-
-//   DatabaseMerchant({
-//     required this.merchantId,
-//     required this.name,
-//     required this.categoryId,
-//   });
-
-//   factory DatabaseMerchant.fromRow(Map<String, Object?> row) {
-//     return DatabaseMerchant(
-//       merchantId: row[merchantIdColumn] as int,
-//       name: row[nameColumn] as String,
-//       categoryId: row[categoryIdColumn] as int,
-//     );
-//   }
-
-//   factory DatabaseMerchant.fromMerchant(Merchant merchant) {
-//     return DatabaseMerchant(
-//       merchantId: merchant.merchantId,
-//       name: merchant.name,
-//       categoryId: merchant.categoryId,
-//     );
-//   }
-
-//   @override
-//   bool operator ==(Object other) {
-//     if (identical(this, other)) return true;
-
-//     return other is DatabaseMerchant && other.merchantId == merchantId;
-//   }
-
-//   @override
-//   int get hashCode {
-//     return merchantId.hashCode;
-//   }
-
-//   @override
-//   String toString() {
-//     return "DatabaseMerchant{merchantId: $merchantId, name: $name, categoryId: $categoryId}";
-//   }
-// }
 
 const String nameColumn = "name";
 const String merchantIdColumn = "merchantId";

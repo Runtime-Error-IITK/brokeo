@@ -43,15 +43,6 @@ class Due {
   String toString() {
     return "Due{dueId: $dueId, amount: $amount, merchantId: $merchantId, categoryId: $categoryId, userId: $userId}";
   }
-
-  // factory Due.fromDatabaseDue(DatabaseDue databaseDue) {
-  //   return Due(
-  //     dueId: databaseDue.dueId,
-  //     amount: databaseDue.amount,
-  //     merchantId: databaseDue.merchantId,
-  //     categoryId: databaseDue.categoryId,
-  //   );
-  // }
 }
 
 class CloudDue {
@@ -116,55 +107,6 @@ class CloudDue {
     };
   }
 }
-
-// class DatabaseDue {
-//   int dueId;
-//   double amount;
-//   int merchantId;
-//   int categoryId;
-
-//   DatabaseDue({
-//     required this.dueId,
-//     required this.amount,
-//     required this.merchantId,
-//     required this.categoryId,
-//   });
-
-//   factory DatabaseDue.fromRow(Map<String, Object?> row) {
-//     return DatabaseDue(
-//       dueId: row[dueIdColumn] as int,
-//       amount: row[amountColumn] as double,
-//       merchantId: row[merchantIdColumn] as int,
-//       categoryId: row[categoryIdColumn] as int,
-//     );
-//   }
-
-//   factory DatabaseDue.fromDue(Due due) {
-//     return DatabaseDue(
-//       dueId: due.dueId,
-//       amount: due.amount,
-//       merchantId: due.merchantId,
-//       categoryId: due.categoryId,
-//     );
-//   }
-
-//   @override
-//   String toString() {
-//     return "Due(dueId: $dueId, amount: $amount, merchantId: $merchantId, categoryId: $categoryId)";
-//   }
-
-//   @override
-//   bool operator ==(Object other) {
-//     if (identical(this, other)) return true;
-
-//     return other is DatabaseDue && other.dueId == dueId;
-//   }
-
-//   @override
-//   int get hashCode {
-//     return dueId.hashCode;
-//   }
-// }
 
 const String dueIdColumn = "dueId";
 const String amountColumn = "amount";
