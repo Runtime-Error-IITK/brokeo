@@ -1,3 +1,4 @@
+import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -38,7 +39,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(),
+          builder: (context) => HomePage(name: 'darshan', budget: 5000,),
         ),
       );
     }

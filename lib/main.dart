@@ -1,15 +1,28 @@
+import 'package:brokeo/firebase_options.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/login_pages/login_page1.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:firebase_core/firebase_core.dart';
 // import 'package:brokeo/frontend/login_pages/login_page1.dart';
 // import 'package:brokeo/frontend/home_pages/home_page.dart';
 // import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 // import 'package:brokeo/frontend/login_pages/login_page1.dart';
 // import 'package:brokeo/frontend/login_pages/login_page3.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(
+    ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -17,10 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false, // Remove debug banner
-      home: HomePage(
-        name: "Darshan",
-        budget: 5000,
-      ), // Set LoginPage1 as the home page
+      home: LoginPage1() // Set LoginPage1 as the home page
     );
   }
 }

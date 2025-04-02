@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:brokeo/frontend/login_pages/login_page2.dart' show LoginPage2;
@@ -29,8 +31,10 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
   void _verifyPhone() async {
     final auth = ref.read(firebaseAuthProvider);
 
+    String number = phoneNumber!.completeNumber;
+    log(number);
     await auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber.toString(),
+      phoneNumber: number,
       verificationCompleted: (PhoneAuthCredential credential) async {
         final userCredential = await auth.signInWithCredential(credential);
 
