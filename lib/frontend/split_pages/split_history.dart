@@ -77,7 +77,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // "You owe" message below app bar
+                // "You owe", "owes you", or "Settled" message below app bar
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 10, // More horizontal padding
@@ -85,11 +85,19 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                   ),
                   child: Center(
                     child: Text(
-                      'You owe ${widget.split['name']} ₹${totalOwed.abs().toStringAsFixed(2)}',
+                      totalOwed > 0
+                          ? 'You owe ${widget.split['name']} ₹${totalOwed.abs().toStringAsFixed(2)}'
+                          : totalOwed < 0
+                              ? '${widget.split['name']} owes you ₹${totalOwed.abs().toStringAsFixed(2)}'
+                              : 'Settled',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
-                        color: totalOwed > 0 ? Colors.red : Colors.green,
+                        color: totalOwed > 0
+                            ? Colors.red
+                            : totalOwed < 0
+                                ? Colors.green
+                                : Colors.black, // Neutral color for "Settled"
                       ),
                     ),
                   ),
@@ -104,15 +112,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () => _showAddTransactionDialog(context),
-                        child: Text('Add Transaction'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.purple,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => _showSettleUpConfirmation(context),
+                        onPressed: () => _showSettleUpConfirmation(context, totalOwed),
                         child: Text('Settle Up'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.purple,
@@ -129,7 +129,8 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                     padding: EdgeInsets.zero,
                     itemCount: transactions.length,
                     itemBuilder: (context, index) {
-                      final transaction = transactions[index];
+                      final reversedIndex = transactions.length - 1 - index;
+                      final transaction = transactions[reversedIndex];
                       final isPositive = transaction['amount'] > 0;
                       return InkWell(
                         onTap: () {},
@@ -470,7 +471,10 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
   }
 
   // Shows confirmation dialog when settling up
-  void _showSettleUpConfirmation(BuildContext context) {
+  void _showSettleUpConfirmation(BuildContext context, double totalOwed) {
+    final _formKey = GlobalKey<FormState>();
+    String settleAmount = totalOwed.abs().toStringAsFixed(2);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -479,15 +483,42 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
             'Settle Up',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Are you sure you want to Settle Up?'),
-              SizedBox(height: 16),
-            ],
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: settleAmount,
+                  decoration: InputDecoration(
+                    labelText: "Amount",
+                    prefixText: "₹",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^-?\d+\.?\d{0,2}')),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an amount';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Enter a valid amount';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) => settleAmount = value,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Current balance: ₹${totalOwed.toStringAsFixed(2)}',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
           ),
           actions: [
-            // Cancel button
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
@@ -495,17 +526,35 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                 style: TextStyle(color: Colors.grey),
               ),
             ),
-            // Confirm button
             ElevatedButton(
               onPressed: () {
-                // In a real app, this would process the settlement
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Settled up with ${widget.split['name']}'),
-                  ),
-                );
-                
-                Navigator.pop(context); // Close dialog
+                if (_formKey.currentState!.validate()) {
+                  final enteredAmount = double.parse(settleAmount);
+                  final newBalance = totalOwed - enteredAmount;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        newBalance > 0
+                            ? 'You owe ₹${newBalance.toStringAsFixed(2)}'
+                            : newBalance < 0
+                                ? '${widget.split['name']} owes you ₹${newBalance.abs().toStringAsFixed(2)}'
+                                : 'You are settled up with ${widget.split['name']}',
+                      ),
+                    ),
+                  );
+
+                  setState(() {
+                    transactions.add({
+                      'name': widget.split['name'],
+                      'amount': -enteredAmount,
+                      'date': DateFormat('dd MMM\'yy, HH:mm').format(DateTime.now()),
+                      'avatarText': widget.split['name'][0],
+                    });
+                  });
+
+                  Navigator.pop(context);
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 97, 53, 186),
