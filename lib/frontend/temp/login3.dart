@@ -1,21 +1,22 @@
+import 'dart:developer' show log;
+
+import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:currency_picker/currency_picker.dart';
 
-class LoginPage3 extends ConsumerStatefulWidget {
-  const LoginPage3({
-    super.key,
-  });
-
+class LoginPage3 extends StatefulWidget {
   @override
-  LoginPage3State createState() => LoginPage3State();
+  _LoginPage3State createState() => _LoginPage3State();
 }
 
-class LoginPage3State extends ConsumerState<LoginPage3> {
+class _LoginPage3State extends State<LoginPage3> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _budgetController = TextEditingController();
+  String _selectedCurrency = 'INR'; // Default currency
 
+  // Error states
   bool _isNameValid = true;
   bool _isEmailValid = true;
   bool _isBudgetValid = true;
@@ -39,7 +40,10 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(),
+          builder: (context) => HomePage(
+            name: _nameController.text,
+            budget: double.parse(_budgetController.text),
+          ),
         ),
       );
     }
@@ -50,6 +54,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       _nameController.clear();
       _emailController.clear();
       _budgetController.clear();
+      _selectedCurrency = 'INR';
       _isNameValid = true;
       _isEmailValid = true;
       _isBudgetValid = true;
@@ -130,6 +135,41 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: _inputDecoration("E-Mail", _isEmailValid),
+                ),
+              ),
+              SizedBox(height: 15),
+
+              // Currency Selector using Currency Picker
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: InkWell(
+                  onTap: () {
+                    showCurrencyPicker(
+                      context: context,
+                      showFlag: true,
+                      showSearchField: true,
+                      onSelect: (Currency currency) {
+                        setState(() {
+                          _selectedCurrency = currency.code;
+                        });
+                      },
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey, width: 2),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(_selectedCurrency, style: TextStyle(fontSize: 16)),
+                        Icon(Icons.arrow_drop_down),
+                      ],
+                    ),
+                  ),
                 ),
               ),
               SizedBox(height: 15),

@@ -1,45 +1,29 @@
-import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
-    show firebaseAuthProvider;
-import 'package:firebase_auth/firebase_auth.dart' show PhoneAuthProvider;
+import 'package:brokeo/frontend/login_pages/login_page3.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl_phone_field/phone_number.dart' show PhoneNumber;
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl_phone_field/phone_number.dart';
 
-class LoginPage2 extends ConsumerStatefulWidget {
-  final String verificationId;
+class LoginPage2 extends StatefulWidget {
   final PhoneNumber phoneNumber;
 
-  const LoginPage2(
-      {super.key, required this.phoneNumber, required this.verificationId});
+  LoginPage2({required this.phoneNumber});
 
   @override
-  LoginPage2State createState() => LoginPage2State();
+  _LoginPage2State createState() => _LoginPage2State();
 }
 
-class LoginPage2State extends ConsumerState<LoginPage2> {
+class _LoginPage2State extends State<LoginPage2> {
   TextEditingController otpController = TextEditingController();
 
-  void _verifyOtp() async {
-    final credential = PhoneAuthProvider.credential(
-      verificationId: widget.verificationId,
-      smsCode: otpController.text,
-    );
-
-    final firebaseAuthInstance = ref.read(firebaseAuthProvider);
-
-    final userCredential =
-        await firebaseAuthInstance.signInWithCredential(credential);
-
-    // Navigate to a screen to collect metadata
-    if (context.mounted) {
-      Navigator.of(context).pushReplacement(
+  void validateAndProceed() {
+    if (otpController.text.isNotEmpty) {
+      // TODO: Implement OTP verification and check whether the otp is correct or not
+      Navigator.push(
+        context,
         MaterialPageRoute(
-          builder: (context) => AuthPage(),
+          builder: (context) => LoginPage3(),
         ),
       );
-    } else {
-      return;
     }
   }
 
@@ -141,7 +125,7 @@ class LoginPage2State extends ConsumerState<LoginPage2> {
                 child: IconButton(
                   iconSize: 35,
                   icon: Icon(Icons.arrow_forward, color: Colors.white),
-                  onPressed: _verifyOtp,
+                  onPressed: validateAndProceed,
                 ),
               ),
             ],

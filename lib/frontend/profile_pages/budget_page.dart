@@ -115,10 +115,10 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                 onPressed: () {
                   _showAddCategoryDialog();
                 },
-                icon: Icon(Icons.add, color: Theme.of(context).iconTheme.color),
+                icon: Icon(Icons.add, color: Colors.white), // changed icon color to white
                 label: Text(
                   "Add Category",
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,

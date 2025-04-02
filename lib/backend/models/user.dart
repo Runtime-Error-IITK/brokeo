@@ -4,7 +4,7 @@ class User {
   String name;
   String email;
   String phoneNumber;
-  Map<String, dynamic> budget;
+  Map<String, double> budget;
 
   User({
     required this.name,
