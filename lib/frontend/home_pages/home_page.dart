@@ -1375,54 +1375,81 @@ class _HomePageState extends State<HomePage> {
     );
   }
   Widget buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: (index) {
-        if (index != _currentIndex) {
-          setState(() {
-            _currentIndex = index;
-          });
-        }
-        // Navigation logic based on index:
-        if (index == 0) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage(name: widget.name, budget: widget.budget)),
-            (route) => false,
-          );
-        } else if (index == 1) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => CategoriesPage()),
-            (route) => false,
-          );
-        } else if (index == 2) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => AnalyticsPage()),
-            (route) => false,
-          );
-        } else if (index == 3) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
-            (route) => false,
-          );
-        }
-      },
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.purple,
-      unselectedItemColor: Colors.grey,
-      iconSize: 24,
-      selectedFontSize: 12,
-      unselectedFontSize: 12,
-      items: [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.analytics), label: "Analytics"),
-        BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-      ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Color.fromARGB(255, 219, 203, 244), // Base color for the navigation bar
+        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          if (index != _currentIndex) {
+            setState(() {
+              _currentIndex = index;
+            });
+          }
+          // Navigation logic based on index:
+          if (index == 0) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      HomePage(name: widget.name, budget: widget.budget)),
+              (route) => false,
+            );
+          } else if (index == 1) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => CategoriesPage()),
+              (route) => false,
+            );
+          } else if (index == 2) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => AnalyticsPage()),
+              (route) => false,
+            );
+          } else if (index == 3) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => ManageSplitsPage()),
+              (route) => false,
+            );
+          }
+        },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.transparent, // Transparent to show the container's color
+        elevation: 0,
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
+        items: [
+          _buildBottomNavigationBarItem(Icons.home, "Home", 0),
+          _buildBottomNavigationBarItem(Icons.list, "Transactions", 1),
+          _buildBottomNavigationBarItem(Icons.analytics, "Analytics", 2),
+          _buildBottomNavigationBarItem(Icons.people, "Split", 3),
+        ],
+      ),
+    );
+  }
+
+  BottomNavigationBarItem _buildBottomNavigationBarItem(
+      IconData icon, String label, int index) {
+    return BottomNavigationBarItem(
+      icon: Container(
+        decoration: BoxDecoration(
+          color: _currentIndex == index
+              ? Colors.purple // Highlight color for the selected item
+              : Colors.transparent, // Transparent for unselected items
+          borderRadius: BorderRadius.horizontal(
+              left: Radius.circular(15), right: Radius.circular(15)),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Icon(
+          icon,
+          color: _currentIndex == index ? Colors.white : Colors.grey, // Icon color
+        ),
+      ),
+      label: label,
     );
   }
 }
