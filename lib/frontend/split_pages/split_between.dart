@@ -3,10 +3,11 @@ import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/split_pages/choose_split_type.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 // Ensure that the ChooseTransactionsPage class is defined in the imported file
 // or define it below if it is missing.
-class SplitBetweenPage extends StatefulWidget {
+class SplitBetweenPage extends ConsumerStatefulWidget {
   final Map<String, dynamic> transaction;
 
   const SplitBetweenPage({Key? key, required this.transaction}) : super(key: key);
@@ -15,7 +16,7 @@ class SplitBetweenPage extends StatefulWidget {
   _SplitBetweenPageState createState() => _SplitBetweenPageState();
 }
 
-class _SplitBetweenPageState extends State<SplitBetweenPage> {
+class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
   int _currentIndex = 3;
   List<String> contacts = [
     "Abeer Singh",

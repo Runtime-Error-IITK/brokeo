@@ -1,3 +1,4 @@
+// import 'package:brokeo/backend/services/providers2/read_providers/category_stream_provider.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:brokeo/frontend/transactions_pages/category_page.dart';
@@ -7,15 +8,18 @@ import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart'
 import 'package:brokeo/models/transaction_model.dart';
 import 'package:brokeo/frontend/transactions_pages/merchants_page.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Main CategoriesPage
-class CategoriesPage extends StatefulWidget {
+class CategoriesPage extends ConsumerStatefulWidget {
+  const CategoriesPage({Key? key}) : super(key: key);
+
   @override
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
-class _CategoriesPageState extends State<CategoriesPage>
-    with SingleTickerProviderStateMixin {
+class _CategoriesPageState extends ConsumerState<CategoriesPage>
+    with SingleTickerProviderStateMixin {   
   int _currentIndex = 1;
   late TabController _tabController;
   bool showTransactions = false;
@@ -29,6 +33,7 @@ class _CategoriesPageState extends State<CategoriesPage>
 
   @override
   Widget build(BuildContext context) {
+    // final asyncCategories = ref.watch(categoryStreamProvider);
     return Scaffold(
       body: SafeArea(
         child: Column(

@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class ChooseSplitTypePage extends StatefulWidget {
+class ChooseSplitTypePage extends ConsumerStatefulWidget {
   final Map<String, dynamic> transaction;
   final List<String> selectedContacts;
 
@@ -18,7 +19,7 @@ class ChooseSplitTypePage extends StatefulWidget {
   _ChooseSplitTypePageState createState() => _ChooseSplitTypePageState();
 }
 
-class _ChooseSplitTypePageState extends State<ChooseSplitTypePage> {
+class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
   String _splitType = 'Equal'; // 'Equal' or 'Custom'
   final Map<String, double> _customAmounts = {};
   final TextEditingController _amountController = TextEditingController();

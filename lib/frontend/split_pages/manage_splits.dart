@@ -4,13 +4,14 @@ import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
 import 'package:brokeo/frontend/split_pages/split_history.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class ManageSplitsPage extends StatefulWidget {
+class ManageSplitsPage extends ConsumerStatefulWidget {
   @override
   _ManageSplitsPageState createState() => _ManageSplitsPageState();
 }
 
-class _ManageSplitsPageState extends State<ManageSplitsPage> {
+class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
   int _currentIndex = 3;
   List<brokeo_split.Split> splits =
       []; // Now using Split model instead of raw data

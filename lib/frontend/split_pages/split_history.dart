@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
-class SplitHistoryPage extends StatefulWidget {
+class SplitHistoryPage extends ConsumerStatefulWidget {
   //final Map<String, dynamic> person;
 
   final Map<String, dynamic> split;
@@ -20,7 +21,7 @@ class SplitHistoryPage extends StatefulWidget {
   _SplitHistoryPageState createState() => _SplitHistoryPageState();
 }
 
-class _SplitHistoryPageState extends State<SplitHistoryPage> {
+class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
   int _currentIndex = 3;
   List<Map<String, dynamic>> transactions = [];
   bool _isLoading = true;

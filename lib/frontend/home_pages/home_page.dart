@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:brokeo/models/transaction_model.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
@@ -13,7 +14,7 @@ import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 /// Home Page
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   final String name;
   final double budget;
 
@@ -23,7 +24,7 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   bool showAllTransactions = false; // Toggle for transaction list
   int expandedTransactionIndex = -1; // Tracks which transaction is expanded
   int _currentIndex = 0; // Tracks the selected bottom navigation index

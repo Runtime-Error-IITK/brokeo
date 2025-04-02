@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class BudgetPage extends StatefulWidget {
+class BudgetPage extends ConsumerStatefulWidget {
   @override
   _BudgetPageState createState() => _BudgetPageState();
 }
 
-class _BudgetPageState extends State<BudgetPage> {
+class _BudgetPageState extends ConsumerState<BudgetPage> {
   double _totalBudget = 1000;
   Map<String, Map<String, dynamic>> _categoryBudgets = {
     "Food and Drinks": {"budget": 500.0, "emoji": "🍔"},

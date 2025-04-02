@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:brokeo/frontend/login_pages/login_page2.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +16,7 @@ class _LoginPage1State extends State<LoginPage1> {
   void validateAndProceed() {
     try {
       if (phoneNumber != null && phoneNumber!.isValidNumber()) {
-        print("✅ Valid Number: ${phoneNumber!.completeNumber}");
+        print("Valid Number: ${phoneNumber!.completeNumber}");
 
         // TODO: Store number in database and send OTP to the that number
 

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/profile_pages/edit_profile_page.dart';
 import 'package:brokeo/frontend/profile_pages/faqs_page.dart'; // Import FAQsPage
 import 'package:brokeo/frontend/profile_pages/privacy_policy_page.dart'; // Import PrivacyPolicyPage
-import 'package:brokeo/frontend/profile_pages/budget_page.dart'; // Import BudgetPage
+import 'package:brokeo/frontend/profile_pages/budget_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart'; // Import BudgetPage
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context,WidgetRef ref) {
     bool _notificationsEnabled = true; // State variable for notifications
 
     return Scaffold(

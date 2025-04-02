@@ -6,8 +6,9 @@ import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class MerchantsPage extends StatefulWidget {
+class MerchantsPage extends ConsumerStatefulWidget {
   final Merchant data;
 
   const MerchantsPage({Key? key, required this.data}) : super(key: key);
@@ -16,7 +17,7 @@ class MerchantsPage extends StatefulWidget {
   _MerchantsPageState createState() => _MerchantsPageState();
 }
 
-class _MerchantsPageState extends State<MerchantsPage> {
+class _MerchantsPageState extends ConsumerState<MerchantsPage> {
   int _currentIndex = 1;
 
   @override
