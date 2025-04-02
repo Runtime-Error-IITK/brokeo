@@ -48,6 +48,12 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
     bool hasSelectedContacts =
         selectedContacts.values.any((isSelected) => isSelected);
 
+    // Add filtering logic based on search text
+    final filteredContacts = _searchController.text.isEmpty
+        ? contacts
+        : contacts.where((contact) =>
+            contact.toLowerCase().contains(_searchController.text.toLowerCase())).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Split Between'),
@@ -120,22 +126,22 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                 contentPadding: EdgeInsets.symmetric(vertical: 12.0),
               ),
               onChanged: (value) {
-                setState(() {});
+                setState(() {}); // triggers rebuild with new filteredContacts
               },
             ),
           ),
 
-          // Contacts List
+          // Contacts List now uses filteredContacts instead of contacts.
           Expanded(
             child: ListView.builder(
-              itemCount: contacts.length,
+              itemCount: filteredContacts.length,
               itemBuilder: (context, index) {
-                final contact = contacts[index];
+                final contact = filteredContacts[index];
                 final firstLetter = contact[0];
 
                 // Show letter header if it's the first contact with this letter
                 final showHeader =
-                    index == 0 || contacts[index - 1][0] != firstLetter;
+                    index == 0 || filteredContacts[index - 1][0] != firstLetter;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
