@@ -1,3 +1,4 @@
+import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
@@ -36,10 +37,21 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
     });
 
     if (_isNameValid && _isEmailValid && _isBudgetValid) {
+      Map<String, dynamic> metadata = {
+        'name': _nameController.text,
+        'email': _emailController.text,
+        'budget': int.parse(_budgetController.text),
+      };
+      ref
+          .read(userMetadataServiceProvider)
+          ?.insertUserMetadata(metadata: metadata);
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(name: 'darshan', budget: 5000,),
+          builder: (context) => HomePage(
+            name: 'darshan',
+            budget: 5000,
+          ),
         ),
       );
     }
