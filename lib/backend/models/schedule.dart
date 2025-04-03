@@ -118,6 +118,18 @@ class CloudSchedule {
     );
   }
 
+  Map<String, dynamic> toFirestore() {
+    return {
+      scheduleIdColumn: scheduleId,
+      merchantIdColumn: merchantId,
+      categoryIdColumn: categoryId,
+      userIdColumn: userId,
+      amountColumn: amount,
+      datesColumn: dates.map((date) => Timestamp.fromDate(date)).toList(),
+      timePeriodColumn: timePeriod,
+    };
+  }
+
   @override
   String toString() {
     final jsonDates = jsonEncode(dates);

@@ -48,10 +48,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(
-            name: 'darshan',
-            budget: 5000,
-          ),
+          builder: (context) => HomePage(),
         ),
       );
     }

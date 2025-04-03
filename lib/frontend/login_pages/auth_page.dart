@@ -18,7 +18,7 @@ class AuthPage extends ConsumerWidget {
           return LoginPage3();
         } else {
           // Push the home page
-          return HomePage(name: 'darshna', budget: 45000,);
+          return HomePage();
         }
       },
       loading: () => const Scaffold(

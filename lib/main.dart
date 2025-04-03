@@ -30,9 +30,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Remove debug banner
-      home: AuthPage() // Set LoginPage1 as the home page
-    );
+        debugShowCheckedModeBanner: false, // Remove debug banner
+        home: AuthPage() // Set LoginPage1 as the home page
+        );
   }
 }
 // class MyApp extends StatelessWidget {
