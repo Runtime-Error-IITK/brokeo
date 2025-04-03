@@ -135,8 +135,11 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         final end = start.add(Duration(days: 6));
         final startMonth = DateFormat("MMM'yy").format(start);
         final endMonth = DateFormat("MMM'yy").format(end);
-        final range = '${DateFormat('dd').format(start)}-${DateFormat('dd').format(end)}';
-        return startMonth == endMonth ? '$range\n$startMonth' : '$range\n$startMonth/$endMonth';
+        final range =
+            '${DateFormat('dd').format(start)}-${DateFormat('dd').format(end)}';
+        return startMonth == endMonth
+            ? '$range\n$startMonth'
+            : '$range\n$startMonth/$endMonth';
       });
     } else {
       return dates.map((d) {
@@ -147,7 +150,8 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
     }
   }
 
-  Widget _buildChartSection({required String title, required Widget child, Widget? legend}) {
+  Widget _buildChartSection(
+      {required String title, required Widget child, Widget? legend}) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Card(
@@ -235,8 +239,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  brokeo_home.HomePage(name: "Darshan", budget: 5000),
+              builder: (context) => brokeo_home.HomePage(),
             ),
           );
         } else if (index == 1) {
@@ -310,11 +313,18 @@ class _BarChartPainter extends CustomPainter {
     const barPadding = 10.0; // Padding between bars
     final barWidth =
         (size.width - yAxisOffset - (barPadding * (spends.length - 1))) /
-        spends.length * 0.95; // Adjusted bar width
+            spends.length *
+            0.95; // Adjusted bar width
     final scaleY = (size.height * 0.8) / maxValue; // Adjusted space for labels
-    final textStyle = TextStyle(color: Colors.black, fontSize: 9); // Consistent font size for date labels
-    final secondLineTextStyle = TextStyle(color: Colors.black, fontSize: 7); // Consistent font size for second line
-    final yAxisTextStyle = TextStyle(color: Colors.black, fontSize: 9); // Consistent font size for Y-axis labels
+    final textStyle = TextStyle(
+        color: Colors.black,
+        fontSize: 9); // Consistent font size for date labels
+    final secondLineTextStyle = TextStyle(
+        color: Colors.black,
+        fontSize: 7); // Consistent font size for second line
+    final yAxisTextStyle = TextStyle(
+        color: Colors.black,
+        fontSize: 9); // Consistent font size for Y-axis labels
 
     // Draw Y-axis labels and grid lines
     final yDivisions = 5;
@@ -431,9 +441,15 @@ class _LineChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final pointPadding = size.width / 8;
     final scaleY = (size.height * 0.8) / maxValue;
-    final textStyle = TextStyle(color: Colors.black, fontSize: 9); // Consistent font size for date labels
-    final secondLineTextStyle = TextStyle(color: Colors.black, fontSize: 7); // Consistent font size for second line
-    final yAxisTextStyle = TextStyle(color: Colors.black, fontSize: 9); // Consistent font size for Y-axis labels
+    final textStyle = TextStyle(
+        color: Colors.black,
+        fontSize: 9); // Consistent font size for date labels
+    final secondLineTextStyle = TextStyle(
+        color: Colors.black,
+        fontSize: 7); // Consistent font size for second line
+    final yAxisTextStyle = TextStyle(
+        color: Colors.black,
+        fontSize: 9); // Consistent font size for Y-axis labels
 
     // Adjust the vertical offset to move the graph higher
     const verticalOffset = -20.0;
@@ -458,8 +474,10 @@ class _LineChartPainter extends CustomPainter {
     }
 
     // Draw lines and points
-    _drawLine(canvas, size, spends, pointPadding, scaleY, Colors.red, verticalOffset);
-    _drawLine(canvas, size, received, pointPadding, scaleY, Colors.green, verticalOffset);
+    _drawLine(
+        canvas, size, spends, pointPadding, scaleY, Colors.red, verticalOffset);
+    _drawLine(canvas, size, received, pointPadding, scaleY, Colors.green,
+        verticalOffset);
 
     // Draw labels below the X-axis
     for (int i = 0; i < labels.length; i++) {
@@ -476,7 +494,8 @@ class _LineChartPainter extends CustomPainter {
       )..layout(maxWidth: pointPadding);
       firstLinePainter.paint(
         canvas,
-        Offset(x - firstLinePainter.width / 2, size.height + 5 + verticalOffset),
+        Offset(
+            x - firstLinePainter.width / 2, size.height + 5 + verticalOffset),
       );
 
       // Draw second line
@@ -488,8 +507,11 @@ class _LineChartPainter extends CustomPainter {
         )..layout(maxWidth: pointPadding);
         secondLinePainter.paint(
           canvas,
-          Offset(x - secondLinePainter.width / 2,
-              size.height + 20 + verticalOffset), // Adjusted position for second line
+          Offset(
+              x - secondLinePainter.width / 2,
+              size.height +
+                  20 +
+                  verticalOffset), // Adjusted position for second line
         );
       }
     }
