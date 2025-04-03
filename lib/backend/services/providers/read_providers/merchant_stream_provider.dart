@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final merchantStreamProvider = StreamProvider.autoDispose
-    .family<List<Merchant>, String?>((ref, filterMerchantId) {
+    .family<List<Merchant>, MerchantFilter>((ref, filter) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -18,9 +18,14 @@ final merchantStreamProvider = StreamProvider.autoDispose
       .doc(userId)
       .collection('userMerchants');
 
-  // If a filter is provided, apply it
-  if (filterMerchantId != null && filterMerchantId.isNotEmpty) {
-    query = query.where('merchantId', isEqualTo: filterMerchantId);
+  // Apply filter for merchantId if provided
+  if (filter.merchantId != null && filter.merchantId!.isNotEmpty) {
+    query = query.where('merchantId', isEqualTo: filter.merchantId);
+  }
+
+  // Apply filter for merchantName if provided
+  if (filter.merchantName != null && filter.merchantName!.isNotEmpty) {
+    query = query.where('name', isEqualTo: filter.merchantName);
   }
 
   final snapshots = query.snapshots();
@@ -32,3 +37,10 @@ final merchantStreamProvider = StreamProvider.autoDispose
     }).toList();
   });
 });
+
+class MerchantFilter {
+  final String? merchantId;
+  final String? merchantName;
+
+  MerchantFilter({this.merchantId, this.merchantName});
+}

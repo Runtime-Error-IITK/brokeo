@@ -1,13 +1,15 @@
 import 'dart:math';
 import 'package:brokeo/backend/models/category.dart';
+import 'package:brokeo/backend/models/merchant.dart';
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart'
     show categoryStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart'
-    show merchantStreamProvider;
+    show MerchantFilter, merchantStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show transactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
+import 'package:brokeo/backend/services/providers/write_providers/transaction_service.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
 import 'package:flutter/material.dart';
@@ -301,7 +303,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                       IconButton(
                         icon: Icon(Icons.add, size: 22, color: Colors.black54),
                         onPressed: () {
-                          // TODO: Handle add transaction
                           _showAddTransactionDialog(context);
                         },
                       ),
@@ -384,11 +385,18 @@ class _HomePageState extends ConsumerState<HomePage> {
               return SizedBox.shrink();
             },
             data: (categories) {
-              return AlertDialog(
-                title: Center(child: Text("Add transaction")),
-                content: StatefulBuilder(
-                  builder: (context, setState) {
-                    return Container(
+              // Wrap the entire AlertDialog in a StatefulBuilder so that
+              // any changes update both the content and the actions.
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  bool isFormValid = amount != null &&
+                      amount!.trim().isNotEmpty &&
+                      merchant != null &&
+                      merchant!.trim().isNotEmpty &&
+                      selectedCategory != null;
+                  return AlertDialog(
+                    title: Center(child: Text("Add transaction")),
+                    content: SizedBox(
                       width: MediaQuery.of(context).size.width * 0.8,
                       child: SingleChildScrollView(
                         child: Column(
@@ -479,24 +487,117 @@ class _HomePageState extends ConsumerState<HomePage> {
                           ],
                         ),
                       ),
-                    );
-                  },
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text("Cancel"),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      print(
-                          "Adding transaction: Type: $transactionType, Amount: $amount, Merchant: $merchant, Category: ${selectedCategory?.name}");
-                      // TODO: Perform the adding process
-                      Navigator.pop(context);
-                    },
-                    child: Text("Confirm"),
-                  ),
-                ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: isFormValid
+                            ? () async {
+                                // Assume you have the merchant name in a variable called merchantInput.
+                                final filter =
+                                    MerchantFilter(merchantName: merchant);
+                                final asyncMerchants =
+                                    ref.read(merchantStreamProvider(filter));
+
+                                // Check what state the async value is in.
+                                if (asyncMerchants
+                                    is AsyncData<List<Merchant>>) {
+                                  final merchants = asyncMerchants.value;
+                                  if (merchants.isNotEmpty) {
+                                    // Use the merchantId from the first matching merchant.
+                                    final merchantId =
+                                        merchants.first.merchantId;
+                                    Transaction newTransaction = Transaction(
+                                      transactionId: "",
+                                      amount: double.parse(amount!),
+                                      date: DateTime.now(),
+                                      merchantId: merchantId,
+                                      categoryId: selectedCategory!.categoryId,
+                                      userId: ref.watch(userIdProvider.select(
+                                          (id) =>
+                                              id ??
+                                              "")), // You'll likely fill this in from your auth provider.
+                                      sms: "Manually added transaction",
+                                    );
+                                    final cloudTransaction =
+                                        CloudTransaction.fromTransaction(
+                                            newTransaction);
+                                    final transactionService =
+                                        ref.read(transactionServiceProvider);
+                                    if (transactionService == null) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content:
+                                                Text("User not logged in")),
+                                      );
+                                      return;
+                                    }
+                                    final result = await transactionService
+                                        .insertTransaction(cloudTransaction);
+                                    if (result != null) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "Transaction added successfully!")),
+                                        );
+                                      } else {
+                                        return;
+                                      }
+                                    } else {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "Failed to add transaction.")),
+                                        );
+                                      } else {
+                                        return;
+                                      }
+                                    }
+
+                                    // Perform any further transaction processing here.
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                    } else {
+                                      return;
+                                    }
+                                  } else {
+                                    // No merchant found; you might later add logic to create a new merchant.
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(
+                                              "No merchant found with that name.")),
+                                    );
+                                  }
+                                } else if (asyncMerchants is AsyncLoading) {
+                                  // The data is still loading.
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            "Loading merchant data, please wait...")),
+                                  );
+                                } else if (asyncMerchants is AsyncError) {
+                                  // There was an error retrieving the merchant data.
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            "Error loading merchant data.")),
+                                  );
+                                }
+                              }
+                            : null,
+                        child: Text("Confirm"),
+                      ),
+                    ],
+                  );
+                },
               );
             },
           );
@@ -506,8 +607,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _transactionTile(Transaction transaction, int index) {
-    final asyncMerchant =
-        ref.watch(merchantStreamProvider(transaction.merchantId));
+    final merchantFilter = MerchantFilter(
+      merchantId: transaction.merchantId,
+    );
+    final asyncMerchant = ref.watch(merchantStreamProvider(merchantFilter));
 
     return asyncMerchant.when(
       loading: () => const CircularProgressIndicator(),

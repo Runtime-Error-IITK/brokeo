@@ -108,6 +108,17 @@ class CloudTransaction {
     );
   }
 
+  Map<String, dynamic> toFirestore() {
+    return {
+      transactionIdColumn: transactionId,
+      amountColumn: amount,
+      dateColumn: Timestamp.fromDate(date),
+      merchantIdColumn: merchantId,
+      categoryIdColumn: categoryId,
+      smsIdColumn: sms,
+    };
+  }
+
   @override
   String toString() {
     return "CloudTransaction{transactionId: $transactionId, amount: $amount, date: $date, merchantId: $merchantId, categoryId: $categoryId, userId: $userId}";
