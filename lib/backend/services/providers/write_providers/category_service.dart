@@ -1,12 +1,27 @@
 import 'dart:developer' show log;
 
 import 'package:brokeo/backend/models/category.dart';
+import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
+    show userIdProvider;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class CategoryWriteService {
+final categoryServiceProvider = Provider<CategoryService?>(
+  (ref) {
+    final userId = ref.watch(userIdProvider);
+    // If there's no userId, return null (or you could throw an exception)
+    if (userId == null) return null;
+    return CategoryService(userId: userId);
+  },
+);
+
+class CategoryService {
+  final String userId;
+
+  CategoryService({required this.userId});
+
   Future<bool> deleteCategory({
     required String categoryId,
-    required String userId,
   }) async {
     final categoryRef = FirebaseFirestore.instance
         .collection('categories')
@@ -27,7 +42,7 @@ class CategoryWriteService {
   Future<CloudCategory?> insertCategory(CloudCategory category) async {
     final collectionRef = FirebaseFirestore.instance
         .collection('categories')
-        .doc(category.userId)
+        .doc(userId)
         .collection('userCategories');
 
     final docRef = collectionRef.doc();
@@ -52,7 +67,7 @@ class CategoryWriteService {
   Future<CloudCategory?> updateCloudCategory(CloudCategory category) async {
     final docRef = FirebaseFirestore.instance
         .collection('categories')
-        .doc(category.userId)
+        .doc(userId)
         .collection('userCategories')
         .doc(category.categoryId);
 
