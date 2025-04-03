@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:intl/intl.dart';
@@ -7,12 +8,12 @@ import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 
-class AnalyticsPage extends StatefulWidget {
+class AnalyticsPage extends ConsumerStatefulWidget {
   @override
   _AnalyticsPageState createState() => _AnalyticsPageState();
 }
 
-class _AnalyticsPageState extends State<AnalyticsPage> {
+class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
   int _currentIndex = 2;
   String _selectedFilter = 'Daily';
   final List<String> _filters = ['Daily', 'Weekly', 'Monthly'];

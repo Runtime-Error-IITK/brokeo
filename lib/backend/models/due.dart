@@ -1,116 +1,115 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Due {
-  int dueId;
-  double amount;
-  int merchantId;
-  int categoryId;
+  final String dueId;
+  final double amount;
+  final String merchantId;
+  final String categoryId;
+  final String userId;
 
   Due({
     required this.dueId,
     required this.amount,
     required this.merchantId,
     required this.categoryId,
+    required this.userId,
   });
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is Due && other.dueId == dueId;
+    return other is Due && other.dueId == dueId && other.userId == userId;
   }
 
   @override
   int get hashCode {
-    return dueId.hashCode;
+    return dueId.hashCode ^ userId.hashCode;
   }
 
-  factory Due.fromJson(String json) {
-    Map<String, dynamic> decodedJson = jsonDecode(json) as Map<String, dynamic>;
+  factory Due.fromCloudDue(CloudDue cloudDue) {
     return Due(
-      dueId: decodedJson[dueIdColumn] as int,
-      amount: decodedJson[amountColumn] as double,
-      merchantId: decodedJson[merchantIdColumn] as int,
-      categoryId: decodedJson[categoryIdColumn] as int,
+      dueId: cloudDue.dueId,
+      amount: cloudDue.amount,
+      merchantId: cloudDue.merchantId,
+      categoryId: cloudDue.categoryId,
+      userId: cloudDue.userId,
     );
   }
 
   @override
   String toString() {
-    return "Due{dueId: $dueId, amount: $amount, merchantId: $merchantId, categoryId: $categoryId}";
-  }
-
-  factory Due.fromDatabaseDue(DatabaseDue databaseDue) {
-    return Due(
-      dueId: databaseDue.dueId,
-      amount: databaseDue.amount,
-      merchantId: databaseDue.merchantId,
-      categoryId: databaseDue.categoryId,
-    );
-  }
-
-  String toJson() {
-    //return json string
-
-    return jsonEncode({
-      dueIdColumn: dueId,
-      amountColumn: amount,
-      merchantIdColumn: merchantId,
-      categoryIdColumn: categoryId,
-    });
+    return "Due{dueId: $dueId, amount: $amount, merchantId: $merchantId, categoryId: $categoryId, userId: $userId}";
   }
 }
 
-class DatabaseDue {
-  int dueId;
-  double amount;
-  int merchantId;
-  int categoryId;
+class CloudDue {
+  final String dueId;
+  final double amount;
+  final String merchantId;
+  final String categoryId;
+  final String userId;
 
-  DatabaseDue({
+  CloudDue({
     required this.dueId,
     required this.amount,
     required this.merchantId,
     required this.categoryId,
+    required this.userId,
   });
-
-  factory DatabaseDue.fromRow(Map<String, Object?> row) {
-    return DatabaseDue(
-      dueId: row[dueIdColumn] as int,
-      amount: row[amountColumn] as double,
-      merchantId: row[merchantIdColumn] as int,
-      categoryId: row[categoryIdColumn] as int,
-    );
-  }
-
-  factory DatabaseDue.fromDue(Due due) {
-    return DatabaseDue(
-      dueId: due.dueId,
-      amount: due.amount,
-      merchantId: due.merchantId,
-      categoryId: due.categoryId,
-    );
-  }
-
-  @override
-  String toString() {
-    return "Due(dueId: $dueId, amount: $amount, merchantId: $merchantId, categoryId: $categoryId)";
-  }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is DatabaseDue && other.dueId == dueId;
+    return other is CloudDue && other.dueId == dueId && other.userId == userId;
   }
 
   @override
   int get hashCode {
-    return dueId.hashCode;
+    return dueId.hashCode ^ userId.hashCode;
+  }
+
+  factory CloudDue.fromDue(Due due) {
+    return CloudDue(
+      dueId: due.dueId,
+      amount: due.amount,
+      merchantId: due.merchantId,
+      categoryId: due.categoryId,
+      userId: due.userId,
+    );
+  }
+
+  factory CloudDue.fromSnapshot(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return CloudDue(
+      dueId: doc.id,
+      amount: (data[amountColumn] as num).toDouble(),
+      merchantId: data[merchantIdColumn] as String,
+      categoryId: data[categoryIdColumn] as String,
+      userId: data[userIdColumn] as String,
+    );
+  }
+
+  @override
+  String toString() {
+    return "CloudDue{dueId: $dueId, amount: $amount, merchantId: $merchantId, categoryId: $categoryId, userId: $userId}";
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      amountColumn: amount,
+      merchantIdColumn: merchantId,
+      categoryIdColumn: categoryId,
+      userIdColumn: userId,
+    };
   }
 }
 
-String dueIdColumn = "dueId";
-String amountColumn = "amount";
-String merchantIdColumn = "merchantId";
-String categoryIdColumn = "categoryId";
+const String dueIdColumn = "dueId";
+const String amountColumn = "amount";
+const String merchantIdColumn = "merchantId";
+const String categoryIdColumn = "categoryId";
+const String userIdColumn = "userId";

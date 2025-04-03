@@ -6,7 +6,6 @@ class Transaction {
   DateTime date;
   int merchantId;
   int categoryId;
-  Map<String, double>? split;
   int? smsId;
 
   Transaction({
@@ -15,7 +14,6 @@ class Transaction {
     required this.date,
     required this.merchantId,
     required this.categoryId,
-    this.split,
     this.smsId,
   });
 
@@ -30,37 +28,6 @@ class Transaction {
   int get hashCode {
     return transactionId.hashCode;
   }
-
-  factory Transaction.fromJson(String json) {
-    Map<String, dynamic> decodedJson = jsonDecode(json) as Map<String, dynamic>;
-    return Transaction(
-      transactionId: decodedJson[transactionIdColumn] as int,
-      amount: decodedJson[amountColumn] as double,
-      date: DateTime.parse(decodedJson[dateColumn] as String),
-      merchantId: decodedJson[merchantIdColumn] as int,
-      categoryId: decodedJson[categoryIdColumn] as int,
-      split: decodedJson[splitColumn] != null
-          ? jsonDecode(decodedJson[splitColumn] as String)
-          : null,
-      smsId: decodedJson[smsIdColumn] != null
-          ? decodedJson[smsIdColumn] as int
-          : null,
-    );
-  }
-
-  String toJson() {
-    //return json string
-
-    return jsonEncode({
-      transactionIdColumn: transactionId,
-      amountColumn: amount,
-      dateColumn: date.toIso8601String(),
-      merchantIdColumn: merchantId,
-      categoryIdColumn: categoryId,
-      splitColumn: split != null ? jsonEncode(split) : null,
-      smsIdColumn: smsId,
-    });
-  }
 }
 
 class DatabaseTransaction {
@@ -69,7 +36,6 @@ class DatabaseTransaction {
   String date;
   int merchantId;
   int categoryId;
-  String? split;
   int? smsId;
 
   DatabaseTransaction({
@@ -78,7 +44,6 @@ class DatabaseTransaction {
     required this.date,
     required this.merchantId,
     required this.categoryId,
-    this.split,
     this.smsId,
   });
 
@@ -96,7 +61,7 @@ class DatabaseTransaction {
 
   @override
   String toString() {
-    return "DatabaseTransaction{transactionId: $transactionId, amount: $amount, date: $date, merchantId: $merchantId, categoryId: $categoryId, split: $split, smsId: $smsId}";
+    return "DatabaseTransaction{transactionId: $transactionId, amount: $amount, date: $date, merchantId: $merchantId, categoryId: $categoryId, smsId: $smsId}";
   }
 
   factory DatabaseTransaction.fromRow(Map<String, Object?> row) {
@@ -106,7 +71,6 @@ class DatabaseTransaction {
       date: row[dateColumn] as String,
       merchantId: row[merchantIdColumn] as int,
       categoryId: row[categoryIdColumn] as int,
-      split: row[splitColumn] as String?,
       smsId: row[smsIdColumn] != null ? row[smsIdColumn] as int : null,
     );
   }
@@ -118,7 +82,6 @@ class DatabaseTransaction {
       date: transaction.date.toIso8601String(),
       merchantId: transaction.merchantId,
       categoryId: transaction.categoryId,
-      split: transaction.split != null ? jsonEncode(transaction.split) : null,
       smsId: transaction.smsId,
     );
   }
@@ -129,5 +92,4 @@ const String amountColumn = "amount";
 const String dateColumn = "date";
 const String merchantIdColumn = "merchantId";
 const String categoryIdColumn = "category";
-const String splitColumn = "split";
 const String smsIdColumn = "sms";

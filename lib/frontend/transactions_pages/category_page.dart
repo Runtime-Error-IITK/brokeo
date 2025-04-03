@@ -6,8 +6,9 @@ import 'package:brokeo/models/transaction_model.dart'; // <== new import
 import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CategoryPage extends StatefulWidget {
+class CategoryPage extends ConsumerStatefulWidget {
   final CategoryCardData data;
 
   const CategoryPage({Key? key, required this.data}) : super(key: key);
@@ -16,7 +17,7 @@ class CategoryPage extends StatefulWidget {
   _CategoryPageState createState() => _CategoryPageState();
 }
 
-class _CategoryPageState extends State<CategoryPage> {
+class _CategoryPageState extends ConsumerState<CategoryPage> {
   int _currentIndex = 1;
 
   @override
@@ -356,10 +357,10 @@ class BarChartWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: displayData.map((bar) {
             return SizedBox(
-              width: 40, // match or slightly exceed barWidth
+              width: 50, // match or slightly exceed barWidth
               child: Text(
                 bar.label,
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 12, color: Colors.black),
               ),
             );

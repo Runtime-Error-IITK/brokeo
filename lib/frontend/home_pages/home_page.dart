@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:brokeo/models/transaction_model.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
@@ -13,7 +14,7 @@ import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 /// Home Page
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   final String name;
   final double budget;
 
@@ -23,7 +24,7 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   bool showAllTransactions = false; // Toggle for transaction list
   int expandedTransactionIndex = -1; // Tracks which transaction is expanded
   int _currentIndex = 0; // Tracks the selected bottom navigation index
@@ -394,7 +395,8 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TransactionDetailPage(transaction: transaction),
+            builder: (context) =>
+                TransactionDetailPage(transaction: transaction),
           ),
         );
       },
@@ -795,7 +797,6 @@ class _HomePageState extends State<HomePage> {
     List<ScheduledPayment> paymentsToShow =
         showAllScheduledPayments ? payments : payments.take(3).toList();
 
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
       decoration: BoxDecoration(
@@ -960,9 +961,9 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () {
                       // TODO: Handle "Add Split" action
                       Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChooseTransactionPage()),
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChooseTransactionPage()),
                       );
                     },
                   ),
@@ -1058,26 +1059,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   final mockData = [
-      {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
-      {"name": "Darshan", "amount": 510.0, "isSettled": false},
-      {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
-      {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
-      {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
-      {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
-      {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
-      {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
-      {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
-      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-      {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-      {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
-    ];
+    {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
+    {"name": "Darshan", "amount": 510.0, "isSettled": false},
+    {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
+    {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
+    {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
+    {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
+    {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
+    {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
+    {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
+    {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+    {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+    {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+    {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+    {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
+  ];
 
   Widget _buildSplitTile(Split split) {
     bool isNegative = split.amount < 0;
     Color amountColor = isNegative ? Colors.red : Colors.green;
-    
+
     return InkWell(
       onTap: () {
         // TODO: Fix this bullshit error
@@ -1128,7 +1129,7 @@ class _HomePageState extends State<HomePage> {
     // 2) Show top 3 categories by default
     List<BudgetCategory> categoriesToShow =
         showAllBudgetCategories ? categories : categories.take(3).toList();
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
       decoration: BoxDecoration(
@@ -1222,7 +1223,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-    
   }
 
   Widget _buildBudgetTile(String label, double amount) {
@@ -1266,7 +1266,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBudgetCategoryTile(BudgetCategory category) {
-    
     return InkWell(
       onTap: () {
         // TODO: Implement onTap logic for each budget category
@@ -1281,7 +1280,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => CategoryPage(data: category),
+            builder: (context) => CategoryPage(data: category),
           ),
         );
       },
@@ -1320,6 +1319,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   Widget buildCategoryCard(CategoryCardData data) {
     return GestureDetector(
       onTap: () {
@@ -1374,82 +1374,58 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  Widget buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color.fromARGB(255, 219, 203, 244), // Base color for the navigation bar
-        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          if (index != _currentIndex) {
-            setState(() {
-              _currentIndex = index;
-            });
-          }
-          // Navigation logic based on index:
-          if (index == 0) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      HomePage(name: widget.name, budget: widget.budget)),
-              (route) => false,
-            );
-          } else if (index == 1) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => CategoriesPage()),
-              (route) => false,
-            );
-          } else if (index == 2) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => AnalyticsPage()),
-              (route) => false,
-            );
-          } else if (index == 3) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => ManageSplitsPage()),
-              (route) => false,
-            );
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent, // Transparent to show the container's color
-        elevation: 0,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: [
-          _buildBottomNavigationBarItem(Icons.home, "Home", 0),
-          _buildBottomNavigationBarItem(Icons.list, "Transactions", 1),
-          _buildBottomNavigationBarItem(Icons.analytics, "Analytics", 2),
-          _buildBottomNavigationBarItem(Icons.people, "Split", 3),
-        ],
-      ),
-    );
-  }
 
-  BottomNavigationBarItem _buildBottomNavigationBarItem(
-      IconData icon, String label, int index) {
-    return BottomNavigationBarItem(
-      icon: Container(
-        decoration: BoxDecoration(
-          color: _currentIndex == index
-              ? Colors.purple // Highlight color for the selected item
-              : Colors.transparent, // Transparent for unselected items
-          borderRadius: BorderRadius.horizontal(
-              left: Radius.circular(15), right: Radius.circular(15)),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        child: Icon(
-          icon,
-          color: _currentIndex == index ? Colors.white : Colors.grey, // Icon color
-        ),
-      ),
-      label: label,
+  Widget buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        if (index != _currentIndex) {
+          setState(() {
+            _currentIndex = index;
+          });
+        }
+        // Navigation logic based on index:
+        if (index == 0) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    HomePage(name: widget.name, budget: widget.budget)),
+            (route) => false,
+          );
+        } else if (index == 1) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
+            (route) => false,
+          );
+        } else if (index == 2) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => AnalyticsPage()),
+            (route) => false,
+          );
+        } else if (index == 3) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
+            (route) => false,
+          );
+        }
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.purple,
+      unselectedItemColor: Colors.grey,
+      iconSize: 24,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.analytics), label: "Analytics"),
+        BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
+      ],
     );
   }
 }
@@ -1644,6 +1620,7 @@ class MockBackend {
     ];
   }
 }
+
 class DummyDataService {
   static double getDailySafeToSpend() => 365.0;
   static double getAmountSpent() => 3028.0;

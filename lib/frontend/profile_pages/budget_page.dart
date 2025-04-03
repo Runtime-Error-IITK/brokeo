@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class BudgetPage extends StatefulWidget {
+class BudgetPage extends ConsumerStatefulWidget {
   @override
   _BudgetPageState createState() => _BudgetPageState();
 }
 
-class _BudgetPageState extends State<BudgetPage> {
+class _BudgetPageState extends ConsumerState<BudgetPage> {
   double _totalBudget = 1000;
   Map<String, Map<String, dynamic>> _categoryBudgets = {
     "Food and Drinks": {"budget": 500.0, "emoji": "🍔"},
@@ -114,10 +115,10 @@ class _BudgetPageState extends State<BudgetPage> {
                 onPressed: () {
                   _showAddCategoryDialog();
                 },
-                icon: Icon(Icons.add, color: Theme.of(context).iconTheme.color),
+                icon: Icon(Icons.add, color: Colors.white), // changed icon color to white
                 label: Text(
                   "Add Category",
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
