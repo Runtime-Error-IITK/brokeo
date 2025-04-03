@@ -57,7 +57,23 @@ class TransactionFilter {
   final DateTime? startDate;
   final DateTime? endDate;
 
-  TransactionFilter({
+  @override
+  bool operator ==(Object other) {
+    return other is TransactionFilter &&
+        other.merchantId == merchantId &&
+        other.categoryId == categoryId &&
+        other.startDate == startDate &&
+        other.endDate == endDate;
+  }
+
+  @override
+  int get hashCode =>
+      (merchantId ?? '').hashCode ^
+      (categoryId ?? '').hashCode ^
+      (startDate?.millisecondsSinceEpoch ?? 0) ^
+      (endDate?.millisecondsSinceEpoch ?? 0);
+
+  const TransactionFilter({
     this.merchantId,
     this.categoryId,
     this.startDate,

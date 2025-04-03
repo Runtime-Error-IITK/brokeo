@@ -98,7 +98,7 @@ class CloudTransaction {
 
   factory CloudTransaction.fromSnapshot(DocumentSnapshot snapshot) {
     return CloudTransaction(
-      transactionId: snapshot[transactionIdColumn] as String,
+      transactionId: snapshot.id,
       amount: (snapshot[amountColumn] as num).toDouble(),
       date: (snapshot[dateColumn] as Timestamp).toDate(),
       merchantId: snapshot[merchantIdColumn] as String,
@@ -129,6 +129,6 @@ const String transactionIdColumn = "transactionId";
 const String amountColumn = "amount";
 const String dateColumn = "date";
 const String merchantIdColumn = "merchantId";
-const String categoryIdColumn = "category";
-const String smsColumn = "sms";
+const String categoryIdColumn = "categoryId";
+const String smsColumn = "smsColumn";
 const String userIdColumn = "userId";

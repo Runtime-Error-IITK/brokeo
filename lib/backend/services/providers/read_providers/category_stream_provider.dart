@@ -7,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 final categoryStreamProvider = StreamProvider.autoDispose
     .family<List<Category>, CategoryFilter>((ref, filter) {
   final userId = ref.watch(userIdProvider);
-
   if (userId == null) {
     return const Stream.empty();
   }
@@ -20,7 +19,8 @@ final categoryStreamProvider = StreamProvider.autoDispose
 
   // Apply filter for categoryId if provided.
   if (filter.categoryId != null && filter.categoryId!.isNotEmpty) {
-    query = query.where('categoryId', isEqualTo: filter.categoryId);
+    // Use FieldPath.documentId to filter by document id.
+    query = query.where(FieldPath.documentId, isEqualTo: filter.categoryId);
   }
 
   // Apply filter for categoryName if provided.
@@ -29,7 +29,6 @@ final categoryStreamProvider = StreamProvider.autoDispose
   }
 
   final snapshots = query.snapshots();
-
   return snapshots.map((querySnapshot) {
     return querySnapshot.docs.map((doc) {
       final cloudCategory = CloudCategory.fromSnapshot(doc);
@@ -39,10 +38,21 @@ final categoryStreamProvider = StreamProvider.autoDispose
 });
 
 /// Filter class for categories.
-/// It contains optional fields to filter on categoryId and categoryName.
+/// Contains optional fields for filtering on categoryId and categoryName.
 class CategoryFilter {
   final String? categoryId;
   final String? categoryName;
 
-  CategoryFilter({this.categoryId, this.categoryName});
+  const CategoryFilter({this.categoryId, this.categoryName});
+
+  @override
+  bool operator ==(Object other) {
+    return other is CategoryFilter &&
+        other.categoryId == categoryId &&
+        other.categoryName == categoryName;
+  }
+
+  @override
+  int get hashCode =>
+      (categoryId ?? '').hashCode ^ (categoryName ?? '').hashCode;
 }

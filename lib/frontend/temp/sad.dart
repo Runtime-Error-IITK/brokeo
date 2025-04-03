@@ -1,86 +1,145 @@
-Widget _buildScheduledPayments(List<ScheduledPayment> payments) {
-  // If not expanded, only show top 3
-  List<ScheduledPayment> paymentsToShow =
-      showAllScheduledPayments ? payments : payments.take(3).toList();
+void _showAddScheduledPaymentDialog() {
+  // Retrieve merchants for dropdown
+  List<Merchant> merchantsList = MockBackend.getMerchants();
+  merchantsList.sort((a, b) => a.name.compareTo(b.name));
+  final merchantNames = merchantsList.map((m) => m.name).toList();
 
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
-        stops: [0.0, 0.5, 1.0],
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-      ),
-      borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-    ),
-    child: Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: Color(0xFFEDE7F6),
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row
-            Row(
-              children: [
-                Text(
-                  "Scheduled Payments",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Spacer(),
-                IconButton(
-                  icon: Icon(Icons.add, size: 22, color: Colors.black54),
-                  onPressed: () {
-                    // TODO: Handle "Add Scheduled Payment"
-                  },
-                ),
-                IconButton(
-                  icon: Icon(
-                    showAllScheduledPayments
-                        ? Icons.expand_less
-                        : Icons.expand_more,
-                    size: 22,
-                    color: Colors.black54,
+  String? selectedMerchant =
+      merchantNames.isNotEmpty ? merchantNames.first : null;
+  String? recurringAmount;
+  DateTime? startDate;
+  TimeOfDay? startTime;
+  String selectedPeriod = "Monthly"; // default
+  final List<String> periodOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text("Add Scheduled Payment"),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Merchant Dropdown
+                  DropdownButtonFormField<String>(
+                    value: selectedMerchant,
+                    decoration: InputDecoration(labelText: "Merchant"),
+                    items: merchantNames
+                        .map((name) => DropdownMenuItem(
+                              value: name,
+                              child: Text(name),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedMerchant = value;
+                      });
+                    },
                   ),
-                  onPressed: () {
-                    setState(() {
-                      showAllScheduledPayments = !showAllScheduledPayments;
-                    });
-                  },
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-
-            // If empty
-            payments.isEmpty
-                ? Center(
-                    child: Text(
-                      "No Scheduled Payments Yet",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
+                  SizedBox(height: 12),
+                  // Recurring Amount TextField
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: "Recurring Amount",
+                      prefixText: "₹",
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      recurringAmount = value;
+                    },
+                  ),
+                  SizedBox(height: 12),
+                  // Start Date Picker
+                  InkWell(
+                    onTap: () async {
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          startDate = picked;
+                        });
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: "Start Date",
+                      ),
+                      child: Text(
+                        startDate != null
+                            ? DateFormat('yyyy-MM-dd').format(startDate!)
+                            : "Select Date",
                       ),
                     ),
-                  )
-                : Column(
-                    children: paymentsToShow.asMap().entries.map((entry) {
-                      return Column(
-                        children: [
-                          _buildScheduledPaymentTile(entry.value),
-                          if (entry.key < paymentsToShow.length - 1)
-                            Divider(color: Colors.grey[300]),
-                        ],
-                      );
-                    }).toList(),
                   ),
-          ],
-        ),
-      ),
-    ),
+                  SizedBox(height: 12),
+                  // Start Time Picker
+                  InkWell(
+                    onTap: () async {
+                      TimeOfDay? picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          startTime = picked;
+                        });
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: "Start Time",
+                      ),
+                      child: Text(
+                        startTime != null
+                            ? startTime!.format(context)
+                            : "Select Time",
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  // Recurring Time Period Dropdown
+                  DropdownButtonFormField<String>(
+                    value: selectedPeriod,
+                    decoration: InputDecoration(labelText: "Recurring Period"),
+                    items: periodOptions
+                        .map((p) => DropdownMenuItem(
+                              value: p,
+                              child: Text(p),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedPeriod = value!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () {
+                  print(
+                      "Scheduled Payment: Merchant: $selectedMerchant, Amount: $recurringAmount, Date: ${startDate != null ? DateFormat('yyyy-MM-dd').format(startDate!) : 'N/A'}, Time: ${startTime != null ? startTime!.format(context) : 'N/A'}, Period: $selectedPeriod");
+                  Navigator.pop(context);
+                },
+                child: Text("Add"),
+              ),
+            ],
+          );
+        },
+      );
+    },
   );
 }

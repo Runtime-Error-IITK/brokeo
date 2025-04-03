@@ -18,9 +18,9 @@ final merchantStreamProvider = StreamProvider.autoDispose
       .doc(userId)
       .collection('userMerchants');
 
-  // Apply filter for merchantId if provided
+  // If a merchantId filter is provided, filter on the document ID.
   if (filter.merchantId != null && filter.merchantId!.isNotEmpty) {
-    query = query.where('merchantId', isEqualTo: filter.merchantId);
+    query = query.where(FieldPath.documentId, isEqualTo: filter.merchantId);
   }
 
   // Apply filter for merchantName if provided
@@ -42,5 +42,16 @@ class MerchantFilter {
   final String? merchantId;
   final String? merchantName;
 
-  MerchantFilter({this.merchantId, this.merchantName});
+  const MerchantFilter({this.merchantId, this.merchantName});
+
+  @override
+  bool operator ==(Object other) {
+    return other is MerchantFilter &&
+        other.merchantId == merchantId &&
+        other.merchantName == merchantName;
+  }
+
+  @override
+  int get hashCode =>
+      (merchantId ?? '').hashCode ^ (merchantName ?? '').hashCode;
 }
