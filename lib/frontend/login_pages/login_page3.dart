@@ -1,20 +1,23 @@
-import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:currency_picker/currency_picker.dart';
+import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class LoginPage3 extends StatefulWidget {
+class LoginPage3 extends ConsumerStatefulWidget {
+  const LoginPage3({
+    super.key,
+  });
+
   @override
-  _LoginPage3State createState() => _LoginPage3State();
+  LoginPage3State createState() => LoginPage3State();
 }
 
-class _LoginPage3State extends State<LoginPage3> {
+class LoginPage3State extends ConsumerState<LoginPage3> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _budgetController = TextEditingController();
-  String _selectedCurrency = 'INR'; // Default currency
 
-  // Error states
   bool _isNameValid = true;
   bool _isEmailValid = true;
   bool _isBudgetValid = true;
@@ -34,18 +37,20 @@ class _LoginPage3State extends State<LoginPage3> {
     });
 
     if (_isNameValid && _isEmailValid && _isBudgetValid) {
-      print("✅ Name: ${_nameController.text}");
-      print("✅ Email: ${_emailController.text}");
-      print("✅ Currency: $_selectedCurrency");
-      print("✅ Budget: ${_budgetController.text}");
-
-      //TODO : Store all the data in the database
+      Map<String, dynamic> metadata = {
+        'name': _nameController.text,
+        'email': _emailController.text,
+        'budget': int.parse(_budgetController.text),
+      };
+      ref
+          .read(userMetadataServiceProvider)
+          ?.insertUserMetadata(metadata: metadata);
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => HomePage(
-            name: _nameController.text,
-            budget: double.parse(_budgetController.text),
+            name: 'darshan',
+            budget: 5000,
           ),
         ),
       );
@@ -57,7 +62,6 @@ class _LoginPage3State extends State<LoginPage3> {
       _nameController.clear();
       _emailController.clear();
       _budgetController.clear();
-      _selectedCurrency = 'INR';
       _isNameValid = true;
       _isEmailValid = true;
       _isBudgetValid = true;
@@ -142,41 +146,6 @@ class _LoginPage3State extends State<LoginPage3> {
               ),
               SizedBox(height: 15),
 
-              // Currency Selector using Currency Picker
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: InkWell(
-                  onTap: () {
-                    showCurrencyPicker(
-                      context: context,
-                      showFlag: true,
-                      showSearchField: true,
-                      onSelect: (Currency currency) {
-                        setState(() {
-                          _selectedCurrency = currency.code;
-                        });
-                      },
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey, width: 2),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(_selectedCurrency, style: TextStyle(fontSize: 16)),
-                        Icon(Icons.arrow_drop_down),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 15),
-
               // Budget Input (Only Numbers)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -194,26 +163,25 @@ class _LoginPage3State extends State<LoginPage3> {
                 children: [
                   // Cancel Button
                   SizedBox(
-                    width: 150, 
-                    height: 50, 
-                    child:
-                  ElevatedButton(
-                    onPressed: _resetFields,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF65558F),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                    width: 150,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _resetFields,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF65558F),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
+                      child:
+                          Text("Cancel", style: TextStyle(color: Colors.white)),
                     ),
-                    child:
-                        Text("Cancel", style: TextStyle(color: Colors.white)),
-                  ),
                   ),
 
                   // Confirm Button
                   SizedBox(
-                    width: 150, 
-                    height: 50, 
+                    width: 150,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: _validateAndProceed,
                       style: ElevatedButton.styleFrom(
@@ -222,7 +190,8 @@ class _LoginPage3State extends State<LoginPage3> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      child: Text("Confirm",style: TextStyle(color: Colors.white)),
+                      child: Text("Confirm",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],

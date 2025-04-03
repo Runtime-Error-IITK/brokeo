@@ -1,35 +1,46 @@
-import 'package:brokeo/frontend/login_pages/login_page3.dart';
+import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
+    show firebaseAuthProvider;
+import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
+import 'package:firebase_auth/firebase_auth.dart' show PhoneAuthProvider;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl_phone_field/phone_number.dart';
+import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl_phone_field/phone_number.dart' show PhoneNumber;
 
-class LoginPage2 extends StatefulWidget {
-  final PhoneNumber phoneNumber; 
+class LoginPage2 extends ConsumerStatefulWidget {
+  final String verificationId;
+  final PhoneNumber phoneNumber;
 
-  LoginPage2({required this.phoneNumber});
+  const LoginPage2(
+      {super.key, required this.phoneNumber, required this.verificationId});
 
   @override
-  _LoginPage2State createState() => _LoginPage2State();
+  LoginPage2State createState() => LoginPage2State();
 }
 
-class _LoginPage2State extends State<LoginPage2> {
+class LoginPage2State extends ConsumerState<LoginPage2> {
   TextEditingController otpController = TextEditingController();
 
-  void validateAndProceed() {
-    if (otpController.text.isNotEmpty) {
-      print("✅ Phone: ${widget.phoneNumber.completeNumber}");
-      print("✅ OTP Entered: ${otpController.text}");
+  void _verifyOtp() async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: widget.verificationId,
+      smsCode: otpController.text,
+    );
 
-      // TODO: Implement OTP verification and check whether the otp is correct or not
-      Navigator.push(
-        context,
+    final firebaseAuthInstance = ref.read(firebaseAuthProvider);
+
+    final userCredential =
+        await firebaseAuthInstance.signInWithCredential(credential);
+
+    // Navigate to a screen to collect metadata
+    if (context.mounted) {
+      Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => LoginPage3(),
+          builder: (context) => AuthPage(),
         ),
       );
-
     } else {
-      print("❌ OTP Required.");
+      return;
     }
   }
 
@@ -84,12 +95,14 @@ class _LoginPage2State extends State<LoginPage2> {
                     children: [
                       Text(
                         widget.phoneNumber.countryCode, // Dynamic Prefix
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600),
                       ),
                       SizedBox(width: 8), // Space between Prefix & Number
                       Text(
                         widget.phoneNumber.number, // The actual number
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -108,7 +121,8 @@ class _LoginPage2State extends State<LoginPage2> {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: 'Enter OTP',
-                    hintStyle: TextStyle(color: Colors.black.withOpacity(0.6), fontSize: 18),
+                    hintStyle: TextStyle(
+                        color: Colors.black.withOpacity(0.6), fontSize: 18),
                     border: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.grey, width: 2),
                       borderRadius: BorderRadius.circular(20),
@@ -128,7 +142,7 @@ class _LoginPage2State extends State<LoginPage2> {
                 child: IconButton(
                   iconSize: 35,
                   icon: Icon(Icons.arrow_forward, color: Colors.white),
-                  onPressed: validateAndProceed,
+                  onPressed: _verifyOtp,
                 ),
               ),
             ],

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:brokeo/models/transaction_model.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class TransactionDetailPage extends StatelessWidget {
+class TransactionDetailPage extends ConsumerWidget {
   final Transaction transaction;
 
   const TransactionDetailPage({Key? key, required this.transaction}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context , WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         // Updated title based on transaction amount

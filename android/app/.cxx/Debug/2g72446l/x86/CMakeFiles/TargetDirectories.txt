@@ -1,2 +1,0 @@
-C:/Users/suryp/projects/brokeo/android/app/.cxx/Debug/2g72446l/x86/CMakeFiles/edit_cache.dir
-C:/Users/suryp/projects/brokeo/android/app/.cxx/Debug/2g72446l/x86/CMakeFiles/rebuild_cache.dir

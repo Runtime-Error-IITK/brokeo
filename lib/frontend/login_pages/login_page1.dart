@@ -1,36 +1,77 @@
-import 'package:brokeo/frontend/login_pages/login_page2.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:intl_phone_field/phone_number.dart';
+import 'dart:developer' show log;
 
-class LoginPage1 extends StatefulWidget {
+import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
+import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
+import 'package:brokeo/frontend/login_pages/login_page2.dart' show LoginPage2;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter/material.dart';
+import 'package:intl_phone_field/intl_phone_field.dart' show IntlPhoneField;
+import 'package:intl_phone_field/phone_number.dart' show PhoneNumber;
+
+class LoginPage1 extends ConsumerStatefulWidget {
+  const LoginPage1({super.key});
+
   @override
-  _LoginPage1State createState() => _LoginPage1State();
+  LoginPage1State createState() => LoginPage1State();
 }
 
-class _LoginPage1State extends State<LoginPage1> {
+class LoginPage1State extends ConsumerState<LoginPage1> {
+  // You can add your state variables and methods here
+
   PhoneNumber? phoneNumber;
 
-  void validateAndProceed() {
-    try {
-      if (phoneNumber != null && phoneNumber!.isValidNumber()) {
-        print("✅ Valid Number: ${phoneNumber!.completeNumber}");
-        
-        // TODO: Store number in database and send OTP to the that number
-        
+  @override
+  void initState() {
+    super.initState();
+    // Initialize any state variables or perform setup here
+  }
+
+  void _verifyPhone() async {
+    final auth = ref.read(firebaseAuthProvider);
+
+    String number = phoneNumber!.completeNumber;
+    log(number);
+    await auth.verifyPhoneNumber(
+      phoneNumber: number,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        final userCredential = await auth.signInWithCredential(credential);
+
+        if (context.mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => AuthPage(),
+            ),
+          );
+        } else {
+          return;
+        }
+      },
+      verificationFailed: (FirebaseAuthException error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Verification failed: ${error.message}")),
+        );
+      },
+      codeSent: (String verificationId, int? resendToken) {
         Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LoginPage2(phoneNumber: phoneNumber!),
-        ),
-      );
-      } else {
-        print("❌ Invalid Number. Action not allowed.");
-      }
-    } catch (e) {
-      print("❌ Exception: ${e.toString()}");
-    }
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginPage2(
+                verificationId: verificationId, phoneNumber: phoneNumber!),
+          ),
+        );
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginPage2(
+                verificationId: verificationId, phoneNumber: phoneNumber!),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -77,7 +118,8 @@ class _LoginPage1State extends State<LoginPage1> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16), // Adjusted padding
+                    contentPadding: EdgeInsets.symmetric(
+                        vertical: 20, horizontal: 16), // Adjusted padding
                     hintText: 'Enter Contact Number',
                     hintStyle: TextStyle(
                       color: Colors.black.withOpacity(0.6),
@@ -97,7 +139,8 @@ class _LoginPage1State extends State<LoginPage1> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  textAlignVertical: TextAlignVertical(y: 0.4), // Ensures text is vertically centered
+                  textAlignVertical: TextAlignVertical(
+                      y: 0.4), // Ensures text is vertically centered
                   textInputAction: TextInputAction.done,
                   style: TextStyle(
                     fontSize: 18, // Ensuring same size for prefix & number
@@ -124,7 +167,7 @@ class _LoginPage1State extends State<LoginPage1> {
                 child: IconButton(
                   iconSize: 35,
                   icon: Icon(Icons.arrow_forward, color: Colors.white),
-                  onPressed: validateAndProceed,
+                  onPressed: _verifyPhone,
                 ),
               ),
             ],

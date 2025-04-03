@@ -1,2 +1,0 @@
-C:/Users/easys/Desktop/code/flutter apps/brokeo/android/app/.cxx/Debug/1t45c375/x86_64/CMakeFiles/edit_cache.dir
-C:/Users/easys/Desktop/code/flutter apps/brokeo/android/app/.cxx/Debug/1t45c375/x86_64/CMakeFiles/rebuild_cache.dir

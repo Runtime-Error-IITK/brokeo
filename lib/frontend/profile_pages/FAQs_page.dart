@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class FAQsPage extends StatelessWidget {
+class FAQsPage extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context,WidgetRef ref) { 
     return Scaffold(
       appBar: AppBar(
         title: Text("FAQs"),

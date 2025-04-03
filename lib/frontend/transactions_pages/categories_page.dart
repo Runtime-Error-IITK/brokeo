@@ -1,3 +1,4 @@
+// import 'package:brokeo/backend/services/providers2/read_providers/category_stream_provider.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:brokeo/frontend/transactions_pages/category_page.dart';
@@ -6,15 +7,19 @@ import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/models/transaction_model.dart';
 import 'package:brokeo/frontend/transactions_pages/merchants_page.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Main CategoriesPage
-class CategoriesPage extends StatefulWidget {
+class CategoriesPage extends ConsumerStatefulWidget {
+  const CategoriesPage({Key? key}) : super(key: key);
+
   @override
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
-class _CategoriesPageState extends State<CategoriesPage>
-    with SingleTickerProviderStateMixin {
+class _CategoriesPageState extends ConsumerState<CategoriesPage>
+    with SingleTickerProviderStateMixin {   
   int _currentIndex = 1;
   late TabController _tabController;
   bool showTransactions = false;
@@ -28,6 +33,7 @@ class _CategoriesPageState extends State<CategoriesPage>
 
   @override
   Widget build(BuildContext context) {
+    // final asyncCategories = ref.watch(categoryStreamProvider);
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -447,32 +453,25 @@ class _CategoriesPageState extends State<CategoriesPage>
             _currentIndex = index;
           });
         }
-        // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(name: "Darshan", budget: 5000),
-            ),
+            MaterialPageRoute(builder: (context) => HomePage(name: "User", budget: 5000)),
           );
         } else if (index == 1) {
-          // Already on Categories/Transactions page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => CategoriesPage(),
-            ),
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
           );
         } else if (index == 2) {
-          // TODO: Navigate to Analytics Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AnalyticsPage()),
+          );
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => ManageSplitsPage(),
-            ),
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
           );
         }
       },
@@ -629,7 +628,7 @@ class _CategoriesPageState extends State<CategoriesPage>
                         ),
                       ),
                       Text(
-                        merchant.spends.toString(), // Placeholder for time
+                        "${merchant.spends.toString()} Spends", // Placeholder for time
                         style: TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],

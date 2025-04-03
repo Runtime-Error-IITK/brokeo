@@ -1,13 +1,13 @@
-import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Transaction {
-  int transactionId;
-  double amount;
-  DateTime date;
-  int merchantId;
-  int categoryId;
-  Map<String, double>? split;
-  int? smsId;
+  final String transactionId;
+  final double amount;
+  final DateTime date;
+  final String merchantId;
+  final String categoryId;
+  final String userId;
+  final String sms;
 
   Transaction({
     required this.transactionId,
@@ -15,112 +15,113 @@ class Transaction {
     required this.date,
     required this.merchantId,
     required this.categoryId,
-    this.split,
-    this.smsId,
+    required this.userId,
+    this.sms = "",
   });
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is Transaction && other.transactionId == transactionId;
+    return other is Transaction &&
+        other.transactionId == transactionId &&
+        other.userId == userId;
   }
 
   @override
   int get hashCode {
-    return transactionId.hashCode;
+    return transactionId.hashCode ^ userId.hashCode;
   }
 
-  factory Transaction.fromJson(String json) {
-    Map<String, dynamic> decodedJson = jsonDecode(json) as Map<String, dynamic>;
+  @override
+  String toString() {
+    return "Transaction{transactionId: $transactionId, amount: $amount, date: $date, merchantId: $merchantId, categoryId: $categoryId, userId: $userId}";
+  }
+
+  factory Transaction.fromCloudTransaction(CloudTransaction cloudTransaction) {
     return Transaction(
-      transactionId: decodedJson[transactionIdColumn] as int,
-      amount: decodedJson[amountColumn] as double,
-      date: DateTime.parse(decodedJson[dateColumn] as String),
-      merchantId: decodedJson[merchantIdColumn] as int,
-      categoryId: decodedJson[categoryIdColumn] as int,
-      split: decodedJson[splitColumn] != null
-          ? jsonDecode(decodedJson[splitColumn] as String)
-          : null,
-      smsId: decodedJson[smsIdColumn] != null
-          ? decodedJson[smsIdColumn] as int
-          : null,
+      transactionId: cloudTransaction.transactionId,
+      amount: cloudTransaction.amount,
+      date: cloudTransaction.date,
+      merchantId: cloudTransaction.merchantId,
+      categoryId: cloudTransaction.categoryId,
+      userId: cloudTransaction.userId,
+      sms: cloudTransaction.sms,
     );
-  }
-
-  String toJson() {
-    //return json string
-
-    return jsonEncode({
-      transactionIdColumn: transactionId,
-      amountColumn: amount,
-      dateColumn: date.toIso8601String(),
-      merchantIdColumn: merchantId,
-      categoryIdColumn: categoryId,
-      splitColumn: split != null ? jsonEncode(split) : null,
-      smsIdColumn: smsId,
-    });
   }
 }
 
-class DatabaseTransaction {
-  int transactionId;
-  double amount;
-  String date;
-  int merchantId;
-  int categoryId;
-  String? split;
-  int? smsId;
+class CloudTransaction {
+  final String transactionId;
+  final double amount;
+  final DateTime date;
+  final String merchantId;
+  final String categoryId;
+  final String userId;
+  final String sms;
 
-  DatabaseTransaction({
+  CloudTransaction({
     required this.transactionId,
     required this.amount,
     required this.date,
     required this.merchantId,
     required this.categoryId,
-    this.split,
-    this.smsId,
+    required this.userId,
+    this.sms = "",
   });
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is DatabaseTransaction && other.transactionId == transactionId;
+    return other is CloudTransaction &&
+        other.transactionId == transactionId &&
+        other.userId == userId;
   }
 
   @override
   int get hashCode {
-    return transactionId.hashCode;
+    return transactionId.hashCode ^ userId.hashCode;
+  }
+
+  factory CloudTransaction.fromTransaction(Transaction transaction) {
+    return CloudTransaction(
+      transactionId: transaction.transactionId,
+      amount: transaction.amount,
+      date: transaction.date,
+      merchantId: transaction.merchantId,
+      categoryId: transaction.categoryId,
+      userId: transaction.userId,
+      sms: transaction.sms,
+    );
+  }
+
+  factory CloudTransaction.fromSnapshot(DocumentSnapshot snapshot) {
+    return CloudTransaction(
+      transactionId: snapshot[transactionIdColumn] as String,
+      amount: (snapshot[amountColumn] as num).toDouble(),
+      date: (snapshot[dateColumn] as Timestamp).toDate(),
+      merchantId: snapshot[merchantIdColumn] as String,
+      categoryId: snapshot[categoryIdColumn] as String,
+      userId: snapshot[userIdColumn] as String,
+      sms: snapshot[smsIdColumn] as String,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      transactionIdColumn: transactionId,
+      amountColumn: amount,
+      dateColumn: Timestamp.fromDate(date),
+      merchantIdColumn: merchantId,
+      categoryIdColumn: categoryId,
+      smsIdColumn: sms,
+    };
   }
 
   @override
   String toString() {
-    return "DatabaseTransaction{transactionId: $transactionId, amount: $amount, date: $date, merchantId: $merchantId, categoryId: $categoryId, split: $split, smsId: $smsId}";
-  }
-
-  factory DatabaseTransaction.fromRow(Map<String, Object?> row) {
-    return DatabaseTransaction(
-      transactionId: row[transactionIdColumn] as int,
-      amount: row[amountColumn] as double,
-      date: row[dateColumn] as String,
-      merchantId: row[merchantIdColumn] as int,
-      categoryId: row[categoryIdColumn] as int,
-      split: row[splitColumn] as String?,
-      smsId: row[smsIdColumn] != null ? row[smsIdColumn] as int : null,
-    );
-  }
-
-  factory DatabaseTransaction.fromTransaction(Transaction transaction) {
-    return DatabaseTransaction(
-      transactionId: transaction.transactionId,
-      amount: transaction.amount,
-      date: transaction.date.toIso8601String(),
-      merchantId: transaction.merchantId,
-      categoryId: transaction.categoryId,
-      split: transaction.split != null ? jsonEncode(transaction.split) : null,
-      smsId: transaction.smsId,
-    );
+    return "CloudTransaction{transactionId: $transactionId, amount: $amount, date: $date, merchantId: $merchantId, categoryId: $categoryId, userId: $userId}";
   }
 }
 
@@ -129,5 +130,5 @@ const String amountColumn = "amount";
 const String dateColumn = "date";
 const String merchantIdColumn = "merchantId";
 const String categoryIdColumn = "category";
-const String splitColumn = "split";
 const String smsIdColumn = "sms";
+const String userIdColumn = "userId";

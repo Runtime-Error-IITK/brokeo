@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/split_pages/split_between.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class ChooseTransactionPage extends StatefulWidget {
+class ChooseTransactionPage extends ConsumerStatefulWidget {
   @override
   _ChooseTransactionPageState createState() => _ChooseTransactionPageState();
 }
 
-class _ChooseTransactionPageState extends State<ChooseTransactionPage> {
+class _ChooseTransactionPageState extends ConsumerState<ChooseTransactionPage> {
     int _currentIndex = 3;
   int? _selectedIndex;
   final List<Map<String, dynamic>> transactions = [
@@ -106,7 +108,12 @@ class _ChooseTransactionPageState extends State<ChooseTransactionPage> {
               ),
             );
           } else if (index == 2) {
-            // TODO: Analytics page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AnalyticsPage(),
+              ),
+            );
           }
         },
         type: BottomNavigationBarType.fixed,

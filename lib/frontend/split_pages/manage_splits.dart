@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
 import 'package:brokeo/frontend/split_pages/split_history.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class ManageSplitsPage extends StatefulWidget {
+class ManageSplitsPage extends ConsumerStatefulWidget {
   @override
   _ManageSplitsPageState createState() => _ManageSplitsPageState();
 }
 
-class _ManageSplitsPageState extends State<ManageSplitsPage> {
+class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
   int _currentIndex = 3;
   List<brokeo_split.Split> splits =
       []; // Now using Split model instead of raw data
@@ -51,73 +53,64 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       //backgroundColor: Color.fromARGB(255, 255, 247, 254),
-      body: Column(
-        children: [
-// Balance Summary Card
-          Container(
-            margin: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0E4F4), // Light purple background
-              borderRadius: BorderRadius.circular(16.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildBalanceRow(
-                  label: "Total Balance",
-                  amount: 1441,
-                  amountColor:
-                      Colors.green[800]!, // Darker green for better contrast
-                ),
-                const Divider(
-                  height: 24,
-                  color: Colors.black54, // Dark divider
-                  thickness: 0.75,
-                ),
-                _buildBalanceRow(
-                  label: "You Owe",
-                  amount: 200,
-                  amountColor:
-                      Colors.red[800]!, // Darker red for better contrast
-                ),
-                const SizedBox(height: 12),
-                _buildBalanceRow(
-                  label: "You Are Owed",
-                  amount: 1641,
-                  amountColor: Colors.green[800]!,
-                ),
-              ],
-            ),
-          ),
-
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadSplits,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0), // Adds 8 padding left & right
-                child: ListView.separated(
-                  itemCount: splits.length,
-                  itemBuilder: (context, index) {
-                    final split = splits[index];
-                    return _buildSplitTile(split);
-                  },
-                  separatorBuilder: (context, index) => Divider(
-                    color: Colors.grey[300],
+      body: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0), // Added horizontal padding
+        itemCount: splits.length + 2, // increased count: spacer + summary card + splits
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return const SizedBox(height: 20); // Spacer to lower the summary card
+          } else if (index == 1) {
+            // Summary Card moved to be scrollable
+            return Container(
+              margin: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 245, 210, 245),
+                borderRadius: BorderRadius.circular(16.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromARGB(255, 237, 155, 219).withOpacity(0.2),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 4),
                   ),
-                ),
+                ],
               ),
-            ),
-          ),
-        ],
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  _buildBalanceRow(
+                    label: "Total Balance",
+                    amount: 1441,
+                    amountColor: Colors.green[800]!,
+                  ),
+                  const Divider(
+                    height: 24,
+                    color: Colors.black54,
+                    thickness: 0.75,
+                  ),
+                  _buildBalanceRow(
+                    label: "You Owe",
+                    amount: 200,
+                    amountColor: Colors.red[800]!,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildBalanceRow(
+                    label: "You Are Owed",
+                    amount: 1641,
+                    amountColor: Colors.green[800]!,
+                  ),
+                ],
+              ),
+            );
+          } else {
+            final split = splits[index - 2];
+            // ...existing code for split tile...
+            return _buildSplitTile(split);
+          }
+        },
+        separatorBuilder: (context, index) => Divider(
+          color: Colors.grey[300],
+        ),
       ),
       floatingActionButton: _currentIndex == 3
           ? FloatingActionButton(
@@ -232,10 +225,8 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
             _currentIndex = index;
           });
         }
-        // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) =>
@@ -243,17 +234,20 @@ class _ManageSplitsPageState extends State<ManageSplitsPage> {
             ),
           );
         } else if (index == 1) {
-          // Already on Categories/Transactions page
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => CategoriesPage(),
             ),
           );
         } else if (index == 2) {
-          // TODO: Navigate to Analytics Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AnalyticsPage(),
+            ),
+          );
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
           Navigator.push(
             context,
             MaterialPageRoute(

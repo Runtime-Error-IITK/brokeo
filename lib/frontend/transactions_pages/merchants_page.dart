@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
-import 'package:brokeo/models/transaction_model.dart'; // <== new import
+import 'package:brokeo/models/transaction_model.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class MerchantsPage extends StatefulWidget {
+class MerchantsPage extends ConsumerStatefulWidget {
   final Merchant data;
 
   const MerchantsPage({Key? key, required this.data}) : super(key: key);
@@ -12,7 +17,7 @@ class MerchantsPage extends StatefulWidget {
   _MerchantsPageState createState() => _MerchantsPageState();
 }
 
-class _MerchantsPageState extends State<MerchantsPage> {
+class _MerchantsPageState extends ConsumerState<MerchantsPage> {
   int _currentIndex = 1;
 
   @override
@@ -80,7 +85,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
                   ),
                 ),
                 Text(
-                  "Spends: $totalSpends - Amount Paid: ₹$totalAmount",
+                  "$totalSpends Spends - ₹$totalAmount",
                   style: TextStyle(
                     color: Colors.black54,
                     fontSize: 12,
@@ -153,15 +158,27 @@ class _MerchantsPageState extends State<MerchantsPage> {
             _currentIndex = index;
           });
         }
-        // Navigation logic based on index:
         if (index == 0) {
-          // TODO: Navigate to Home Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => HomePage(name: "User", budget: 5000)),
+          );
         } else if (index == 1) {
-          // Already on Categories/Transactions page.
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
+          );
         } else if (index == 2) {
-          // TODO: Navigate to Analytics Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AnalyticsPage()),
+          );
         } else if (index == 3) {
-          // TODO: Navigate to Split Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
+          );
         }
       },
       type: BottomNavigationBarType.fixed,

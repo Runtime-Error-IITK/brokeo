@@ -21,14 +21,6 @@ class SplitUser {
     return phoneNumber.hashCode;
   }
 
-  factory SplitUser.fromJson(String json) {
-    Map<String, dynamic> decodedJson = jsonDecode(json) as Map<String, dynamic>;
-    return SplitUser(
-      name: decodedJson[nameColumn] as String,
-      phoneNumber: decodedJson[phoneNumberColumn] as String,
-    );
-  }
-
   factory SplitUser.fromDatabaseSplitUser(DatabaseSplitUser databaseSplitUser) {
     return SplitUser(
       name: databaseSplitUser.name,
@@ -39,14 +31,6 @@ class SplitUser {
   @override
   String toString() {
     return "SplitUser{name: $name, phoneNumber: $phoneNumber}";
-  }
-
-  String toJson() {
-    //return json string
-    return jsonEncode({
-      nameColumn: name,
-      phoneNumberColumn: phoneNumber,
-    });
   }
 }
 

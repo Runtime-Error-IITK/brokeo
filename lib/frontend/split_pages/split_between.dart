@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/split_pages/choose_split_type.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 // Ensure that the ChooseTransactionsPage class is defined in the imported file
 // or define it below if it is missing.
-class SplitBetweenPage extends StatefulWidget {
+class SplitBetweenPage extends ConsumerStatefulWidget {
   final Map<String, dynamic> transaction;
 
   const SplitBetweenPage({Key? key, required this.transaction}) : super(key: key);
@@ -14,7 +16,7 @@ class SplitBetweenPage extends StatefulWidget {
   _SplitBetweenPageState createState() => _SplitBetweenPageState();
 }
 
-class _SplitBetweenPageState extends State<SplitBetweenPage> {
+class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
   int _currentIndex = 3;
   List<String> contacts = [
     "Abeer Singh",
@@ -45,6 +47,12 @@ class _SplitBetweenPageState extends State<SplitBetweenPage> {
     // Calculate if any contacts are selected
     bool hasSelectedContacts =
         selectedContacts.values.any((isSelected) => isSelected);
+
+    // Add filtering logic based on search text
+    final filteredContacts = _searchController.text.isEmpty
+        ? contacts
+        : contacts.where((contact) =>
+            contact.toLowerCase().contains(_searchController.text.toLowerCase())).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -118,22 +126,22 @@ class _SplitBetweenPageState extends State<SplitBetweenPage> {
                 contentPadding: EdgeInsets.symmetric(vertical: 12.0),
               ),
               onChanged: (value) {
-                setState(() {});
+                setState(() {}); // triggers rebuild with new filteredContacts
               },
             ),
           ),
 
-          // Contacts List
+          // Contacts List now uses filteredContacts instead of contacts.
           Expanded(
             child: ListView.builder(
-              itemCount: contacts.length,
+              itemCount: filteredContacts.length,
               itemBuilder: (context, index) {
-                final contact = contacts[index];
+                final contact = filteredContacts[index];
                 final firstLetter = contact[0];
 
                 // Show letter header if it's the first contact with this letter
                 final showHeader =
-                    index == 0 || contacts[index - 1][0] != firstLetter;
+                    index == 0 || filteredContacts[index - 1][0] != firstLetter;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,7 +257,12 @@ class _SplitBetweenPageState extends State<SplitBetweenPage> {
               ),
             );
           } else if (index == 2) {
-            // TODO: Analytics page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AnalyticsPage(),
+              ),
+            );
           }
         },
         type: BottomNavigationBarType.fixed,
