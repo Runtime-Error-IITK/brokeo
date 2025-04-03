@@ -13,6 +13,8 @@ import 'package:brokeo/backend/services/providers/read_providers/schedule_stream
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
+import 'package:brokeo/backend/services/providers/write_providers/merchant_service.dart'
+    show merchantServiceProvider;
 import 'package:brokeo/backend/services/providers/write_providers/transaction_service.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
@@ -284,7 +286,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         return SizedBox.shrink();
       },
       data: (transactions) {
-        log(transactions.length.toString());
+        // log(transactions.length.toString());
         List<Transaction> transactionsToShow =
             showAllTransactions ? transactions : transactions.take(3).toList();
         return Container(
@@ -384,7 +386,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         return Consumer(builder: (context, ref, child) {
           final asyncCategories =
               ref.watch(categoryStreamProvider(emptyCategoryFilter));
-          log(asyncCategories.toString());
+          // log(asyncCategories.toString());
           return asyncCategories.when(
             loading: () => AlertDialog(
               title: Center(child: Text("Add transaction")),
@@ -514,102 +516,117 @@ class _HomePageState extends ConsumerState<HomePage> {
                       TextButton(
                         onPressed: isFormValid
                             ? () async {
-                                // Assume you have the merchant name in a variable called merchantInput.
+                                // Create a filter for the merchant using the merchant name from input.
                                 final filter =
                                     MerchantFilter(merchantName: merchant);
-                                final asyncMerchants =
-                                    ref.read(merchantStreamProvider(filter));
+                                try {
+                                  // Await the first snapshot from the merchant stream.
+                                  final merchants = await ref.read(
+                                      merchantStreamProvider(filter).future);
+                                  String merchantId;
 
-                                // Check what state the async value is in.
-                                if (asyncMerchants
-                                    is AsyncData<List<Merchant>>) {
-                                  final merchants = asyncMerchants.value;
                                   if (merchants.isNotEmpty) {
-                                    // Use the merchantId from the first matching merchant.
-                                    final merchantId =
-                                        merchants.first.merchantId;
-                                    Transaction newTransaction = Transaction(
-                                      transactionId: "",
-                                      amount: transactionType == "Credit"
-                                          ? double.parse(amount!)
-                                          : -1 * double.parse(amount!),
-                                      date: DateTime.now(),
-                                      merchantId: merchantId,
+                                    // Merchant exists, so use the merchantId from the first one.
+                                    merchantId = merchants.first.merchantId;
+                                  } else {
+                                    // Merchant not found. Insert a new merchant first.
+                                    final merchantService =
+                                        ref.read(merchantServiceProvider);
+                                    if (merchantService == null) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content:
+                                                  Text("User not logged in")),
+                                        );
+                                      }
+                                      return;
+                                    }
+                                    // Create a new CloudMerchant using the merchant name and the selected category.
+                                    final newCloudMerchant = CloudMerchant(
+                                      merchantId:
+                                          "", // Will be auto-generated by Firestore.
+                                      name: merchant!,
+                                      userId: ref.read(userIdProvider) ?? "",
                                       categoryId: selectedCategory!.categoryId,
-                                      userId: ref.watch(userIdProvider.select(
-                                          (id) =>
-                                              id ??
-                                              "")), // You'll likely fill this in from your auth provider.
-                                      sms: "Manually added transaction",
+                                      // Add any additional fields if needed.
                                     );
-                                    final cloudTransaction =
-                                        CloudTransaction.fromTransaction(
-                                            newTransaction);
-                                    final transactionService =
-                                        ref.read(transactionServiceProvider);
-                                    if (transactionService == null) {
+                                    final insertedMerchant =
+                                        await merchantService
+                                            .insertMerchant(newCloudMerchant);
+                                    if (insertedMerchant == null) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "Failed to add merchant.")),
+                                        );
+                                      }
+                                      return;
+                                    }
+                                    merchantId = insertedMerchant.merchantId;
+                                  }
+
+                                  // Now, create the transaction using the obtained merchantId.
+                                  final newTransaction = Transaction(
+                                    transactionId: "",
+                                    amount: transactionType == "Credit"
+                                        ? double.parse(amount!)
+                                        : -1 * double.parse(amount!),
+                                    date: DateTime.now(),
+                                    merchantId: merchantId,
+                                    categoryId: selectedCategory!.categoryId,
+                                    userId: ref.read(userIdProvider) ?? "",
+                                    sms: "Manually added transaction",
+                                  );
+                                  final cloudTransaction =
+                                      CloudTransaction.fromTransaction(
+                                          newTransaction);
+                                  final transactionService =
+                                      ref.read(transactionServiceProvider);
+                                  if (transactionService == null) {
+                                    if (context.mounted) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         const SnackBar(
                                             content:
                                                 Text("User not logged in")),
                                       );
-                                      return;
                                     }
-                                    final result = await transactionService
-                                        .insertTransaction(cloudTransaction);
-                                    if (result != null) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                              content: Text(
-                                                  "Transaction added successfully!")),
-                                        );
-                                      } else {
-                                        return;
-                                      }
-                                    } else {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                              content: Text(
-                                                  "Failed to add transaction.")),
-                                        );
-                                      } else {
-                                        return;
-                                      }
-                                    }
-
-                                    // Perform any further transaction processing here.
+                                    return;
+                                  }
+                                  final result = await transactionService
+                                      .insertTransaction(cloudTransaction);
+                                  if (result != null) {
                                     if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Transaction added successfully!")),
+                                      );
                                       Navigator.pop(context);
-                                    } else {
-                                      return;
                                     }
                                   } else {
-                                    // No merchant found; you might later add logic to create a new merchant.
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Failed to add transaction.")),
+                                      );
+                                    }
+                                  }
+                                } catch (error) {
+                                  if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                           content: Text(
-                                              "No merchant found with that name.")),
+                                              "Error loading merchant data: $error")),
                                     );
                                   }
-                                } else if (asyncMerchants is AsyncLoading) {
-                                  // The data is still loading.
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            "Loading merchant data, please wait...")),
-                                  );
-                                } else if (asyncMerchants is AsyncError) {
-                                  // There was an error retrieving the merchant data.
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            "Error loading merchant data.")),
-                                  );
                                 }
                               }
                             : null,
@@ -645,7 +662,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         return SizedBox.shrink();
       },
       data: (merchant) {
-        log(merchant.length.toString());
+        // log(merchant.length.toString());
         return InkWell(
           onTap: () {
             Navigator.push(

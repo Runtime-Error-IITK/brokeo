@@ -75,7 +75,7 @@ class CategoryService {
       await docRef.update(category.toFirestore());
       final docSnap = await docRef.get();
       if (docSnap.exists) {
-        log('Updated category with id: ${category.categoryId}');
+        log('Updated category with id: ${docSnap.id}');
         return CloudCategory.fromSnapshot(docSnap);
       } else {
         log('Failed to retrieve updated category');

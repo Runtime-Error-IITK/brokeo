@@ -110,12 +110,12 @@ class CloudTransaction {
 
   Map<String, dynamic> toFirestore() {
     return {
-      transactionIdColumn: transactionId,
       amountColumn: amount,
       dateColumn: Timestamp.fromDate(date),
       merchantIdColumn: merchantId,
       categoryIdColumn: categoryId,
       smsColumn: sms,
+      userIdColumn: userId,
     };
   }
 
