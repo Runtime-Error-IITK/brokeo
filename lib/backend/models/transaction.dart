@@ -104,7 +104,7 @@ class CloudTransaction {
       merchantId: snapshot[merchantIdColumn] as String,
       categoryId: snapshot[categoryIdColumn] as String,
       userId: snapshot[userIdColumn] as String,
-      sms: snapshot[smsIdColumn] as String,
+      sms: snapshot[smsColumn] as String,
     );
   }
 
@@ -115,7 +115,7 @@ class CloudTransaction {
       dateColumn: Timestamp.fromDate(date),
       merchantIdColumn: merchantId,
       categoryIdColumn: categoryId,
-      smsIdColumn: sms,
+      smsColumn: sms,
     };
   }
 
@@ -130,5 +130,5 @@ const String amountColumn = "amount";
 const String dateColumn = "date";
 const String merchantIdColumn = "merchantId";
 const String categoryIdColumn = "category";
-const String smsIdColumn = "sms";
+const String smsColumn = "sms";
 const String userIdColumn = "userId";

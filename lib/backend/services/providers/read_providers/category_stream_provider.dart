@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final categoryStreamProvider = StreamProvider.autoDispose
-    .family<List<Category>, String?>((ref, filterCategoryId) {
+    .family<List<Category>, CategoryFilter>((ref, filter) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
@@ -18,9 +18,14 @@ final categoryStreamProvider = StreamProvider.autoDispose
       .doc(userId)
       .collection('userCategories');
 
-  // Apply filter if provided.
-  if (filterCategoryId != null && filterCategoryId.isNotEmpty) {
-    query = query.where('categoryId', isEqualTo: filterCategoryId);
+  // Apply filter for categoryId if provided.
+  if (filter.categoryId != null && filter.categoryId!.isNotEmpty) {
+    query = query.where('categoryId', isEqualTo: filter.categoryId);
+  }
+
+  // Apply filter for categoryName if provided.
+  if (filter.categoryName != null && filter.categoryName!.isNotEmpty) {
+    query = query.where('name', isEqualTo: filter.categoryName);
   }
 
   final snapshots = query.snapshots();
@@ -32,3 +37,12 @@ final categoryStreamProvider = StreamProvider.autoDispose
     }).toList();
   });
 });
+
+/// Filter class for categories.
+/// It contains optional fields to filter on categoryId and categoryName.
+class CategoryFilter {
+  final String? categoryId;
+  final String? categoryName;
+
+  CategoryFilter({this.categoryId, this.categoryName});
+}

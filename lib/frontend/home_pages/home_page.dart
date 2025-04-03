@@ -3,11 +3,11 @@ import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/merchant.dart';
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart'
-    show categoryStreamProvider;
+    show CategoryFilter, categoryStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart'
     show MerchantFilter, merchantStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
-    show transactionStreamProvider;
+    show TransactionFilter, transactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/backend/services/providers/write_providers/transaction_service.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
@@ -35,6 +35,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   int _currentIndex = 0;
   int expandedTransactionIndex = -1;
   bool showAllTransactions = false; // Toggle for transaction list
+  bool showAllCategories = false;
+  bool showAllScheduledPayments = false;
+  bool showAllSplits = false;
+  bool showAllBudgetCategories = false;
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +55,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           children: [
             _buildProfileAndBudgetSection(),
             _buildTransactions(),
-            // _buildCategories(categories), // <-- NEW CATEGORIES SECTION
+            _buildCategories(), // <-- NEW CATEGORIES SECTION
             // _buildScheduledPayments(scheduledPayments),
             // _buildSplits(splits),
             // _buildBudget(budgetCategories),
@@ -114,7 +119,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildProfileAndBudgetSection() {
-    final transactionsAsync = ref.watch(transactionStreamProvider);
+    final transactionsAsync =
+        ref.watch(transactionStreamProvider(TransactionFilter()));
     final userMetadataAsync = ref.watch(userMetadataStreamProvider);
 
     return userMetadataAsync.when(
@@ -257,7 +263,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildTransactions() {
-    final asyncTransactions = ref.watch(transactionStreamProvider);
+    final asyncTransactions =
+        ref.watch(transactionStreamProvider(TransactionFilter()));
 
     return asyncTransactions.when(
       loading: () => const CircularProgressIndicator(),
@@ -367,7 +374,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return Consumer(builder: (context, ref, child) {
-          final asyncCategories = ref.watch(categoryStreamProvider(null));
+          final asyncCategories =
+              ref.watch(categoryStreamProvider(CategoryFilter()));
           return asyncCategories.when(
             loading: () => AlertDialog(
               title: Center(child: Text("Add transaction")),
@@ -681,6 +689,177 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                 ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategories() {
+    final categoryFilter = CategoryFilter();
+    final asyncCategories = ref.watch(categoryStreamProvider(categoryFilter));
+
+    return asyncCategories.when(
+        loading: () => const CircularProgressIndicator(),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Category error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (categories) {
+          List<Category> categoriesToShow =
+              showAllCategories ? categories : categories.take(3).toList();
+
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+                stops: [0.0, 0.5, 1.0],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              color: Color(0xFFEDE7F6),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Row(
+                      children: [
+                        Text(
+                          "Categories",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(
+                            showAllCategories
+                                ? Icons.expand_less
+                                : Icons.expand_more,
+                            size: 22,
+                            color: Colors.black54,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              showAllCategories = !showAllCategories;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+
+                    // If empty
+                    categories.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No Categories Yet",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          )
+                        : Column(
+                            children:
+                                categoriesToShow.asMap().entries.map((entry) {
+                              return Column(
+                                children: [
+                                  _buildCategoryTile(entry.value),
+                                  if (entry.key < categoriesToShow.length - 1)
+                                    Divider(color: Colors.grey[300]),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  Widget _buildCategoryTile(Category category) {
+    final transactionFilter = TransactionFilter(
+      categoryId: category.categoryId,
+    );
+    final asyncCategoryTransactions =
+        ref.watch(transactionStreamProvider(transactionFilter));
+
+    return asyncCategoryTransactions.when(
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stack) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Transaction error: $error")),
+          );
+        });
+        return SizedBox.shrink();
+      },
+      data: (transactions) {
+        double sum = 0;
+        for (var transaction in transactions) {
+          sum += transaction.amount > 0 ? transaction.amount : 0;
+        }
+        return InkWell(
+          onTap: () {
+            final data = CategoryCardData(
+              name: category.name,
+              icon: Icons.category,
+              color: Colors.blue,
+              spent: 0,
+              budget: category.budget,
+            );
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CategoryPage(data: data),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                // Circle avatar with emoji
+                CircleAvatar(
+                  backgroundColor: Colors.redAccent.withOpacity(0.1),
+                  child: Text(
+                    "😭",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    category.name,
+                    style: TextStyle(fontSize: 14, color: Colors.black87),
+                  ),
+                ),
+                Text(
+                  "₹${sum.toStringAsFixed(0)}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
