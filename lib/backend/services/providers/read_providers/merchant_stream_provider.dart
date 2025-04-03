@@ -4,19 +4,26 @@ import 'package:brokeo/backend/services/providers/read_providers/user_id_provide
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-final merchantStreamProvider =
-    StreamProvider.autoDispose<List<Merchant>>((ref) {
+final merchantStreamProvider = StreamProvider.autoDispose
+    .family<List<Merchant>, String?>((ref, filterMerchantId) {
   final userId = ref.watch(userIdProvider);
 
   if (userId == null) {
     return const Stream.empty();
   }
 
-  final snapshots = FirebaseFirestore.instance
+  // Build the base query
+  Query query = FirebaseFirestore.instance
       .collection('merchants')
       .doc(userId)
-      .collection('userMerchants')
-      .snapshots();
+      .collection('userMerchants');
+
+  // If a filter is provided, apply it
+  if (filterMerchantId != null && filterMerchantId.isNotEmpty) {
+    query = query.where('merchantId', isEqualTo: filterMerchantId);
+  }
+
+  final snapshots = query.snapshots();
 
   return snapshots.map((querySnapshot) {
     return querySnapshot.docs.map((doc) {
