@@ -860,7 +860,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CategoryPage(category: category),
+                builder: (context) => CategoryPage(
+                  categoryId: category.categoryId,
+                ),
               ),
             );
           },
