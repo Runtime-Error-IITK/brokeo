@@ -1,8 +1,10 @@
 import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/transaction.dart' show Transaction;
+import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
-import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart' show TransactionDetailPage;
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart'
+    show TransactionDetailPage;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -47,27 +49,27 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
             filteredTransactions.add(monthTransactions);
           }
           double totalSpends = 0;
-          for(var t in filteredTransactions[-1]) {
-            totalSpends -= t.amount > 0 ? t.amount : 0; 
+          for (var t in filteredTransactions[-1]) {
+            totalSpends -= t.amount > 0 ? t.amount : 0;
           }
           return Scaffold(
-      appBar: buildCustomAppBar(context, totalSpends),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            buildBarChart(),
-            // Add some spacing before the transaction list
-            SizedBox(height: 10),
-            // Include the transaction list widget here
-            TransactionListWidget(
-              transactions: transactions,
+            appBar: buildCustomAppBar(context, totalSpends),
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(height: 20),
+                  buildBarChart(),
+                  // Add some spacing before the transaction list
+                  SizedBox(height: 10),
+                  // Include the transaction list widget here
+                  TransactionListWidget(
+                    transactions: transactions,
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-      // bottomNavigationBar: buildBottomNavigationBar(),
-    );
+            // bottomNavigationBar: buildBottomNavigationBar(),
+          );
         });
   }
 }
@@ -104,7 +106,7 @@ class TransactionListWidget extends ConsumerWidget {
                     final transaction = entry.value;
                     return Column(
                       children: [
-                        _transactionTile(context, transaction),
+                        _transactionTile(context, ref, transaction),
                         if (index < transactions.length - 1)
                           Divider(color: Colors.grey[300]),
                       ],
@@ -117,67 +119,87 @@ class TransactionListWidget extends ConsumerWidget {
   }
 
   /// Single Transaction Row (clickable, but onTap is commented out).
-  Widget _transactionTile(BuildContext context, WidgetRef ref, Transaction transaction) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                TransactionDetailPage(transaction: transaction),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(
-          children: [
-            // Circle with first letter of transaction name
-            CircleAvatar(
-              backgroundColor: Colors.purple[100],
-              child: Text(
-                transaction.name.isNotEmpty
-                    ? transaction.name[0].toUpperCase()
-                    : "?",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple,
-                ),
-              ),
-            ),
-            SizedBox(width: 12),
-
-            // Transaction name
-            Expanded(
-              child: Text(
-                transaction.name,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
-              ),
-            ),
-
-            // Date/Time + Amount
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  "${transaction.date}, ${transaction.time}",
-                  style: TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "₹${transaction.amount.toStringAsFixed(0)}",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+  Widget _transactionTile(
+      BuildContext context, WidgetRef ref, Transaction transaction) {
+    final merchantFilter = MerchantFilter(
+      merchantId: transaction.merchantId,
     );
+
+    final asyncMerchant = ref.watch(merchantStreamProvider(merchantFilter));
+
+    return asyncMerchant.when(
+        loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("User error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (merchant) {
+          final name =
+              merchant.isEmpty ? "Merchant Not Found" : merchant[0].name;
+          return InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      TransactionDetailPage(transaction: transaction),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                children: [
+                  // Circle with first letter of transaction name
+                  CircleAvatar(
+                    backgroundColor: Colors.purple[100],
+                    child: Text(
+                      name.isNotEmpty ? name.toUpperCase() : "?",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+
+                  // Transaction name
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                  ),
+
+                  // Date/Time + Amount
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        "${transaction.date.toIso8601String()}",
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "₹${transaction.amount.toStringAsFixed(0)}",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 }
-
