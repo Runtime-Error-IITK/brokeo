@@ -12,6 +12,11 @@ import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart'
 import 'package:brokeo/frontend/split_pages/split_history.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:brokeo/sms_handler.dart';
+import 'package:sms_advanced/sms_advanced.dart';
+import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// Home Page
 class HomePage extends ConsumerStatefulWidget {
@@ -37,6 +42,82 @@ class _HomePageState extends ConsumerState<HomePage> {
   final TextEditingController _budgetController = TextEditingController();
   String? _selectedEmoji;
   final List<String> _emojiOptions = ['🍔', '🍕', '🎉', '💡', '📚'];
+
+  final SmsReceiver smsReceiver = SmsReceiver();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndRequestSmsPermission();
+  }
+
+  Future<void> _checkAndRequestSmsPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstTime = prefs.getBool('isFirstTime') ?? true;
+
+    if (isFirstTime) {
+      await _requestSmsPermission();
+      await prefs.setBool('isFirstTime', false);
+    }
+  }
+
+  Future<void> _requestSmsPermission() async {
+    final status = await Permission.sms.request();
+    if (status.isGranted) {
+      print("SMS permission granted");
+      // Listen for incoming messages
+      listenForMessages();
+    } else {
+      print("SMS permission denied");
+      // Show a popup to inform the user of the benefits of using sms permission
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "Granting SMS permission allows us to automatically fetch your transactions so you don't have to manually add new transactions."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _requestSmsPermission(); // Retry requesting permission
+              },
+              child: Text("Retry"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void listenForMessages() async {
+    // Listen for incoming messages
+    smsReceiver.onSmsReceived?.listen((SmsMessage message) {
+      print("New SMS: ${message.body} at ${message.date}");
+      if (message.body != null) {
+        SmsHandler.fetchTransactionData(
+            message.body!, message.date!); // Send SMS body to FastAPI
+      }
+    });
+    // telephony.listenIncomingSms(
+    //   onNewMessage: (SmsMessage message) {
+    //     print("New SMS: ${message.body} at ${message.date}");
+    //     if (message.body != null) {
+    //       SmsHandler.fetchTransactionData(message.body!, message.date!); // Send SMS body to FastAPI
+    //     }
+    //   },
+    //   listenInBackground: true, // Listen to SMS in the background
+    //   onBackgroundMessage: onBackgroundMessage, // Provide the background message handler
+    // );
+  }
+
+  static void onBackgroundMessage(SmsMessage message) async {
+    // This function will be called when a new SMS is received in the background
+    print("Background SMS: ${message.body} at ${message.date}");
+    if (message.body != null) {
+      SmsHandler.fetchTransactionData(message.body!, message.date!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
