@@ -177,13 +177,18 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Edit Budget for $initialCategoryName"),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              String budgetValue = budgetValueAsString;
+        // Wrap the entire AlertDialog in a StatefulBuilder so that both the text field and the buttons can react to state changes.
+        return StatefulBuilder(
+          builder: (context, setState) {
+            // Use a local variable for the current value of the budget text field.
+            String budgetValue = budgetValueAsString;
+            // Determine if the current budget value is valid (non-empty and can be parsed to a double).
+            final bool isBudgetValid =
+                budgetValue.isNotEmpty && double.tryParse(budgetValue) != null;
 
-              return Column(
+            return AlertDialog(
+              title: Text("Edit Budget for $initialCategoryName"),
+              content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Align(
@@ -209,60 +214,65 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
                     },
                   ),
                 ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (budgetValueAsString.isNotEmpty) {
-                  double? updatedBudget = double.tryParse(budgetValueAsString);
-                  if (updatedBudget != null) {
-                    final categoryService = ref.read(categoryServiceProvider);
-                    if (categoryService == null) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("User not logged in")),
-                        );
-                      }
-                      return;
-                    }
-                    log(updatedBudget.toString());
-                    final updatedCloudCategory = CloudCategory(
-                      name: category.name,
-                      categoryId: category.categoryId,
-                      userId: category.userId,
-                      budget: updatedBudget,
-                    );
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  // Disable the Confirm button if the budget value is empty or invalid.
+                  onPressed: isBudgetValid
+                      ? () async {
+                          double? updatedBudget = double.tryParse(budgetValue);
+                          if (updatedBudget != null) {
+                            final categoryService =
+                                ref.read(categoryServiceProvider);
+                            if (categoryService == null) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text("User not logged in")),
+                                );
+                              }
+                              return;
+                            }
+                            log(updatedBudget.toString());
+                            final updatedCloudCategory = CloudCategory(
+                              name: category.name,
+                              categoryId: category.categoryId,
+                              userId: category.userId,
+                              budget: updatedBudget,
+                            );
 
-                    final result = await categoryService
-                        .updateCloudCategory(updatedCloudCategory);
-                    if (result != null) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Category updated successfully!")),
-                        );
-                      }
-                    } else {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Failed to update category.")),
-                        );
-                      }
-                    }
-                  }
-                }
-                Navigator.pop(context);
-              },
-              child: const Text("Confirm"),
-            ),
-          ],
+                            final result = await categoryService
+                                .updateCloudCategory(updatedCloudCategory);
+                            if (result != null) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          "Category updated successfully!")),
+                                );
+                              }
+                            } else {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text("Failed to update category.")),
+                                );
+                              }
+                            }
+                          }
+                          Navigator.pop(context);
+                        }
+                      : null,
+                  child: const Text("Confirm"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -351,8 +361,9 @@ class TransactionListWidget extends ConsumerWidget {
     final merchantFilter = MerchantFilter(
       merchantId: transaction.merchantId,
     );
-    final double validAmount = (transaction.amount.isNaN) ? 0.0 : transaction.amount;
-  final Color amountColor = validAmount < 0 ? Colors.red : Colors.green;
+    final double validAmount =
+        (transaction.amount.isNaN) ? 0.0 : transaction.amount;
+    final Color amountColor = validAmount < 0 ? Colors.red : Colors.green;
 
     final asyncMerchant = ref.watch(merchantStreamProvider(merchantFilter));
 
@@ -417,7 +428,7 @@ class TransactionListWidget extends ConsumerWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                       "₹${validAmount.abs().toStringAsFixed(0)}",
+                        "₹${validAmount.abs().toStringAsFixed(0)}",
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -557,7 +568,8 @@ class BarChartPainter extends CustomPainter {
     for (int i = 0; i < bars.length; i++) {
       final bar = bars[i];
       // If maxValue is zero, use 0 height; otherwise, calculate normally.
-      final double barHeight = maxValue == 0 ? 0 : (bar.value / maxValue) * maxBarHeight;
+      final double barHeight =
+          maxValue == 0 ? 0 : (bar.value / maxValue) * maxBarHeight;
       final double barLeft = spacing + i * (barWidth + spacing);
       final double barTop = size.height - barHeight;
       final Rect barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
