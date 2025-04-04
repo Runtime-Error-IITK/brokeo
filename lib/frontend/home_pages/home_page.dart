@@ -857,12 +857,12 @@ class _HomePageState extends ConsumerState<HomePage> {
             //   spent: 0,
             //   budget: category.budget,
             // );
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => CategoryPage(data: data),
-            //   ),
-            // );
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CategoryPage(category: category),
+              ),
+            );
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 5),

@@ -3,10 +3,15 @@ import 'package:brokeo/backend/models/transaction.dart' show Transaction;
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
+import 'package:brokeo/backend/services/providers/write_providers/category_service.dart'
+    show categoryServiceProvider;
+import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart'
     show TransactionDetailPage;
 import 'package:flutter/material.dart';
+import 'dart:math' hide log;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 class CategoryPage extends ConsumerStatefulWidget {
   final Category category;
@@ -17,6 +22,7 @@ class CategoryPage extends ConsumerStatefulWidget {
 }
 
 class CategoryPageState extends ConsumerState<CategoryPage> {
+  int _currentIndex = 1;
   @override
   Widget build(BuildContext context) {
     final category = widget.category;
@@ -49,8 +55,8 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
             filteredTransactions.add(monthTransactions);
           }
           double totalSpends = 0;
-          for (var t in filteredTransactions[-1]) {
-            totalSpends -= t.amount > 0 ? t.amount : 0;
+          for (var t in filteredTransactions[5]) {
+            totalSpends -= t.amount < 0 ? t.amount : 0;
           }
           return Scaffold(
             appBar: buildCustomAppBar(context, totalSpends),
@@ -58,7 +64,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
               child: Column(
                 children: [
                   SizedBox(height: 20),
-                  buildBarChart(),
+                  buildBarChart(filteredTransactions),
                   // Add some spacing before the transaction list
                   SizedBox(height: 10),
                   // Include the transaction list widget here
@@ -71,6 +77,108 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
             // bottomNavigationBar: buildBottomNavigationBar(),
           );
         });
+  }
+
+  Widget buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        if (index != _currentIndex) {
+          setState(() {
+            _currentIndex = index;
+          });
+        }
+        // Navigation logic based on index:
+        // Navigation logic based on index:
+        if (index == 0) {
+          // TODO: Navigate to Home Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(),
+            ),
+          );
+        } else if (index == 1) {
+          // Already on Categories/Transactions page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(),
+            ),
+          );
+        } else if (index == 2) {
+          // TODO: Navigate to Analytics Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(),
+            ),
+          );
+        } else if (index == 3) {
+          // TODO: Navigate to Split Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(),
+            ),
+          );
+        }
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.purple,
+      unselectedItemColor: Colors.grey,
+      iconSize: 24,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.analytics), label: "Analytics"),
+        BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
+      ],
+    );
+  }
+
+  Widget buildBarChart(List<List<Transaction>> filteredTransactions) {
+    // Example data from backend:
+
+    final Category data = widget.category;
+    final currenMonth = DateTime.now().month;
+    final List<BarData> chartData =
+        filteredTransactions.asMap().entries.map((entry) {
+      final int index = entry.key;
+      final List<Transaction> monthTransactions = entry.value;
+      double totalSpends = 0;
+
+      // Sum the absolute values of debit transactions (assuming debit is negative).
+      for (var t in monthTransactions) {
+        if (t.amount < 0) {
+          totalSpends += -t.amount;
+        }
+      }
+
+      // Calculate the month corresponding to this entry.
+      // If filteredTransactions has 6 elements and the last element (index 5) is the current month,
+      // then the number of months ago for this entry is:
+      final int monthsAgo = (filteredTransactions.length - 1) - index;
+      final DateTime now = DateTime.now();
+      // Construct a target date by subtracting the monthsAgo.
+      // The DateTime constructor automatically adjusts the year if the month becomes out of range.
+      final DateTime targetDate = DateTime(now.year, now.month - monthsAgo);
+      // Format the month abbreviation (e.g. "Jan", "Feb", etc.)
+      final String label = DateFormat("MMM").format(targetDate);
+
+      return BarData(label: label, value: totalSpends);
+    }).toList();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BarChartWidget(
+        data: chartData,
+        barColor: Colors.deepPurple,
+      ),
+    );
   }
 
   AppBar buildCustomAppBar(BuildContext context, double totalSpends) {
@@ -132,70 +240,20 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
             child: IconButton(
               icon: Icon(Icons.edit, color: Colors.white),
               onPressed: () {
-                // TODO: Add logic to edit category details.
-                _showEditCategoryDialog(
-                  context,
-                  data.name, // e.g., "Food and Drinks"
-                  data.budget, // e.g., "4000"
-                );
+                _showEditCategoryDialog(context, data);
               },
             ),
           ),
         ),
         // New delete icon inside a circular container
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              // TODO: Add logic to delete category details.
-              _showDeleteConfirmationDialog(context, widget.data.name);
-            },
-          ),
-        ),
       ],
       elevation: 0,
     );
   }
 
-  void _showDeleteConfirmationDialog(
-      BuildContext context, String categoryName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Delete Category"),
-          content:
-              Text("Are you sure you want to delete category $categoryName?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // close dialog
-              child: Text(
-                "Cancel",
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                // TODO: Implement actual delete logic here
-                Navigator.pop(context); // close dialog
-              },
-              child: Text(
-                "Delete",
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showEditCategoryDialog(
-    BuildContext context,
-    String initialCategoryName,
-    double initialBudget, // double
-  ) {
+  void _showEditCategoryDialog(BuildContext context, Category category) {
+    final initialBudget = category.budget;
+    final initialCategoryName = category.name;
     // Convert the double to a string for the text field
     String budgetValueAsString = initialBudget.toString();
 
@@ -203,32 +261,21 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Edit Category"),
+          title: Text("Edit Budget for $initialCategoryName"),
           content: StatefulBuilder(
             builder: (context, setState) {
-              String? selectedCategory = initialCategoryName;
-              String? budgetValue =
-                  budgetValueAsString; // Start with the string
+              String budgetValue = budgetValueAsString; // initial value
 
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // For the category name, if you're using a dropdown
-                  DropdownButtonFormField<String>(
-                    value: selectedCategory,
-                    decoration: InputDecoration(labelText: "Category Name"),
-                    items:
-                        DummyDataService.getCategoriesFromBackend().map((cat) {
-                      return DropdownMenuItem<String>(
-                        value: cat,
-                        child: Text(cat),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCategory = value;
-                      });
-                    },
+                  // Show the category name as read-only text
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Category: $initialCategoryName",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                   SizedBox(height: 16),
                   // TextField for budget input
@@ -255,13 +302,57 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
               child: Text("Cancel"),
             ),
             TextButton(
-              onPressed: () {
-                // Convert the updated budget string back to a double
-                // (handle parsing errors as needed)
+              onPressed: () async {
+                // Only update if the budget field is non-empty.
+                if (budgetValueAsString.isNotEmpty) {
+                  // Convert the updated budget string back to a double.
+                  double? updatedBudget = double.tryParse(budgetValueAsString);
+                  if (updatedBudget != null) {
+                    // Retrieve the CategoryService instance.
+                    final categoryService = ref.read(categoryServiceProvider);
+                    if (categoryService == null) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("User not logged in")),
+                        );
+                      }
+                      return;
+                    }
 
-                // TODO: Perform the update logic here
-                // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
-                Navigator.pop(context); // close dialog
+                    // Create an updated CloudCategory with the new budget,
+                    // preserving the existing category values.
+                    final updatedCloudCategory = CloudCategory(
+                      // The document ID is used as the categoryId
+                      name: widget.category.name,
+                      categoryId: widget.category.categoryId,
+                      userId: widget.category.userId,
+                      // Here, updatedBudget replaces the old budget.
+                      // (Assuming your CloudCategory model has a "budget" field.)
+                      budget: updatedBudget,
+                    );
+
+                    // Call the service to update the category.
+                    final result = await categoryService
+                        .updateCloudCategory(updatedCloudCategory);
+                    if (result != null) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Category updated successfully!")),
+                        );
+                      }
+                    } else {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Failed to update category.")),
+                        );
+                      }
+                    }
+                  }
+                }
+                // Close the dialog.
+                Navigator.pop(context);
               },
               child: Text("Confirm"),
             ),
@@ -358,7 +449,7 @@ class TransactionListWidget extends ConsumerWidget {
                   CircleAvatar(
                     backgroundColor: Colors.purple[100],
                     child: Text(
-                      name.isNotEmpty ? name.toUpperCase() : "?",
+                      name.isNotEmpty ? name.toUpperCase()[0] : "?",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.purple,
@@ -380,7 +471,8 @@ class TransactionListWidget extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        "${transaction.date.toIso8601String()}",
+                        DateFormat("MMM dd, yyyy, hh:mm ")
+                            .format(transaction.date),
                         style: TextStyle(fontSize: 13, color: Colors.black54),
                       ),
                       SizedBox(height: 4),
@@ -394,10 +486,162 @@ class TransactionListWidget extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  SizedBox(width: 12),
                 ],
               ),
             ),
           );
         });
   }
+}
+
+class BarChartWidget extends StatelessWidget {
+  final List<BarData> data;
+  final Color barColor;
+
+  const BarChartWidget({
+    Key? key,
+    required this.data,
+    this.barColor = Colors.deepPurple,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Limit to 5 bars
+    final displayData = data.length > 5 ? data.sublist(0, 5) : data;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Chart area with Y-axis and bars
+        Container(
+          height: 200,
+          width: double.infinity,
+          child: CustomPaint(
+            painter: BarChartPainter(
+              bars: displayData,
+              barColor: barColor,
+              barWidth: 30,
+              maxBarHeight: 180, // space for top axis label
+            ),
+          ),
+        ),
+        SizedBox(height: 8),
+        // X-axis labels
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: displayData.map((bar) {
+            return SizedBox(
+              width: 50, // match or slightly exceed barWidth
+              child: Text(
+                bar.label,
+                textAlign: TextAlign.left,
+                style: TextStyle(fontSize: 12, color: Colors.black),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class BarChartPainter extends CustomPainter {
+  final List<BarData> bars;
+  final Color barColor;
+  final double barWidth;
+  final double maxBarHeight;
+
+  // We'll draw 5 ticks: 0, 1/4·max, 1/2·max, 3/4·max, max
+  static const int horizontalLinesCount = 4;
+
+  BarChartPainter({
+    required this.bars,
+    required this.barColor,
+    this.barWidth = 20,
+    this.maxBarHeight = 200,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (bars.isEmpty) return;
+
+    // 1) Determine the maximum value for scaling
+    final maxValue = bars.map((b) => b.value).reduce(max);
+
+    // 2) Reserve a right margin for Y-axis labels (40 pixels)
+    final double rightMargin = 40;
+    final double chartWidth = size.width - rightMargin;
+
+    // 3) Draw horizontal grid lines and Y-axis tick values on the right side
+    final linePaint = Paint()
+      ..color = Colors.grey
+      ..strokeWidth = 1;
+
+    for (int i = 0; i <= horizontalLinesCount; i++) {
+      final fraction = i / horizontalLinesCount; // 0, 0.25, 0.5, 0.75, 1.0
+      final yValue = fraction * maxValue;
+      final yCoord = size.height - (fraction * maxBarHeight);
+
+      // Draw horizontal line across the chart area (from left edge to chartWidth)
+      canvas.drawLine(
+        Offset(0, yCoord),
+        Offset(chartWidth, yCoord),
+        linePaint,
+      );
+
+      // Draw the tick value on the right side
+      final labelText = yValue.round().toString();
+      final textSpan = TextSpan(
+        text: labelText,
+        style: TextStyle(fontSize: 10, color: Colors.black),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textAlign: TextAlign.left,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+
+      // Place the label with a 4px padding from chartWidth
+      final offset = Offset(
+        chartWidth + 4,
+        yCoord - textPainter.height / 2,
+      );
+      textPainter.paint(canvas, offset);
+    }
+
+    // 4) Draw the bars within the chart area (0 to chartWidth)
+    final spacing = (chartWidth - (bars.length * barWidth)) / (bars.length + 1);
+    final barPaint = Paint()..color = barColor;
+
+    for (int i = 0; i < bars.length; i++) {
+      final bar = bars[i];
+      final barHeight = (bar.value / maxValue) * maxBarHeight;
+      final barLeft = spacing + i * (barWidth + spacing);
+      final barTop = size.height - barHeight;
+      final barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
+      canvas.drawRect(barRect, barPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class BarData {
+  final String label;
+  final double value;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is BarData && other.label == label && other.value == value;
+  }
+
+  @override
+  int get hashCode => label.hashCode ^ value.hashCode;
+
+  BarData({required this.label, required this.value});
 }
