@@ -75,28 +75,41 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                title: Text('Analytics'),
-                floating: true,
+                // centerTitle: true, // This centers the title widget
+                title: Container(
+                  width: 100, // Adjust width as needed
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: _selectedFilter,
+                    underline: SizedBox(), // Removes the default underline
+                    dropdownColor: Theme.of(context).scaffoldBackgroundColor,
+                    items: _filters.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Center(
+                          child: Text(
+                            value,
+                            style: const TextStyle(color: Colors.black),
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) =>
+                        setState(() => _selectedFilter = newValue!),
+                  ),
+                ),
                 actions: [
                   IconButton(
                     icon: Icon(Icons.ios_share),
                     onPressed: () => _exportToCSV(currentData, dates),
                   ),
+                  // If you want some padding on the right, wrap it in Padding:
                   Padding(
-                    padding: EdgeInsets.only(right: 12),
-                    child: DropdownButton<String>(
-                      value: _selectedFilter,
-                      dropdownColor: Theme.of(context).scaffoldBackgroundColor,
-                      items: _filters.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value,
-                              style: TextStyle(color: Colors.black)),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) =>
-                          setState(() => _selectedFilter = newValue!),
-                    ),
+                    padding: const EdgeInsets.only(right: 12),
+                    child:
+                        SizedBox(), // You can leave it empty or add another widget here if needed
                   ),
                 ],
               ),
@@ -176,7 +189,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Card(
-        elevation: 4,
+        elevation: 0,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Stack(
