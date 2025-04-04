@@ -1,11 +1,10 @@
 {
-    "EMI": "#FF5722",
-    "Entertainment": "#9C27B0",
-    "Food and Drinks": "#FFC107",
-    "Groceries": "#4CAF50",
-    "Health": "#F44336",
-    "Investment": "#2196F3",
-    "Others": "#607D8B",
-    "Travel": "#FF9800"
-  }
-  
+  "EMI": "#FFCCBC",
+  "Entertainment": "#E1BEE7",
+  "Food and Drinks": "#FFF9C4",
+  "Groceries": "#C8E6C9",
+  "Health": "#FFCDD2",
+  "Investment": "#BBDEFB",
+  "Others": "#CFD8DC",
+  "Travel": "#FFE0B2"
+}

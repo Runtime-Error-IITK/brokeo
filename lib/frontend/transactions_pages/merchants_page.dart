@@ -1,562 +1,665 @@
-// import 'package:flutter/material.dart';
-// import 'dart:math';
-// import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
-// import 'package:brokeo/models/transaction_model.dart';
-// import 'package:brokeo/frontend/home_pages/home_page.dart';
-// import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
-// import 'package:brokeo/frontend/split_pages/manage_splits.dart';
-// import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
-// import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:brokeo/backend/models/merchant.dart' show Merchant;
+import 'package:brokeo/backend/models/transaction.dart' show Transaction;
+import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
+import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
+import 'package:flutter/material.dart';
+import 'dart:math';
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
-// class MerchantsPage extends ConsumerStatefulWidget {
-//   final Merchant data;
+class MerchantsPage extends ConsumerStatefulWidget {
+  final String merchantId;
 
-//   const MerchantsPage({Key? key, required this.data}) : super(key: key);
+  const MerchantsPage({super.key, required this.merchantId});
 
-//   @override
-//   _MerchantsPageState createState() => _MerchantsPageState();
-// }
+  @override
+  _MerchantsPageState createState() => _MerchantsPageState();
+}
 
-// class _MerchantsPageState extends ConsumerState<MerchantsPage> {
-//   int _currentIndex = 1;
+class _MerchantsPageState extends ConsumerState<MerchantsPage> {
+  int _currentIndex = 1;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final Merchant data = widget.data;
-//     final int totalSpends = data.spends;
-//     final double totalAmount = data.amount;
-//     List<Transaction> transactions = data.transactions;
-//     return Scaffold(
-//       appBar: buildCustomAppBar(context, totalSpends, totalAmount),
-//       body: SingleChildScrollView(
-//         child: Column(
-//           children: [
-//             SizedBox(height: 20),
-//             buildBarChart(),
-//             // Add some spacing before the transaction list
-//             SizedBox(height: 10),
-//             // Include the transaction list widget here
-//             TransactionListWidget(
-//               transactions: transactions,
-//             ),
-//           ],
-//         ),
-//       ),
-//       bottomNavigationBar: buildBottomNavigationBar(),
-//     );
-//   }
+  @override
+  Widget build(BuildContext context) {
+    final transactionFilter = TransactionFilter(merchantId: widget.merchantId);
 
-//   /// Builds the complete custom AppBar in one function.
-//   AppBar buildCustomAppBar(
-//       BuildContext context, int totalSpends, double totalAmount) {
-//     final data = widget.data;
-//     return AppBar(
-//       backgroundColor: const Color.fromARGB(255, 243, 225, 247),
-//       iconTheme: IconThemeData(color: Colors.black),
-//       leading: IconButton(
-//         icon: Icon(Icons.arrow_back),
-//         onPressed: () {
-//           Navigator.pop(context);
-//         },
-//       ),
-//       title: Row(
-//         crossAxisAlignment: CrossAxisAlignment.center,
-//         children: [
-//           SizedBox(width: 20), // Extra spacing between the icon and the text
-//           // Texts in a Column to the right of the icon
-//           Expanded(
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   data.name,
-//                   style: TextStyle(
-//                     color: Colors.black,
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 Text(
-//                   data.category,
-//                   style: TextStyle(
-//                     color: Colors.black,
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 Text(
-//                   "$totalSpends Spends - ₹$totalAmount",
-//                   style: TextStyle(
-//                     color: Colors.black54,
-//                     fontSize: 12,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//       actions: [
-//         // Edit icon inside a circular container
-//         Padding(
-//           padding: const EdgeInsets.only(right: 8.0),
-//           child: Container(
-//             decoration: BoxDecoration(
-//               shape: BoxShape.circle,
-//               color: Colors.black54.withOpacity(0.2),
-//             ),
-//             child: IconButton(
-//               icon: Icon(Icons.edit, color: Colors.white),
-//               onPressed: () {
-//                 // TODO: Add logic to edit category details.
-//                 _showEditCategoryDialog(
-//                   context,
-//                   data.name, // e.g., "Food and Drinks"
-//                   data.category, // e.g., "4000"
-//                 );
-//               },
-//             ),
-//           ),
-//         ),
-//         // New delete icon inside a circular container
-//         Padding(
-//           padding: const EdgeInsets.only(right: 8.0),
-//           child: IconButton(
-//             icon: Icon(Icons.delete, color: Colors.red),
-//             onPressed: () {
-//               // TODO: Add logic to delete category details.
-//               _showDeleteConfirmationDialog(context, widget.data.name);
-//             },
-//           ),
-//         ),
-//       ],
-//       elevation: 0,
-//     );
-//   }
+    final merchantFilter = MerchantFilter(
+      merchantId: widget.merchantId,
+    );
+    final asyncMerchant = ref.watch(merchantStreamProvider(merchantFilter));
 
-//   Widget buildBarChart() {
-//     // Example data from backend:
-//     final Merchant data = widget.data;
-//     final chartData = DummyDataService.getBarChartData(
-//         data.name); // TODO: Implement actual logic here
+    final asyncTransactions =
+        ref.watch(transactionStreamProvider(transactionFilter));
 
-//     return Padding(
-//       padding: const EdgeInsets.symmetric(horizontal: 20),
-//       child: BarChartWidget(
-//         data: chartData,
-//         barColor: Colors.deepPurple,
-//       ),
-//     );
-//   }
+    return asyncMerchant.when(
+      loading: () => Center(child: CircularProgressIndicator()),
+      error: (error, stack) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error: $error")),
+          );
+        });
+        return const SizedBox.shrink();
+      },
+      data: (merchant) {
+        return asyncTransactions.when(
+          loading: () => Center(child: CircularProgressIndicator()),
+          error: (error, stack) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("User error: $error")),
+              );
+            });
+            return SizedBox.shrink();
+          },
+          data: (transactions) {
+            final now = DateTime.now();
+            final List<List<Transaction>> filteredTransactions = [];
 
-//   Widget buildBottomNavigationBar() {
-//     return BottomNavigationBar(
-//       currentIndex: _currentIndex,
-//       onTap: (index) {
-//         if (index != _currentIndex) {
-//           setState(() {
-//             _currentIndex = index;
-//           });
-//         }
-//         if (index == 0) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//                 builder: (context) => HomePage(name: "User", budget: 5000)),
-//           );
-//         } else if (index == 1) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(builder: (context) => CategoriesPage()),
-//           );
-//         } else if (index == 2) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(builder: (context) => AnalyticsPage()),
-//           );
-//         } else if (index == 3) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(builder: (context) => ManageSplitsPage()),
-//           );
-//         }
-//       },
-//       type: BottomNavigationBarType.fixed,
-//       selectedItemColor: Colors.purple,
-//       unselectedItemColor: Colors.grey,
-//       iconSize: 24,
-//       selectedFontSize: 12,
-//       unselectedFontSize: 12,
-//       items: [
-//         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-//         BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
-//         BottomNavigationBarItem(
-//             icon: Icon(Icons.analytics), label: "Analytics"),
-//         BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-//       ],
-//     );
-//   }
+            // Build monthly filtered transactions (last 6 months)
+            for (int i = 4; i >= 0; i--) {
+              final month = DateTime(now.year, now.month - i);
+              final monthTransactions = transactions.where((transaction) {
+                return transaction.date.year == month.year &&
+                    transaction.date.month == month.month;
+              }).toList();
+              filteredTransactions.add(monthTransactions);
+            }
 
-//   void _showDeleteConfirmationDialog(
-//       BuildContext context, String merchantName) {
-//     showDialog(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return AlertDialog(
-//           title: Text("Delete Merchant"),
-//           content:
-//               Text("Are you sure you want to delete merchant $merchantName?"),
-//           actions: [
-//             TextButton(
-//               onPressed: () => Navigator.pop(context), // close dialog
-//               child: Text(
-//                 "Cancel",
-//                 style: TextStyle(color: Colors.black),
-//               ),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 // TODO: Implement actual delete logic here
-//                 Navigator.pop(context); // close dialog
-//               },
-//               child: Text(
-//                 "Delete",
-//                 style: TextStyle(color: Colors.red),
-//               ),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
+            int totalSpends = 0;
+            double totalAmount = 0.0;
+            for (var transaction in transactions) {
+              totalAmount += transaction.amount < 0
+                  ? transaction.amount * -1
+                  : transaction.amount;
 
-//   void _showEditCategoryDialog(
-//     BuildContext context,
-//     String initialMerchantName,
-//     String initialCategory, // double
-//   ) {
-//     showDialog(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return AlertDialog(
-//           title: Text("Edit Merchant"),
-//           content: StatefulBuilder(
-//             builder: (context, setState) {
-//               String? selectedMerchant = initialMerchantName;
-//               String? categoryValue = initialCategory; // Start with the string
+              if (transaction.amount < 0) {
+                totalSpends++;
+              }
+            }
 
-//               return Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 children: [
-//                   // TextField for budget input
-//                   TextFormField(
-//                     initialValue: selectedMerchant,
-//                     decoration: InputDecoration(
-//                       labelText: "Merchant",
-//                     ),
-//                     keyboardType: TextInputType.name,
-//                     onChanged: (value) {
-//                       setState(() {
-//                         selectedMerchant = value;
-//                         initialMerchantName = value; //?? initialMerchantName;
-//                       });
-//                     },
-//                   ),
-//                   SizedBox(height: 16),
-//                   DropdownButtonFormField<String>(
-//                     value: categoryValue,
-//                     decoration: InputDecoration(labelText: "Category Name"),
-//                     items:
-//                         DummyDataService.getCategoriesFromBackend().map((cat) {
-//                       return DropdownMenuItem<String>(
-//                         value: cat,
-//                         child: Text(cat),
-//                       );
-//                     }).toList(),
-//                     onChanged: (value) {
-//                       setState(() {
-//                         categoryValue = value;
-//                       });
-//                     },
-//                   ),
-//                 ],
-//               );
-//             },
-//           ),
-//           actions: [
-//             TextButton(
-//               onPressed: () => Navigator.pop(context), // just close
-//               child: Text("Cancel"),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 // Convert the updated budget string back to a double
-//                 // (handle parsing errors as needed)
-//                 // TODO: Perform the update logic here
-//                 // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
-//                 Navigator.pop(context); // close dialog
-//               },
-//               child: Text("Confirm"),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-// }
+            return Scaffold(
+              appBar: buildCustomAppBar(
+                  context, totalSpends, totalAmount, merchant[0]),
+              body: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    SizedBox(height: 20),
+                    buildBarChart(filteredTransactions),
+                    // Add some spacing before the transaction list
+                    SizedBox(height: 10),
+                    // Include the transaction list widget here
+                    TransactionListWidget(
+                      transactions: transactions,
+                    ),
+                  ],
+                ),
+              ),
+              bottomNavigationBar: buildBottomNavigationBar(),
+            );
+          },
+        );
+      },
+    );
+  }
 
-// class BarChartWidget extends StatelessWidget {
-//   final List<BarData> data;
-//   final Color barColor;
+  /// Builds the complete custom AppBar in one function.
+  AppBar buildCustomAppBar(BuildContext context, int totalSpends,
+      double totalAmount, Merchant merchant) {
+    // final data = widget.data;
 
-//   const BarChartWidget({
-//     Key? key,
-//     required this.data,
-//     this.barColor = Colors.deepPurple,
-//   }) : super(key: key);
+    return AppBar(
+      backgroundColor: const Color.fromARGB(255, 243, 225, 247),
+      iconTheme: IconThemeData(color: Colors.black),
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      title: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(width: 20), // Extra spacing between the icon and the text
+          // Texts in a Column to the right of the icon
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  merchant.name,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                // Text(
+                //   merchant.categoryId,
+                //   style: TextStyle(
+                //     color: Colors.black,
+                //     fontSize: 16,
+                //     fontWeight: FontWeight.bold,
+                //   ),
+                // ),
+                Text(
+                  "$totalSpends Spends - ₹$totalAmount",
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      // actions: [
+      //   // Edit icon inside a circular container
+      //   Padding(
+      //     padding: const EdgeInsets.only(right: 8.0),
+      //     child: Container(
+      //       decoration: BoxDecoration(
+      //         shape: BoxShape.circle,
+      //         color: Colors.black54.withOpacity(0.2),
+      //       ),
+      //       child: IconButton(
+      //         icon: Icon(Icons.edit, color: Colors.white),
+      //         onPressed: () {
+      //           // TODO: Add logic to edit category details.
+      //           _showEditCategoryDialog(
+      //               context, merchant.name // e.g., "Food and Drinks"
+      //               // data.category, // e.g., "4000"
+      //               );
+      //         },
+      //       ),
+      //     ),
+      //   ),
+      //   // New delete icon inside a circular container
+      //   Padding(
+      //     padding: const EdgeInsets.only(right: 8.0),
+      //     child: IconButton(
+      //       icon: Icon(Icons.delete, color: Colors.red),
+      //       onPressed: () {
+      //         // TODO: Add logic to delete category details.
+      //         _showDeleteConfirmationDialog(context, widget.data.name);
+      //       },
+      //     ),
+      //   ),
+      // ],
 
-//   @override
-//   Widget build(BuildContext context) {
-//     // Limit to 5 bars
-//     final displayData = data.length > 5 ? data.sublist(0, 5) : data;
+      elevation: 0,
+    );
+  }
 
-//     return Column(
-//       mainAxisSize: MainAxisSize.min,
-//       children: [
-//         // Chart area with Y-axis and bars
-//         Container(
-//           height: 200,
-//           width: double.infinity,
-//           child: CustomPaint(
-//             painter: BarChartPainter(
-//               bars: displayData,
-//               barColor: barColor,
-//               barWidth: 30,
-//               maxBarHeight: 180, // space for top axis label
-//             ),
-//           ),
-//         ),
-//         SizedBox(height: 8),
-//         // X-axis labels
-//         Row(
-//           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//           children: displayData.map((bar) {
-//             return SizedBox(
-//               width: 40, // match or slightly exceed barWidth
-//               child: Text(
-//                 bar.label,
-//                 textAlign: TextAlign.center,
-//                 style: TextStyle(fontSize: 12, color: Colors.black),
-//               ),
-//             );
-//           }).toList(),
-//         ),
-//       ],
-//     );
-//   }
-// }
+  Widget buildBarChart(List<List<Transaction>> filteredTransactions) {
+    final List<BarData> chartData =
+        filteredTransactions.asMap().entries.map((entry) {
+      final int index = entry.key;
+      final List<Transaction> monthTransactions = entry.value;
+      double totalSpends = 0;
 
-// class BarChartPainter extends CustomPainter {
-//   final List<BarData> bars;
-//   final Color barColor;
-//   final double barWidth;
-//   final double maxBarHeight;
+      for (var t in monthTransactions) {
+        if (t.amount < 0) {
+          totalSpends -= t.amount;
+        }
+      }
 
-//   // We'll draw 5 ticks: 0, 1/4·max, 1/2·max, 3/4·max, max
-//   static const int horizontalLinesCount = 4;
+      final int monthsAgo = (filteredTransactions.length - 1) - index;
+      final DateTime now = DateTime.now();
+      final DateTime targetDate = DateTime(now.year, now.month - monthsAgo);
+      final String label = DateFormat("MMM").format(targetDate);
 
-//   BarChartPainter({
-//     required this.bars,
-//     required this.barColor,
-//     this.barWidth = 20,
-//     this.maxBarHeight = 200,
-//   });
+      return BarData(label: label, value: totalSpends);
+    }).toList();
 
-//   @override
-//   void paint(Canvas canvas, Size size) {
-//     if (bars.isEmpty) return;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BarChartWidget(
+        data: chartData,
+        barColor: Colors.deepPurple,
+      ),
+    );
+  }
 
-//     // 1) Determine the maximum value for scaling
-//     final maxValue = bars.map((b) => b.value).reduce(max);
+  Widget buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        if (index != _currentIndex) {
+          setState(() {
+            _currentIndex = index;
+          });
+        }
+        if (index == 0) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        } else if (index == 1) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
+          );
+        } else if (index == 2) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        } else if (index == 3) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ManageSplitsPage()),
+          );
+        }
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.purple,
+      unselectedItemColor: Colors.grey,
+      iconSize: 24,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.analytics), label: "Analytics"),
+        BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
+      ],
+    );
+  }
 
-//     // 2) Reserve a right margin for Y-axis labels (40 pixels)
-//     final double rightMargin = 40;
-//     final double chartWidth = size.width - rightMargin;
+  // void _showDeleteConfirmationDialog(
+  //     BuildContext context, String merchantName) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text("Delete Merchant"),
+  //         content:
+  //             Text("Are you sure you want to delete merchant $merchantName?"),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context), // close dialog
+  //             child: Text(
+  //               "Cancel",
+  //               style: TextStyle(color: Colors.black),
+  //             ),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               // TODO: Implement actual delete logic here
+  //               Navigator.pop(context); // close dialog
+  //             },
+  //             child: Text(
+  //               "Delete",
+  //               style: TextStyle(color: Colors.red),
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
-//     // 3) Draw horizontal grid lines and Y-axis tick values on the right side
-//     final linePaint = Paint()
-//       ..color = Colors.grey
-//       ..strokeWidth = 1;
+  // void _showEditCategoryDialog(
+  //   BuildContext context,
+  //   String initialMerchantName,
+  //   String initialCategory, // double
+  // ) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text("Edit Merchant"),
+  //         content: StatefulBuilder(
+  //           builder: (context, setState) {
+  //             String? selectedMerchant = initialMerchantName;
+  //             String? categoryValue = initialCategory; // Start with the string
 
-//     for (int i = 0; i <= horizontalLinesCount; i++) {
-//       final fraction = i / horizontalLinesCount; // 0, 0.25, 0.5, 0.75, 1.0
-//       final yValue = fraction * maxValue;
-//       final yCoord = size.height - (fraction * maxBarHeight);
+  //             return Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 // TextField for budget input
+  //                 TextFormField(
+  //                   initialValue: selectedMerchant,
+  //                   decoration: InputDecoration(
+  //                     labelText: "Merchant",
+  //                   ),
+  //                   keyboardType: TextInputType.name,
+  //                   onChanged: (value) {
+  //                     setState(() {
+  //                       selectedMerchant = value;
+  //                       initialMerchantName = value; //?? initialMerchantName;
+  //                     });
+  //                   },
+  //                 ),
+  //                 SizedBox(height: 16),
+  //                 DropdownButtonFormField<String>(
+  //                   value: categoryValue,
+  //                   decoration: InputDecoration(labelText: "Category Name"),
+  //                   items:
+  //                       DummyDataService.getCategoriesFromBackend().map((cat) {
+  //                     return DropdownMenuItem<String>(
+  //                       value: cat,
+  //                       child: Text(cat),
+  //                     );
+  //                   }).toList(),
+  //                   onChanged: (value) {
+  //                     setState(() {
+  //                       categoryValue = value;
+  //                     });
+  //                   },
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context), // just close
+  //             child: Text("Cancel"),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               // Convert the updated budget string back to a double
+  //               // (handle parsing errors as needed)
+  //               // TODO: Perform the update logic here
+  //               // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
+  //               Navigator.pop(context); // close dialog
+  //             },
+  //             child: Text("Confirm"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+}
 
-//       // Draw horizontal line across the chart area (from left edge to chartWidth)
-//       canvas.drawLine(
-//         Offset(0, yCoord),
-//         Offset(chartWidth, yCoord),
-//         linePaint,
-//       );
+class BarChartWidget extends StatelessWidget {
+  final List<BarData> data;
+  final Color barColor;
 
-//       // Draw the tick value on the right side
-//       final labelText = yValue.round().toString();
-//       final textSpan = TextSpan(
-//         text: labelText,
-//         style: TextStyle(fontSize: 10, color: Colors.black),
-//       );
-//       final textPainter = TextPainter(
-//         text: textSpan,
-//         textAlign: TextAlign.left,
-//         textDirection: TextDirection.ltr,
-//       );
-//       textPainter.layout();
+  const BarChartWidget({
+    Key? key,
+    required this.data,
+    this.barColor = Colors.deepPurple,
+  }) : super(key: key);
 
-//       // Place the label with a 4px padding from chartWidth
-//       final offset = Offset(
-//         chartWidth + 4,
-//         yCoord - textPainter.height / 2,
-//       );
-//       textPainter.paint(canvas, offset);
-//     }
+  @override
+  Widget build(BuildContext context) {
+    // Limit to 5 bars
+    final displayData = data.length > 5 ? data.sublist(0, 5) : data;
 
-//     // 4) Draw the bars within the chart area (0 to chartWidth)
-//     final spacing = (chartWidth - (bars.length * barWidth)) / (bars.length + 1);
-//     final barPaint = Paint()..color = barColor;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Chart area with Y-axis and bars
+        Container(
+          height: 200,
+          width: double.infinity,
+          child: CustomPaint(
+            painter: BarChartPainter(
+              bars: displayData,
+              barColor: barColor,
+              barWidth: 30,
+              maxBarHeight: 180, // space for top axis label
+            ),
+          ),
+        ),
+        SizedBox(height: 8),
+        // X-axis labels
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: displayData.map((bar) {
+            return SizedBox(
+              width: 40, // match or slightly exceed barWidth
+              child: Text(
+                bar.label,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.black),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
 
-//     for (int i = 0; i < bars.length; i++) {
-//       final bar = bars[i];
-//       final barHeight = (bar.value / maxValue) * maxBarHeight;
-//       final barLeft = spacing + i * (barWidth + spacing);
-//       final barTop = size.height - barHeight;
-//       final barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
-//       canvas.drawRect(barRect, barPaint);
-//     }
-//   }
+class BarChartPainter extends CustomPainter {
+  final List<BarData> bars;
+  final Color barColor;
+  final double barWidth;
+  final double maxBarHeight;
 
-//   @override
-//   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-// }
+  // We'll draw 5 ticks: 0, 1/4·max, 1/2·max, 3/4·max, max
+  static const int horizontalLinesCount = 4;
 
-// /// A stateful widget for the transaction list, including tap-to-expand functionality.
+  BarChartPainter({
+    required this.bars,
+    required this.barColor,
+    this.barWidth = 20,
+    this.maxBarHeight = 200,
+  });
 
-// class TransactionListWidget extends StatelessWidget {
-//   final List<Transaction> transactions;
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (bars.isEmpty) return;
 
-//   const TransactionListWidget({Key? key, required this.transactions})
-//       : super(key: key);
+    // 1) Determine the maximum value for scaling
+    final maxValue = bars.map((b) => b.value).reduce(max);
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Padding(
-//       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-//       child: Card(
-//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-//         color: Color(0xFFEDE7F6),
-//         elevation: 0,
-//         child: Padding(
-//           padding: const EdgeInsets.all(12),
-//           child: transactions.isEmpty
-//               ? Center(
-//                   child: Text(
-//                     "No Transactions Yet",
-//                     style: TextStyle(
-//                       fontSize: 16,
-//                       fontWeight: FontWeight.bold,
-//                       color: Colors.black54,
-//                     ),
-//                   ),
-//                 )
-//               : Column(
-//                   children: transactions.asMap().entries.map((entry) {
-//                     final index = entry.key;
-//                     final transaction = entry.value;
-//                     return Column(
-//                       children: [
-//                         _transactionTile(context, transaction),
-//                         if (index < transactions.length - 1)
-//                           Divider(color: Colors.grey[300]),
-//                       ],
-//                     );
-//                   }).toList(),
-//                 ),
-//         ),
-//       ),
-//     );
-//   }
+    // 2) Reserve a right margin for Y-axis labels (40 pixels)
+    final double rightMargin = 40;
+    final double chartWidth = size.width - rightMargin;
 
-//   /// Single Transaction Row (clickable, but onTap is commented out).
-//   Widget _transactionTile(BuildContext context, Transaction transaction) {
-//     return InkWell(
-//       onTap: () {
-//         Navigator.push(
-//           context,
-//           MaterialPageRoute(
-//             builder: (context) =>
-//                 TransactionDetailPage(transaction: transaction),
-//           ),
-//         );
-//       },
-//       child: Padding(
-//         padding: const EdgeInsets.symmetric(vertical: 5),
-//         child: Row(
-//           children: [
-//             // Circle with first letter of transaction name
-//             CircleAvatar(
-//               backgroundColor: Colors.purple[100],
-//               child: Text(
-//                 transaction.name.isNotEmpty
-//                     ? transaction.name[0].toUpperCase()
-//                     : "?",
-//                 style: TextStyle(
-//                   fontWeight: FontWeight.bold,
-//                   color: Colors.purple,
-//                 ),
-//               ),
-//             ),
-//             SizedBox(width: 12),
+    // 3) Draw horizontal grid lines and Y-axis tick values on the right side
+    final linePaint = Paint()
+      ..color = Colors.grey
+      ..strokeWidth = 1;
 
-//             // Transaction name
-//             Expanded(
-//               child: Text(
-//                 transaction.name,
-//                 style: TextStyle(fontSize: 14, color: Colors.black87),
-//               ),
-//             ),
+    for (int i = 0; i <= horizontalLinesCount; i++) {
+      final fraction = i / horizontalLinesCount; // 0, 0.25, 0.5, 0.75, 1.0
+      final yValue = fraction * maxValue;
+      final yCoord = size.height - (fraction * maxBarHeight);
 
-//             // Date/Time + Amount
-//             Column(
-//               crossAxisAlignment: CrossAxisAlignment.end,
-//               children: [
-//                 Text(
-//                   "${transaction.date}, ${transaction.time}",
-//                   style: TextStyle(fontSize: 13, color: Colors.black54),
-//                 ),
-//                 SizedBox(height: 4),
-//                 Text(
-//                   "₹${transaction.amount.toStringAsFixed(0)}",
-//                   style: TextStyle(
-//                     fontSize: 14,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.black,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
+      // Draw horizontal line across the chart area (from left edge to chartWidth)
+      canvas.drawLine(
+        Offset(0, yCoord),
+        Offset(chartWidth, yCoord),
+        linePaint,
+      );
 
-// class BarData {
-//   final String label;
-//   final double value;
+      // Draw the tick value on the right side
+      final labelText = yValue.round().toString();
+      final textSpan = TextSpan(
+        text: labelText,
+        style: TextStyle(fontSize: 10, color: Colors.black),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textAlign: TextAlign.left,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
 
-//   BarData({required this.label, required this.value});
-// }
+      // Place the label with a 4px padding from chartWidth
+      final offset = Offset(
+        chartWidth + 4,
+        yCoord - textPainter.height / 2,
+      );
+      textPainter.paint(canvas, offset);
+    }
+
+    // 4) Draw the bars within the chart area (0 to chartWidth)
+    final spacing = (chartWidth - (bars.length * barWidth)) / (bars.length + 1);
+    final barPaint = Paint()..color = barColor;
+
+    for (int i = 0; i < bars.length; i++) {
+      final bar = bars[i];
+      final barHeight = (bar.value / maxValue) * maxBarHeight;
+      final barLeft = spacing + i * (barWidth + spacing);
+      final barTop = size.height - barHeight;
+      final barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
+      canvas.drawRect(barRect, barPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+/// A stateful widget for the transaction list, including tap-to-expand functionality.
+
+class TransactionListWidget extends ConsumerWidget {
+  final List<Transaction> transactions;
+
+  const TransactionListWidget({super.key, required this.transactions});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Color(0xFFEDE7F6),
+        elevation: 0,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: transactions.isEmpty
+              ? Center(
+                  child: Text(
+                    "No Transactions Yet",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                )
+              : Column(
+                  children: transactions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final transaction = entry.value;
+                    return Column(
+                      children: [
+                        _transactionTile(context, ref, transaction),
+                        if (index < transactions.length - 1)
+                          Divider(color: Colors.grey[300]),
+                      ],
+                    );
+                  }).toList(),
+                ),
+        ),
+      ),
+    );
+  }
+
+  /// Single Transaction Row (clickable, but onTap is commented out).
+  Widget _transactionTile(
+      BuildContext context, WidgetRef ref, Transaction transaction) {
+    final merchantFilter = MerchantFilter(
+      merchantId: transaction.merchantId,
+    );
+    final double validAmount =
+        (transaction.amount.isNaN) ? 0.0 : transaction.amount;
+    final Color amountColor = validAmount < 0 ? Colors.red : Colors.green;
+
+    final asyncMerchant = ref.watch(merchantStreamProvider(merchantFilter));
+
+    return asyncMerchant.when(
+        loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("User error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (merchant) {
+          final name =
+              merchant.isEmpty ? "Merchant Not Found" : merchant[0].name;
+          return InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      TransactionDetailPage(transaction: transaction),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                children: [
+                  // Circle with first letter of transaction name
+                  CircleAvatar(
+                    backgroundColor: Colors.purple[100],
+                    child: Text(
+                      name.isNotEmpty ? name.toUpperCase()[0] : "?",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+
+                  // Transaction name
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                  ),
+
+                  // Date/Time + Amount
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        DateFormat("MMM dd, yyyy, hh:mm ")
+                            .format(transaction.date),
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "₹${validAmount.abs().toStringAsFixed(0)}",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: amountColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 12),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+}
+
+class BarData {
+  final String label;
+  final double value;
+
+  BarData({required this.label, required this.value});
+}
 
 // class DummyDataService {
 //   static int getSpendsCount(String categoryName) {

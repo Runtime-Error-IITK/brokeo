@@ -41,6 +41,9 @@ final transactionStreamProvider = StreamProvider.autoDispose
         isLessThanOrEqualTo: Timestamp.fromDate(filter.endDate!));
   }
 
+  // Order by date in descending order (latest transactions first)
+  query = query.orderBy('date', descending: true);
+
   final snapshots = query.snapshots();
 
   return snapshots.map((querySnapshot) {

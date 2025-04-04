@@ -90,12 +90,12 @@ class _HomePageState extends ConsumerState<HomePage> {
             MaterialPageRoute(builder: (context) => HomePage()),
             (route) => false,
           );
-          // } else if (index == 1) {
-          //   Navigator.pushAndRemoveUntil(
-          //     context,
-          //     MaterialPageRoute(builder: (context) => CategoriesPage()),
-          //     (route) => false,
-          //   );
+        } else if (index == 1) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => CategoriesPage()),
+            (route) => false,
+          );
         } else if (index == 2) {
           Navigator.pushAndRemoveUntil(
             context,
@@ -697,30 +697,51 @@ class _HomePageState extends ConsumerState<HomePage> {
                         style: TextStyle(fontSize: 14, color: Colors.black87),
                       ),
                     ),
-                    Text(
-                      "₹${transaction.amount.abs()}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color:
-                            transaction.amount < 0 ? Colors.red : Colors.green,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          DateFormat("MMM dd, yyyy, hh:mm ")
+                              .format(transaction.date),
+                          style: TextStyle(fontSize: 13, color: Colors.black54),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          "₹${transaction.amount.abs().toStringAsFixed(0)}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: transaction.amount < 0
+                                ? Colors.red
+                                : Colors.green,
+                          ),
+                        ),
+                      ],
                     ),
+                    // Text(
+                    //   "₹${transaction.amount.abs()}",
+                    //   style: TextStyle(
+                    //     fontSize: 14,
+                    //     fontWeight: FontWeight.bold,
+                    //     color:
+                    //         transaction.amount < 0 ? Colors.red : Colors.green,
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
-              if (expandedTransactionIndex == index)
-                Padding(
-                  padding:
-                      const EdgeInsets.only(left: 50, right: 10, bottom: 8),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}\nCategory: Groceries",
-                      style: TextStyle(fontSize: 12, color: Colors.black54),
-                    ),
-                  ),
-                ),
+              // if (expandedTransactionIndex == index)
+              //   Padding(
+              //     padding:
+              //         const EdgeInsets.only(left: 50, right: 10, bottom: 8),
+              //     child: Align(
+              //       alignment: Alignment.centerLeft,
+              //       child: Text(
+              //         "Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}\nCategory: Groceries",
+              //         style: TextStyle(fontSize: 12, color: Colors.black54),
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
         );
