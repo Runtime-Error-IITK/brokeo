@@ -318,6 +318,7 @@ class _CategoryPageState extends ConsumerState<CategoryPage> {
       },
     );
   }
+
 }
 
 class BarChartWidget extends StatelessWidget {

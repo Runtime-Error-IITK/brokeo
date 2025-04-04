@@ -72,6 +72,204 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
           );
         });
   }
+
+  AppBar buildCustomAppBar(BuildContext context, int totalSpends) {
+    final data = widget.category;
+    return AppBar(
+      backgroundColor: const Color.fromARGB(255, 243, 225, 247),
+      iconTheme: IconThemeData(color: Colors.black),
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      title: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Category icon placed alone on the left
+          Image.asset(
+            'assets/category_icon/${data.name}.jpg',
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+          ),
+          SizedBox(width: 20), // Extra spacing between the icon and the text
+          // Texts in a Column to the right of the icon
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.name,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  "$totalSpends Spends - ₹${data.spent.toStringAsFixed(0)}/₹${data.budget.toStringAsFixed(0)}",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        // Edit icon inside a circular container
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black54.withOpacity(0.2),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.edit, color: Colors.white),
+              onPressed: () {
+                // TODO: Add logic to edit category details.
+                _showEditCategoryDialog(
+                  context,
+                  data.name, // e.g., "Food and Drinks"
+                  data.budget, // e.g., "4000"
+                );
+              },
+            ),
+          ),
+        ),
+        // New delete icon inside a circular container
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: IconButton(
+            icon: Icon(Icons.delete, color: Colors.red),
+            onPressed: () {
+              // TODO: Add logic to delete category details.
+              _showDeleteConfirmationDialog(context, widget.data.name);
+            },
+          ),
+        ),
+      ],
+      elevation: 0,
+    );
+  }
+
+  void _showDeleteConfirmationDialog(
+      BuildContext context, String categoryName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Delete Category"),
+          content:
+              Text("Are you sure you want to delete category $categoryName?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // close dialog
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                // TODO: Implement actual delete logic here
+                Navigator.pop(context); // close dialog
+              },
+              child: Text(
+                "Delete",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditCategoryDialog(
+    BuildContext context,
+    String initialCategoryName,
+    double initialBudget, // double
+  ) {
+    // Convert the double to a string for the text field
+    String budgetValueAsString = initialBudget.toString();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Edit Category"),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              String? selectedCategory = initialCategoryName;
+              String? budgetValue =
+                  budgetValueAsString; // Start with the string
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // For the category name, if you're using a dropdown
+                  DropdownButtonFormField<String>(
+                    value: selectedCategory,
+                    decoration: InputDecoration(labelText: "Category Name"),
+                    items:
+                        DummyDataService.getCategoriesFromBackend().map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat,
+                        child: Text(cat),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCategory = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  // TextField for budget input
+                  TextFormField(
+                    initialValue: budgetValue,
+                    decoration: InputDecoration(
+                      labelText: "Budget",
+                      prefixText: "₹",
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      setState(() {
+                        budgetValue = value;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // just close
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                // Convert the updated budget string back to a double
+                // (handle parsing errors as needed)
+
+                // TODO: Perform the update logic here
+                // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
+                Navigator.pop(context); // close dialog
+              },
+              child: Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class TransactionListWidget extends ConsumerWidget {
