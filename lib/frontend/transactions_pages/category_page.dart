@@ -1,59 +1,113 @@
-import 'package:flutter/material.dart';
-import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
-import 'dart:math';
-import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
-import 'package:brokeo/models/transaction_model.dart'; // <== new import
+import 'dart:developer';
+import 'package:brokeo/backend/models/category.dart';
+import 'package:brokeo/backend/models/transaction.dart' show Transaction;
+import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
+import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
+    show TransactionFilter, transactionStreamProvider;
+import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart'
+    show CategoryFilter, categoryStreamProvider;
+import 'package:brokeo/backend/services/providers/write_providers/category_service.dart'
+    show categoryServiceProvider;
 import 'package:brokeo/frontend/home_pages/home_page.dart';
-import 'package:brokeo/frontend/split_pages/manage_splits.dart';
-import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart'
+    show TransactionDetailPage;
+import 'package:flutter/material.dart';
+import 'dart:math' hide log;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 class CategoryPage extends ConsumerStatefulWidget {
-  final CategoryCardData data;
-
-  const CategoryPage({Key? key, required this.data}) : super(key: key);
+  final String categoryId;
+  const CategoryPage({Key? key, required this.categoryId}) : super(key: key);
 
   @override
-  _CategoryPageState createState() => _CategoryPageState();
+  CategoryPageState createState() => CategoryPageState();
 }
 
-class _CategoryPageState extends ConsumerState<CategoryPage> {
+class CategoryPageState extends ConsumerState<CategoryPage> {
   int _currentIndex = 1;
 
   @override
   Widget build(BuildContext context) {
-    final CategoryCardData data = widget.data;
-    final int totalSpends = DummyDataService.getSpendsCount(data.name);
-    List<Transaction> transactions =
-        DummyDataService.getTransactions(data.name);
-    return Scaffold(
-      appBar: buildCustomAppBar(context, totalSpends),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            buildBarChart(),
-            // Add some spacing before the transaction list
-            SizedBox(height: 10),
-            // Include the transaction list widget here
-            TransactionListWidget(
-              transactions: transactions,
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: buildBottomNavigationBar(),
+    // Watch the category stream for the specific categoryId.
+    final asyncCategory = ref.watch(
+      categoryStreamProvider(CategoryFilter(categoryId: widget.categoryId)),
+    );
+
+    return asyncCategory.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error: $error")),
+          );
+        });
+        return const SizedBox.shrink();
+      },
+      data: (categories) {
+        if (categories.isEmpty) {
+          return const Center(child: Text("Category not found"));
+        }
+        // Get the updated category.
+        final category = categories.first;
+        final transactionFilter =
+            TransactionFilter(categoryId: category.categoryId);
+        final asyncTransactions =
+            ref.watch(transactionStreamProvider(transactionFilter));
+
+        return asyncTransactions.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Error: $error")),
+              );
+            });
+            return const SizedBox.shrink();
+          },
+          data: (transactions) {
+            final now = DateTime.now();
+            final List<List<Transaction>> filteredTransactions = [];
+
+            // Build monthly filtered transactions (last 6 months)
+            for (int i = 4; i >= 0; i--) {
+              final month = DateTime(now.year, now.month - i);
+              final monthTransactions = transactions.where((transaction) {
+                return transaction.date.year == month.year &&
+                    transaction.date.month == month.month;
+              }).toList();
+              filteredTransactions.add(monthTransactions);
+            }
+            double totalSpends = 0;
+            for (var t in filteredTransactions[4]) {
+              totalSpends -= t.amount < 0 ? t.amount : 0;
+            }
+            return Scaffold(
+              appBar: buildCustomAppBar(context, totalSpends, category),
+              body: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    buildBarChart(filteredTransactions),
+                    const SizedBox(height: 10),
+                    TransactionListWidget(transactions: transactions),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
-  /// Builds the complete custom AppBar in one function.
-  AppBar buildCustomAppBar(BuildContext context, int totalSpends) {
-    final data = widget.data;
+  PreferredSizeWidget buildCustomAppBar(
+      BuildContext context, double totalSpends, Category category) {
     return AppBar(
       backgroundColor: const Color.fromARGB(255, 243, 225, 247),
-      iconTheme: IconThemeData(color: Colors.black),
+      iconTheme: const IconThemeData(color: Colors.black),
       leading: IconButton(
-        icon: Icon(Icons.arrow_back),
+        icon: const Icon(Icons.arrow_back),
         onPressed: () {
           Navigator.pop(context);
         },
@@ -61,29 +115,29 @@ class _CategoryPageState extends ConsumerState<CategoryPage> {
       title: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Category icon placed alone on the left
-          Icon(
-            data.icon,
-            color: data.color,
-            size: 30,
+          // Category icon
+          Image.asset(
+            'assets/category_icon/${category.name}.jpg',
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
           ),
-          SizedBox(width: 20), // Extra spacing between the icon and the text
-          // Texts in a Column to the right of the icon
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  data.name,
-                  style: TextStyle(
+                  category.name,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
                 Text(
-                  "$totalSpends Spends - ₹${data.spent.toStringAsFixed(0)}/₹${data.budget.toStringAsFixed(0)}",
-                  style: TextStyle(
+                  "$totalSpends Spends - ₹${totalSpends.toStringAsFixed(0)}/₹${category.budget.toStringAsFixed(0)}",
+                  style: const TextStyle(
                     fontSize: 13,
                     color: Colors.black54,
                   ),
@@ -94,7 +148,7 @@ class _CategoryPageState extends ConsumerState<CategoryPage> {
         ],
       ),
       actions: [
-        // Edit icon inside a circular container
+        // Edit icon to change the budget.
         Padding(
           padding: const EdgeInsets.only(right: 8.0),
           child: Container(
@@ -103,27 +157,11 @@ class _CategoryPageState extends ConsumerState<CategoryPage> {
               color: Colors.black54.withOpacity(0.2),
             ),
             child: IconButton(
-              icon: Icon(Icons.edit, color: Colors.white),
+              icon: const Icon(Icons.edit, color: Colors.white),
               onPressed: () {
-                // TODO: Add logic to edit category details.
-                _showEditCategoryDialog(
-                  context,
-                  data.name, // e.g., "Food and Drinks"
-                  data.budget, // e.g., "4000"
-                );
+                _showEditCategoryDialog(context, category);
               },
             ),
-          ),
-        ),
-        // New delete icon inside a circular container
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              // TODO: Add logic to delete category details.
-              _showDeleteConfirmationDialog(context, widget.data.name);
-            },
           ),
         ),
       ],
@@ -131,10 +169,135 @@ class _CategoryPageState extends ConsumerState<CategoryPage> {
     );
   }
 
-  Widget buildBarChart() {
-    // Example data from backend:
-    final CategoryCardData data = widget.data;
-    final chartData = DummyDataService.getBarChartData(data.name);
+  void _showEditCategoryDialog(BuildContext context, Category category) {
+    final initialBudget = category.budget;
+    final initialCategoryName = category.name;
+    String budgetValueAsString = initialBudget.toString();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // Wrap the entire AlertDialog in a StatefulBuilder so that both the text field and the buttons can react to state changes.
+        return StatefulBuilder(
+          builder: (context, setState) {
+            // Use a local variable for the current value of the budget text field.
+            String budgetValue = budgetValueAsString;
+            // Determine if the current budget value is valid (non-empty and can be parsed to a double).
+            final bool isBudgetValid =
+                budgetValue.isNotEmpty && double.tryParse(budgetValue) != null;
+
+            return AlertDialog(
+              title: Text("Edit Budget for $initialCategoryName"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Category: $initialCategoryName",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: budgetValue,
+                    decoration: const InputDecoration(
+                      labelText: "Budget",
+                      prefixText: "₹",
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      setState(() {
+                        budgetValue = value;
+                        budgetValueAsString = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  // Disable the Confirm button if the budget value is empty or invalid.
+                  onPressed: isBudgetValid
+                      ? () async {
+                          double? updatedBudget = double.tryParse(budgetValue);
+                          if (updatedBudget != null) {
+                            final categoryService =
+                                ref.read(categoryServiceProvider);
+                            if (categoryService == null) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text("User not logged in")),
+                                );
+                              }
+                              return;
+                            }
+                            log(updatedBudget.toString());
+                            final updatedCloudCategory = CloudCategory(
+                              name: category.name,
+                              categoryId: category.categoryId,
+                              userId: category.userId,
+                              budget: updatedBudget,
+                            );
+
+                            final result = await categoryService
+                                .updateCloudCategory(updatedCloudCategory);
+                            if (result != null) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          "Category updated successfully!")),
+                                );
+                              }
+                            } else {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text("Failed to update category.")),
+                                );
+                              }
+                            }
+                          }
+                          Navigator.pop(context);
+                        }
+                      : null,
+                  child: const Text("Confirm"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget buildBarChart(List<List<Transaction>> filteredTransactions) {
+    final List<BarData> chartData =
+        filteredTransactions.asMap().entries.map((entry) {
+      final int index = entry.key;
+      final List<Transaction> monthTransactions = entry.value;
+      double totalSpends = 0;
+
+      for (var t in monthTransactions) {
+        if (t.amount < 0) {
+          totalSpends -= t.amount;
+        }
+      }
+
+      final int monthsAgo = (filteredTransactions.length - 1) - index;
+      final DateTime now = DateTime.now();
+      final DateTime targetDate = DateTime(now.year, now.month - monthsAgo);
+      final String label = DateFormat("MMM").format(targetDate);
+
+      return BarData(label: label, value: totalSpends);
+    }).toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -144,179 +307,142 @@ class _CategoryPageState extends ConsumerState<CategoryPage> {
       ),
     );
   }
+}
 
-  Widget buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: (index) {
-        if (index != _currentIndex) {
-          setState(() {
-            _currentIndex = index;
-          });
-        }
-        // Navigation logic based on index:
-        // Navigation logic based on index:
-        if (index == 0) {
-          // TODO: Navigate to Home Page
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(name: "Darshan", budget: 5000),
-            ),
-          );
-        } else if (index == 1) {
-          // Already on Categories/Transactions page
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CategoriesPage(),
-            ),
-          );
-        } else if (index == 2) {
-          // TODO: Navigate to Analytics Page
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AnalyticsPage(),
-            ),
-          );
-        } else if (index == 3) {
-          // TODO: Navigate to Split Page
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ManageSplitsPage(),
-            ),
-          );
-        }
-      },
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.purple,
-      unselectedItemColor: Colors.grey,
-      iconSize: 24,
-      selectedFontSize: 12,
-      unselectedFontSize: 12,
-      items: [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.analytics), label: "Analytics"),
-        BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-      ],
-    );
-  }
+// The remainder of your widgets (TransactionListWidget, BarChartWidget, etc.) can remain unchanged.
 
-  void _showDeleteConfirmationDialog(
-      BuildContext context, String categoryName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Delete Category"),
-          content:
-              Text("Are you sure you want to delete category $categoryName?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // close dialog
-              child: Text(
-                "Cancel",
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                // TODO: Implement actual delete logic here
-                Navigator.pop(context); // close dialog
-              },
-              child: Text(
-                "Delete",
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+class TransactionListWidget extends ConsumerWidget {
+  final List<Transaction> transactions;
 
-  void _showEditCategoryDialog(
-    BuildContext context,
-    String initialCategoryName,
-    double initialBudget, // double
-  ) {
-    // Convert the double to a string for the text field
-    String budgetValueAsString = initialBudget.toString();
+  const TransactionListWidget({super.key, required this.transactions});
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Edit Category"),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              String? selectedCategory = initialCategoryName;
-              String? budgetValue =
-                  budgetValueAsString; // Start with the string
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // For the category name, if you're using a dropdown
-                  DropdownButtonFormField<String>(
-                    value: selectedCategory,
-                    decoration: InputDecoration(labelText: "Category Name"),
-                    items:
-                        DummyDataService.getCategoriesFromBackend().map((cat) {
-                      return DropdownMenuItem<String>(
-                        value: cat,
-                        child: Text(cat),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCategory = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  // TextField for budget input
-                  TextFormField(
-                    initialValue: budgetValue,
-                    decoration: InputDecoration(
-                      labelText: "Budget",
-                      prefixText: "₹",
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Color(0xFFEDE7F6),
+        elevation: 0,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: transactions.isEmpty
+              ? Center(
+                  child: Text(
+                    "No Transactions Yet",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
                     ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      setState(() {
-                        budgetValue = value;
-                      });
-                    },
                   ),
-                ],
+                )
+              : Column(
+                  children: transactions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final transaction = entry.value;
+                    return Column(
+                      children: [
+                        _transactionTile(context, ref, transaction),
+                        if (index < transactions.length - 1)
+                          Divider(color: Colors.grey[300]),
+                      ],
+                    );
+                  }).toList(),
+                ),
+        ),
+      ),
+    );
+  }
+
+  /// Single Transaction Row (clickable, but onTap is commented out).
+  Widget _transactionTile(
+      BuildContext context, WidgetRef ref, Transaction transaction) {
+    final merchantFilter = MerchantFilter(
+      merchantId: transaction.merchantId,
+    );
+    final double validAmount =
+        (transaction.amount.isNaN) ? 0.0 : transaction.amount;
+    final Color amountColor = validAmount < 0 ? Colors.red : Colors.green;
+
+    final asyncMerchant = ref.watch(merchantStreamProvider(merchantFilter));
+
+    return asyncMerchant.when(
+        loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("User error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (merchant) {
+          final name =
+              merchant.isEmpty ? "Merchant Not Found" : merchant[0].name;
+          return InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      TransactionDetailPage(transaction: transaction),
+                ),
               );
             },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // just close
-              child: Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                // Convert the updated budget string back to a double
-                // (handle parsing errors as needed)
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                children: [
+                  // Circle with first letter of transaction name
+                  CircleAvatar(
+                    backgroundColor: Colors.purple[100],
+                    child: Text(
+                      name.isNotEmpty ? name.toUpperCase()[0] : "?",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
 
-                // TODO: Perform the update logic here
-                // e.g., print("Updating category: $selectedCategory with budget $updatedBudget");
-                Navigator.pop(context); // close dialog
-              },
-              child: Text("Confirm"),
+                  // Transaction name
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                  ),
+
+                  // Date/Time + Amount
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        DateFormat("MMM dd, yyyy, hh:mm ")
+                            .format(transaction.date),
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "₹${validAmount.abs().toStringAsFixed(0)}",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: amountColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 12),
+                ],
+              ),
             ),
-          ],
-        );
-      },
-    );
+          );
+        });
   }
 }
 
@@ -377,7 +503,7 @@ class BarChartPainter extends CustomPainter {
   final double barWidth;
   final double maxBarHeight;
 
-  // We'll draw 5 ticks: 0, 1/4·max, 1/2·max, 3/4·max, max
+  // We'll draw 4 horizontal grid lines.
   static const int horizontalLinesCount = 4;
 
   BarChartPainter({
@@ -391,8 +517,8 @@ class BarChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (bars.isEmpty) return;
 
-    // 1) Determine the maximum value for scaling
-    final maxValue = bars.map((b) => b.value).reduce(max);
+    // 1) Determine the maximum value for scaling.
+    final double maxValue = bars.map((b) => b.value).reduce(max);
 
     // 2) Reserve a right margin for Y-axis labels (40 pixels)
     final double rightMargin = 40;
@@ -403,19 +529,19 @@ class BarChartPainter extends CustomPainter {
       ..color = Colors.grey
       ..strokeWidth = 1;
 
+    // Even if maxValue is zero, these lines will show 0.
     for (int i = 0; i <= horizontalLinesCount; i++) {
       final fraction = i / horizontalLinesCount; // 0, 0.25, 0.5, 0.75, 1.0
       final yValue = fraction * maxValue;
       final yCoord = size.height - (fraction * maxBarHeight);
 
-      // Draw horizontal line across the chart area (from left edge to chartWidth)
       canvas.drawLine(
         Offset(0, yCoord),
         Offset(chartWidth, yCoord),
         linePaint,
       );
 
-      // Draw the tick value on the right side
+      // Draw tick value (will be "0" if maxValue is zero)
       final labelText = yValue.round().toString();
       final textSpan = TextSpan(
         text: labelText,
@@ -428,7 +554,6 @@ class BarChartPainter extends CustomPainter {
       );
       textPainter.layout();
 
-      // Place the label with a 4px padding from chartWidth
       final offset = Offset(
         chartWidth + 4,
         yCoord - textPainter.height / 2,
@@ -442,10 +567,12 @@ class BarChartPainter extends CustomPainter {
 
     for (int i = 0; i < bars.length; i++) {
       final bar = bars[i];
-      final barHeight = (bar.value / maxValue) * maxBarHeight;
-      final barLeft = spacing + i * (barWidth + spacing);
-      final barTop = size.height - barHeight;
-      final barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
+      // If maxValue is zero, use 0 height; otherwise, calculate normally.
+      final double barHeight =
+          maxValue == 0 ? 0 : (bar.value / maxValue) * maxBarHeight;
+      final double barLeft = spacing + i * (barWidth + spacing);
+      final double barTop = size.height - barHeight;
+      final Rect barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
       canvas.drawRect(barRect, barPaint);
     }
   }
@@ -454,176 +581,19 @@ class BarChartPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-/// A stateful widget for the transaction list, including tap-to-expand functionality.
-
-class TransactionListWidget extends StatelessWidget {
-  final List<Transaction> transactions;
-
-  const TransactionListWidget({Key? key, required this.transactions})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        color: Color(0xFFEDE7F6),
-        elevation: 0,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: transactions.isEmpty
-              ? Center(
-                  child: Text(
-                    "No Transactions Yet",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54,
-                    ),
-                  ),
-                )
-              : Column(
-                  children: transactions.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final transaction = entry.value;
-                    return Column(
-                      children: [
-                        _transactionTile(context, transaction),
-                        if (index < transactions.length - 1)
-                          Divider(color: Colors.grey[300]),
-                      ],
-                    );
-                  }).toList(),
-                ),
-        ),
-      ),
-    );
-  }
-
-  /// Single Transaction Row (clickable, but onTap is commented out).
-  Widget _transactionTile(BuildContext context, Transaction transaction) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                TransactionDetailPage(transaction: transaction),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(
-          children: [
-            // Circle with first letter of transaction name
-            CircleAvatar(
-              backgroundColor: Colors.purple[100],
-              child: Text(
-                transaction.name.isNotEmpty
-                    ? transaction.name[0].toUpperCase()
-                    : "?",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple,
-                ),
-              ),
-            ),
-            SizedBox(width: 12),
-
-            // Transaction name
-            Expanded(
-              child: Text(
-                transaction.name,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
-              ),
-            ),
-
-            // Date/Time + Amount
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  "${transaction.date}, ${transaction.time}",
-                  style: TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "₹${transaction.amount.toStringAsFixed(0)}",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class BarData {
   final String label;
   final double value;
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is BarData && other.label == label && other.value == value;
+  }
+
+  @override
+  int get hashCode => label.hashCode ^ value.hashCode;
+
   BarData({required this.label, required this.value});
-}
-
-class DummyDataService {
-  static int getSpendsCount(String categoryName) {
-    return 15;
-  }
-
-  static List<String> getCategoriesFromBackend() {
-    return ["Food", "Shopping", "Travel", "Others"];
-  }
-
-  static List<BarData> getBarChartData(String categoryName) {
-    return [
-      BarData(label: "Jan", value: 1000),
-      BarData(label: "Feb", value: 2000),
-      BarData(label: "Mar", value: 1500),
-      BarData(label: "Apr", value: 3000),
-      BarData(label: "May", value: 2500),
-    ];
-  }
-
-  // Dummy transaction list for a given category
-  static List<Transaction> getTransactions(String categoryName) {
-    return [
-      Transaction(
-          name: "Belgian Waffles",
-          amount: 250,
-          date: "25 Jan'25",
-          time: "11:00 am"),
-      Transaction(
-          name: "CC Canteen", amount: 200, date: "31 Jan'25", time: "7:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 150, date: "18 Jan'25", time: "2:30 pm"),
-      Transaction(
-          name: "DOAA Canteen", amount: 100, date: "5 Jan'25", time: "8:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-      Transaction(
-          name: "CC Canteen", amount: 300, date: "20 Dec'24", time: "5:00 pm"),
-    ];
-  }
 }

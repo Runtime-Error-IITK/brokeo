@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Category {
@@ -80,6 +82,8 @@ class CloudCategory {
 
   factory CloudCategory.fromSnapshot(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    // log(doc.id);
+    // log(doc.data().toString());
 
     return CloudCategory(
       categoryId: doc.id,

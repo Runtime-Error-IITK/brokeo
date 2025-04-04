@@ -28,9 +28,31 @@ final userMetadataStreamProvider =
   if (userId == null) {
     return const Stream.empty();
   }
+
   return FirebaseFirestore.instance
       .collection('users')
       .doc(userId)
       .snapshots()
-      .map((doc) => doc.data() ?? {});
+      .map((snapshot) {
+    if (!snapshot.exists || snapshot.data() == null) {
+      // Return an empty map if the document doesn't exist
+      return <String, dynamic>{};
+    }
+
+    final data = snapshot.data()! as Map<String, dynamic>;
+
+    // Element-wise casting
+    final budgetNum =
+        data['budget'] as num?; // Firestore can return int or double
+    final budgetDouble = budgetNum?.toDouble() ?? 0.0;
+
+    final emailStr = data['email'] as String? ?? "";
+    final nameStr = data['name'] as String? ?? "";
+
+    return {
+      'budget': budgetDouble,
+      'email': emailStr,
+      'name': nameStr,
+    };
+  });
 });

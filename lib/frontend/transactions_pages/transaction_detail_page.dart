@@ -1,18 +1,33 @@
+import 'package:brokeo/backend/models/merchant.dart' show CloudMerchant;
+import 'package:brokeo/backend/models/transaction.dart' show Transaction;
+import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart'
+    show MerchantFilter, merchantStreamProvider;
+import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
+    show userIdProvider;
+import 'package:brokeo/backend/services/providers/write_providers/merchant_service.dart';
+import 'package:brokeo/backend/services/providers/write_providers/transaction_service.dart'
+    show transactionServiceProvider;
 import 'package:flutter/material.dart';
-import 'package:brokeo/models/transaction_model.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class TransactionDetailPage extends ConsumerWidget {
   final Transaction transaction;
 
-  const TransactionDetailPage({Key? key, required this.transaction}) : super(key: key);
+  const TransactionDetailPage({Key? key, required this.transaction})
+      : super(key: key);
 
   @override
-  Widget build(BuildContext context , WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Fetch the merchant data using the merchantId from the transaction.
+    // We use a MerchantFilter with only merchantId since that's all we need.
+    final merchantAsync = ref.watch(merchantStreamProvider(
+        MerchantFilter(merchantId: transaction.merchantId)));
+
     return Scaffold(
       appBar: AppBar(
-        // Updated title based on transaction amount
-        title: Text(transaction.amount < 0 ? "Debit Transaction" : "Credit Transaction"),
+        title: Text(transaction.amount < 0
+            ? "Debit Transaction"
+            : "Credit Transaction"),
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
         elevation: 0,
@@ -22,11 +37,9 @@ class TransactionDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Amount",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            // Updated amount display without negative sign and specifying type
+            // Amount section.
+            Text("Amount",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(
               "₹${transaction.amount.abs().toStringAsFixed(0)} ${transaction.amount < 0 ? 'Debited' : 'Credited'}",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -36,50 +49,56 @@ class TransactionDetailPage extends ConsumerWidget {
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
             SizedBox(height: 20),
-            Text(
-              "To",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            // Merchant section.
+            Text("To",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Row(
               children: [
-                Text(
-                  transaction.name,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                // Fetch the merchant name asynchronously.
+                merchantAsync.when(
+                  loading: () => SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  error: (error, stack) => Text("Error",
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  data: (merchants) {
+                    // If a merchant is found, display its name; otherwise, display a placeholder.
+                    final name = merchants.isNotEmpty
+                        ? merchants.first.name
+                        : "Unknown Merchant";
+                    return Text(name,
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold));
+                  },
                 ),
                 SizedBox(width: 10),
-                Icon(Icons.restaurant, color: Colors.red),
+                // Icon(Icons.restaurant, color: Colors.red),
               ],
             ),
+            // Transaction ID section.
             Text(
-              "Transaction ID: #1234ABCD",
+              "Transaction ID: #${transaction.transactionId}",
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
             SizedBox(height: 20),
+            // SMS section.
+            Text("SMS",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(
-              "SMS",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "Dear UPI user A/C X1234 debited by 60.0 on date 02Feb25 trf to CC Canteen Refno 503692055033. If not u? call 1800111109. - SBI",
+              transaction.sms,
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
             Spacer(),
+            // Actions: Delete Transaction button.
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    _showEditTransactionDialog(context, transaction);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    foregroundColor: Colors.black,
-                  ),
-                  child: Text("Edit Transaction"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _showDeleteConfirmationDialog(context, transaction);
+                    _showDeleteConfirmationDialog(ref, context, transaction);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -95,47 +114,8 @@ class TransactionDetailPage extends ConsumerWidget {
     );
   }
 
-  void _showEditTransactionDialog(BuildContext context, Transaction transaction) {
-    TextEditingController amountController = TextEditingController(text: transaction.amount.toString());
-    TextEditingController nameController = TextEditingController(text: transaction.name);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Edit Transaction"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: amountController,
-                decoration: InputDecoration(labelText: "Amount"),
-              ),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: "Merchant"),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                // Implement logic to update transaction details
-                print("Updated amount: ${amountController.text}, Merchant: ${nameController.text}");
-                Navigator.pop(context);
-              },
-              child: Text("Confirm"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showDeleteConfirmationDialog(BuildContext context, Transaction transaction) {
+  void _showDeleteConfirmationDialog(
+      WidgetRef ref, BuildContext context, Transaction transaction) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -148,9 +128,38 @@ class TransactionDetailPage extends ConsumerWidget {
               child: Text("Cancel"),
             ),
             TextButton(
-              onPressed: () {
-                // Implement the delete transaction logic
-                Navigator.pop(context);
+              onPressed: () async {
+                // Get the TransactionService instance.
+                final transactionService = ref.read(transactionServiceProvider);
+                if (transactionService == null) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("User not logged in")),
+                    );
+                  }
+                  return;
+                }
+
+                // Attempt to delete the transaction.
+                final success = await transactionService.deleteTransaction(
+                    transactionId: transaction.transactionId);
+                if (success) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text("Transaction deleted successfully!")),
+                    );
+                    Navigator.pop(context); // Close the dialog.
+                    Navigator.pop(
+                        context); // Close the transaction detail page.
+                  }
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Failed to delete transaction.")),
+                    );
+                  }
+                }
               },
               child: Text("Delete", style: TextStyle(color: Colors.red)),
             ),
@@ -163,12 +172,37 @@ class TransactionDetailPage extends ConsumerWidget {
   String _convertNumberToWords(int number) {
     if (number == 0) return "Zero";
     final ones = [
-      "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
-      "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
-      "Seventeen", "Eighteen", "Nineteen"
+      "",
+      "One",
+      "Two",
+      "Three",
+      "Four",
+      "Five",
+      "Six",
+      "Seven",
+      "Eight",
+      "Nine",
+      "Ten",
+      "Eleven",
+      "Twelve",
+      "Thirteen",
+      "Fourteen",
+      "Fifteen",
+      "Sixteen",
+      "Seventeen",
+      "Eighteen",
+      "Nineteen"
     ];
     final tens = [
-      "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty",
+      "",
+      "",
+      "Twenty",
+      "Thirty",
+      "Forty",
+      "Fifty",
+      "Sixty",
+      "Seventy",
+      "Eighty",
       "Ninety"
     ];
     String words = "";
