@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/transaction.dart' show Transaction;
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
@@ -289,6 +291,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
                     onChanged: (value) {
                       setState(() {
                         budgetValue = value;
+                        budgetValueAsString = value; // Update the string
                       });
                     },
                   ),
@@ -321,6 +324,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
 
                     // Create an updated CloudCategory with the new budget,
                     // preserving the existing category values.
+                    log(updatedBudget.toString());
                     final updatedCloudCategory = CloudCategory(
                       // The document ID is used as the categoryId
                       name: widget.category.name,
