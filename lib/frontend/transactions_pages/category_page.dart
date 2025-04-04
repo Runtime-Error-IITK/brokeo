@@ -73,7 +73,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
         });
   }
 
-  AppBar buildCustomAppBar(BuildContext context, int totalSpends) {
+  AppBar buildCustomAppBar(BuildContext context, double totalSpends) {
     final data = widget.category;
     return AppBar(
       backgroundColor: const Color.fromARGB(255, 243, 225, 247),
@@ -109,7 +109,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
                   ),
                 ),
                 Text(
-                  "$totalSpends Spends - ₹${data.spent.toStringAsFixed(0)}/₹${data.budget.toStringAsFixed(0)}",
+                  "$totalSpends Spends - ₹${totalSpends.toStringAsFixed(0)}/₹${data.budget.toStringAsFixed(0)}",
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.black54,
