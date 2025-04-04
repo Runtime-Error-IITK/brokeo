@@ -141,7 +141,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
               ),
             ],
           ),
-          bottomNavigationBar: _buildBottomNavigationBar(),
+          // bottomNavigationBar: _buildBottomNavigationBar(),
         );
       },
     );

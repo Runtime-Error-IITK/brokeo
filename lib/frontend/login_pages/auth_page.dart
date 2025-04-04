@@ -1,6 +1,7 @@
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
     show userMetadataStreamProvider;
 import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/home_pages/main_page.dart';
 import 'package:brokeo/frontend/login_pages/login_page3.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,7 +19,7 @@ class AuthPage extends ConsumerWidget {
           return LoginPage3();
         } else {
           // Push the home page
-          return HomePage();
+          return MainScreen();
         }
       },
       loading: () => const Scaffold(

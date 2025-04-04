@@ -1,5 +1,6 @@
 import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
+import 'package:brokeo/frontend/home_pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -48,7 +49,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(),
+          builder: (context) => MainScreen(),
         ),
       );
     }

@@ -101,7 +101,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
               shape: CircleBorder(),
             )
           : null,
-      bottomNavigationBar: buildBottomNavigationBar(),
+      // bottomNavigationBar: buildBottomNavigationBar(),
     );
   }
 

@@ -101,7 +101,7 @@ class _MerchantsPageState extends ConsumerState<MerchantsPage> {
                   ],
                 ),
               ),
-              bottomNavigationBar: buildBottomNavigationBar(),
+              // bottomNavigationBar: buildBottomNavigationBar(),
             );
           },
         );
@@ -420,10 +420,10 @@ class BarChartWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: displayData.map((bar) {
             return SizedBox(
-              width: 40, // match or slightly exceed barWidth
+              width: 50, // match or slightly exceed barWidth
               child: Text(
                 bar.label,
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 12, color: Colors.black),
               ),
             );
@@ -440,7 +440,7 @@ class BarChartPainter extends CustomPainter {
   final double barWidth;
   final double maxBarHeight;
 
-  // We'll draw 5 ticks: 0, 1/4·max, 1/2·max, 3/4·max, max
+  // We'll draw 4 horizontal grid lines.
   static const int horizontalLinesCount = 4;
 
   BarChartPainter({
@@ -454,8 +454,8 @@ class BarChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (bars.isEmpty) return;
 
-    // 1) Determine the maximum value for scaling
-    final maxValue = bars.map((b) => b.value).reduce(max);
+    // 1) Determine the maximum value for scaling.
+    final double maxValue = bars.map((b) => b.value).reduce(max);
 
     // 2) Reserve a right margin for Y-axis labels (40 pixels)
     final double rightMargin = 40;
@@ -466,19 +466,19 @@ class BarChartPainter extends CustomPainter {
       ..color = Colors.grey
       ..strokeWidth = 1;
 
+    // Even if maxValue is zero, these lines will show 0.
     for (int i = 0; i <= horizontalLinesCount; i++) {
       final fraction = i / horizontalLinesCount; // 0, 0.25, 0.5, 0.75, 1.0
       final yValue = fraction * maxValue;
       final yCoord = size.height - (fraction * maxBarHeight);
 
-      // Draw horizontal line across the chart area (from left edge to chartWidth)
       canvas.drawLine(
         Offset(0, yCoord),
         Offset(chartWidth, yCoord),
         linePaint,
       );
 
-      // Draw the tick value on the right side
+      // Draw tick value (will be "0" if maxValue is zero)
       final labelText = yValue.round().toString();
       final textSpan = TextSpan(
         text: labelText,
@@ -491,7 +491,6 @@ class BarChartPainter extends CustomPainter {
       );
       textPainter.layout();
 
-      // Place the label with a 4px padding from chartWidth
       final offset = Offset(
         chartWidth + 4,
         yCoord - textPainter.height / 2,
@@ -505,10 +504,12 @@ class BarChartPainter extends CustomPainter {
 
     for (int i = 0; i < bars.length; i++) {
       final bar = bars[i];
-      final barHeight = (bar.value / maxValue) * maxBarHeight;
-      final barLeft = spacing + i * (barWidth + spacing);
-      final barTop = size.height - barHeight;
-      final barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
+      // If maxValue is zero, use 0 height; otherwise, calculate normally.
+      final double barHeight =
+          maxValue == 0 ? 0 : (bar.value / maxValue) * maxBarHeight;
+      final double barLeft = spacing + i * (barWidth + spacing);
+      final double barTop = size.height - barHeight;
+      final Rect barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
       canvas.drawRect(barRect, barPaint);
     }
   }
