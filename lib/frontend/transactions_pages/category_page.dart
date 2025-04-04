@@ -154,14 +154,14 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
       // Sum the absolute values of debit transactions (assuming debit is negative).
       for (var t in monthTransactions) {
         if (t.amount < 0) {
-          totalSpends += -t.amount;
+          totalSpends -= t.amount;
         }
       }
 
       // Calculate the month corresponding to this entry.
       // If filteredTransactions has 6 elements and the last element (index 5) is the current month,
       // then the number of months ago for this entry is:
-      final int monthsAgo = (filteredTransactions.length - 1) - index;
+      final int monthsAgo = (filteredTransactions.length - 2) - index;
       final DateTime now = DateTime.now();
       // Construct a target date by subtracting the monthsAgo.
       // The DateTime constructor automatically adjusts the year if the month becomes out of range.
@@ -374,7 +374,7 @@ class TransactionListWidget extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        color: Color(0xFFEDE7F6),
+        color: const Color(0xFFEDE7F6),
         elevation: 0,
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -407,7 +407,7 @@ class TransactionListWidget extends ConsumerWidget {
     );
   }
 
-  /// Single Transaction Row (clickable, but onTap is commented out).
+  /// Single Transaction Row.
   Widget _transactionTile(
       BuildContext context, WidgetRef ref, Transaction transaction) {
     final merchantFilter = MerchantFilter(
@@ -426,11 +426,14 @@ class TransactionListWidget extends ConsumerWidget {
               SnackBar(content: Text("User error: $error")),
             );
           });
-          return SizedBox.shrink();
+          return const SizedBox.shrink();
         },
         data: (merchant) {
           final name =
               merchant.isEmpty ? "Merchant Not Found" : merchant[0].name;
+          // Set color based on amount: red if negative, green if positive.
+          final Color amountColor =
+              transaction.amount < 0 ? Colors.red : Colors.green;
           return InkWell(
             onTap: () {
               Navigator.push(
@@ -456,16 +459,14 @@ class TransactionListWidget extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: 12),
-
+                  const SizedBox(width: 12),
                   // Transaction name
                   Expanded(
                     child: Text(
                       name,
-                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                      style: const TextStyle(fontSize: 14, color: Colors.black87),
                     ),
                   ),
-
                   // Date/Time + Amount
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -473,20 +474,20 @@ class TransactionListWidget extends ConsumerWidget {
                       Text(
                         DateFormat("MMM dd, yyyy, hh:mm ")
                             .format(transaction.date),
-                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                        style: const TextStyle(fontSize: 13, color: Colors.black54),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        "₹${transaction.amount.toStringAsFixed(0)}",
+                        "₹${transaction.amount.abs().toStringAsFixed(0)}",
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: amountColor,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                 ],
               ),
             ),
@@ -552,7 +553,7 @@ class BarChartPainter extends CustomPainter {
   final double barWidth;
   final double maxBarHeight;
 
-  // We'll draw 5 ticks: 0, 1/4·max, 1/2·max, 3/4·max, max
+  // We'll draw 4 horizontal grid lines.
   static const int horizontalLinesCount = 4;
 
   BarChartPainter({
@@ -566,8 +567,8 @@ class BarChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (bars.isEmpty) return;
 
-    // 1) Determine the maximum value for scaling
-    final maxValue = bars.map((b) => b.value).reduce(max);
+    // 1) Determine the maximum value for scaling.
+    final double maxValue = bars.map((b) => b.value).reduce(max);
 
     // 2) Reserve a right margin for Y-axis labels (40 pixels)
     final double rightMargin = 40;
@@ -578,19 +579,19 @@ class BarChartPainter extends CustomPainter {
       ..color = Colors.grey
       ..strokeWidth = 1;
 
+    // Even if maxValue is zero, these lines will show 0.
     for (int i = 0; i <= horizontalLinesCount; i++) {
       final fraction = i / horizontalLinesCount; // 0, 0.25, 0.5, 0.75, 1.0
       final yValue = fraction * maxValue;
       final yCoord = size.height - (fraction * maxBarHeight);
 
-      // Draw horizontal line across the chart area (from left edge to chartWidth)
       canvas.drawLine(
         Offset(0, yCoord),
         Offset(chartWidth, yCoord),
         linePaint,
       );
 
-      // Draw the tick value on the right side
+      // Draw tick value (will be "0" if maxValue is zero)
       final labelText = yValue.round().toString();
       final textSpan = TextSpan(
         text: labelText,
@@ -603,7 +604,6 @@ class BarChartPainter extends CustomPainter {
       );
       textPainter.layout();
 
-      // Place the label with a 4px padding from chartWidth
       final offset = Offset(
         chartWidth + 4,
         yCoord - textPainter.height / 2,
@@ -617,10 +617,11 @@ class BarChartPainter extends CustomPainter {
 
     for (int i = 0; i < bars.length; i++) {
       final bar = bars[i];
-      final barHeight = (bar.value / maxValue) * maxBarHeight;
-      final barLeft = spacing + i * (barWidth + spacing);
-      final barTop = size.height - barHeight;
-      final barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
+      // If maxValue is zero, use 0 height; otherwise, calculate normally.
+      final double barHeight = maxValue == 0 ? 0 : (bar.value / maxValue) * maxBarHeight;
+      final double barLeft = spacing + i * (barWidth + spacing);
+      final double barTop = size.height - barHeight;
+      final Rect barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
       canvas.drawRect(barRect, barPaint);
     }
   }
