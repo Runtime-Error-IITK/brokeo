@@ -63,7 +63,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           children: [
             _buildProfileAndBudgetSection(),
             _buildTransactions(),
-            // _buildCategories(), // <-- NEW CATEGORIES SECTION
+            _buildCategories(), // <-- NEW CATEGORIES SECTION
             // _buildScheduledPayments(scheduledPayments),
             // _buildSplits(splits),
             // _buildBudget(budgetCategories),
@@ -667,9 +667,11 @@ class _HomePageState extends ConsumerState<HomePage> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => HomePage()
-                  // TransactionDetailPage(transaction: transaction),
-                  ),
+              MaterialPageRoute(
+                builder: (context) => TransactionDetailPage(
+                  transaction: transaction,
+                ),
+              ),
             );
           },
           child: Column(
@@ -855,25 +857,28 @@ class _HomePageState extends ConsumerState<HomePage> {
             //   spent: 0,
             //   budget: category.budget,
             // );
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => CategoryPage(data: data),
-            //   ),
-            // );
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CategoryPage(
+                  categoryId: category.categoryId,
+                ),
+              ),
+            );
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 5),
             child: Row(
               children: [
                 // Circle avatar with emoji
-                CircleAvatar(
-                  backgroundColor: Colors.redAccent.withOpacity(0.1),
-                  child: Text(
-                    "😭",
-                    style: TextStyle(fontSize: 18),
-                  ),
+
+                Image.asset(
+                  'assets/category_icon/${category.name}.jpg',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
                 ),
+
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
