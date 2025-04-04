@@ -2,6 +2,7 @@ import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/transaction.dart' show Transaction;
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
+import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart' show TransactionDetailPage;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -45,6 +46,138 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
             }).toList();
             filteredTransactions.add(monthTransactions);
           }
+          double totalSpends = 0;
+          for(var t in filteredTransactions[-1]) {
+            totalSpends -= t.amount > 0 ? t.amount : 0; 
+          }
+          return Scaffold(
+      appBar: buildCustomAppBar(context, totalSpends),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(height: 20),
+            buildBarChart(),
+            // Add some spacing before the transaction list
+            SizedBox(height: 10),
+            // Include the transaction list widget here
+            TransactionListWidget(
+              transactions: transactions,
+            ),
+          ],
+        ),
+      ),
+      // bottomNavigationBar: buildBottomNavigationBar(),
+    );
         });
   }
 }
+
+class TransactionListWidget extends ConsumerWidget {
+  final List<Transaction> transactions;
+
+  const TransactionListWidget({super.key, required this.transactions});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Color(0xFFEDE7F6),
+        elevation: 0,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: transactions.isEmpty
+              ? Center(
+                  child: Text(
+                    "No Transactions Yet",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                )
+              : Column(
+                  children: transactions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final transaction = entry.value;
+                    return Column(
+                      children: [
+                        _transactionTile(context, transaction),
+                        if (index < transactions.length - 1)
+                          Divider(color: Colors.grey[300]),
+                      ],
+                    );
+                  }).toList(),
+                ),
+        ),
+      ),
+    );
+  }
+
+  /// Single Transaction Row (clickable, but onTap is commented out).
+  Widget _transactionTile(BuildContext context, WidgetRef ref, Transaction transaction) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                TransactionDetailPage(transaction: transaction),
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            // Circle with first letter of transaction name
+            CircleAvatar(
+              backgroundColor: Colors.purple[100],
+              child: Text(
+                transaction.name.isNotEmpty
+                    ? transaction.name[0].toUpperCase()
+                    : "?",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
+
+            // Transaction name
+            Expanded(
+              child: Text(
+                transaction.name,
+                style: TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+            ),
+
+            // Date/Time + Amount
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  "${transaction.date}, ${transaction.time}",
+                  style: TextStyle(fontSize: 13, color: Colors.black54),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "₹${transaction.amount.toStringAsFixed(0)}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
