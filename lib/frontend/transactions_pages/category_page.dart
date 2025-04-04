@@ -281,7 +281,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
         }
       }
 
-      final int monthsAgo = (filteredTransactions.length - 2) - index;
+      final int monthsAgo = (filteredTransactions.length - 1) - index;
       final DateTime now = DateTime.now();
       final DateTime targetDate = DateTime(now.year, now.month - monthsAgo);
       final String label = DateFormat("MMM").format(targetDate);
@@ -351,8 +351,9 @@ class TransactionListWidget extends ConsumerWidget {
     final merchantFilter = MerchantFilter(
       merchantId: transaction.merchantId,
     );
-    final double validAmount = (transaction.amount.isNaN) ? 0.0 : transaction.amount;
-  final Color amountColor = validAmount < 0 ? Colors.red : Colors.green;
+    final double validAmount =
+        (transaction.amount.isNaN) ? 0.0 : transaction.amount;
+    final Color amountColor = validAmount < 0 ? Colors.red : Colors.green;
 
     final asyncMerchant = ref.watch(merchantStreamProvider(merchantFilter));
 
@@ -417,7 +418,7 @@ class TransactionListWidget extends ConsumerWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                       "₹${validAmount.abs().toStringAsFixed(0)}",
+                        "₹${validAmount.abs().toStringAsFixed(0)}",
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -557,7 +558,8 @@ class BarChartPainter extends CustomPainter {
     for (int i = 0; i < bars.length; i++) {
       final bar = bars[i];
       // If maxValue is zero, use 0 height; otherwise, calculate normally.
-      final double barHeight = maxValue == 0 ? 0 : (bar.value / maxValue) * maxBarHeight;
+      final double barHeight =
+          maxValue == 0 ? 0 : (bar.value / maxValue) * maxBarHeight;
       final double barLeft = spacing + i * (barWidth + spacing);
       final double barTop = size.height - barHeight;
       final Rect barRect = Rect.fromLTWH(barLeft, barTop, barWidth, barHeight);
