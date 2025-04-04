@@ -99,7 +99,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         } else if (index == 2) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => HomePage()),
+            MaterialPageRoute(builder: (context) => AnalyticsPage()),
             (route) => false,
           );
         } else if (index == 3) {
