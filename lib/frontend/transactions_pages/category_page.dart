@@ -291,7 +291,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
         }
       }
 
-      final int monthsAgo = (filteredTransactions.length - 2) - index;
+      final int monthsAgo = (filteredTransactions.length - 1) - index;
       final DateTime now = DateTime.now();
       final DateTime targetDate = DateTime(now.year, now.month - monthsAgo);
       final String label = DateFormat("MMM").format(targetDate);
