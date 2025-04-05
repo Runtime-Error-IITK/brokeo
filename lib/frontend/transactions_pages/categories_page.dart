@@ -386,7 +386,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                     const SizedBox(height: 8),
                     // Icon
                     Image.asset(
-                      'assets/category_icon/${category.name}.jpg',
+                      'assets/colorful_category_icon/${category.name}.jpg',
                       width: 40,
                       height: 40,
                       fit: BoxFit.cover,
