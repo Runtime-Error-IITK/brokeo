@@ -521,7 +521,7 @@ class BarChartPainter extends CustomPainter {
     final double maxValue = bars.map((b) => b.value).reduce(max);
 
     // 2) Reserve a right margin for Y-axis labels (40 pixels)
-    final double rightMargin = 40;
+    final double rightMargin = 10;
     final double chartWidth = size.width - rightMargin;
 
     // 3) Draw horizontal grid lines and Y-axis tick values on the right side
