@@ -98,18 +98,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
                 SizedBox(height: 16),
 
-                // Address Input
-                SizedBox(height: 8),
-                TextFormField(
-                  controller: _addressController,
-                  decoration: InputDecoration(
-                    labelText: "Address",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16),
+                // // Address Input
+                // SizedBox(height: 8),
+                // TextFormField(
+                //   controller: _addressController,
+                //   decoration: InputDecoration(
+                //     labelText: "Address",
+                //     border: OutlineInputBorder(),
+                //   ),
+                // ),
+                // SizedBox(height: 16),
 
-               
                 // Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -145,7 +144,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
                         padding: EdgeInsets.symmetric(
                             horizontal: 24.0, vertical: 12.0),
                       ),
