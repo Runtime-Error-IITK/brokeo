@@ -120,21 +120,21 @@ class ProfilePage extends ConsumerWidget {
 
             Divider(),
 
-            // Help & Support
-            ListTile(
-              leading: Icon(Icons.help_outline, color: Colors.purple),
-              title: Text(
-                "Help & Support",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => FAQsPage()),
-                );
-              },
-            ),
+            // // Help & Support
+            // ListTile(
+            //   leading: Icon(Icons.help_outline, color: Colors.purple),
+            //   title: Text(
+            //     "Help & Support",
+            //     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            //   ),
+            //   trailing: Icon(Icons.arrow_forward_ios, size: 16),
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (context) => FAQsPage()),
+            //     );
+            //   },
+            // ),
 
             // Contact Us
             ListTile(
@@ -158,10 +158,7 @@ class ProfilePage extends ConsumerWidget {
               ),
               trailing: Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
-                );
+                _showPrivacyPolicyDialog(context);
               },
             ),
 
@@ -237,6 +234,32 @@ class ProfilePage extends ConsumerWidget {
                 ],
               ),
             ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Helper method to show the Privacy Policy dialog
+  void _showPrivacyPolicyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Privacy Policy"),
+          content: SingleChildScrollView(
+            child: Text(
+              "This is the privacy policy of the app. It explains how we handle your data.",
+              style: TextStyle(fontSize: 16),
+            ),
           ),
           actions: [
             TextButton(
