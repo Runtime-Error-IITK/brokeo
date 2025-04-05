@@ -1,47 +1,59 @@
-import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
-    show firebaseAuthProvider;
-import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
+import 'package:brokeo/frontend/login_pages/login_page1.dart'; // for redirecting to Login
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class LoginPage2 extends ConsumerStatefulWidget {
-  final String verificationId;
-  final String email;
-
-  const LoginPage2({
-    super.key,
-    required this.email,
-    required this.verificationId,
-  });
+class LoginPage2 extends StatefulWidget {
+  const LoginPage2({super.key});
 
   @override
-  LoginPage2State createState() => LoginPage2State();
+  State<LoginPage2> createState() => _SignupPageState();
 }
 
-class LoginPage2State extends ConsumerState<LoginPage2> {
-  TextEditingController otpController = TextEditingController();
+class _SignupPageState extends State<LoginPage2> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
-  void _verifyOtp() async {
-    final firebaseAuthInstance = ref.read(firebaseAuthProvider);
+  bool _isEmailValid = true;
+  bool _isPasswordValid = true;
+  bool _isConfirmPasswordValid = true;
 
-    // Replace the following with your custom email OTP verification logic.
-    // For example, if you have a custom method on your auth instance:
-    // final userCredential = await firebaseAuthInstance.signInWithEmailOtp(
-    //   email: widget.email,
-    //   otpCode: otpController.text,
-    // );
-    //
-    // For demonstration purposes, we'll assume the OTP verification is successful:
-    await Future.delayed(Duration(seconds: 1)); // Simulate network delay
+  bool _validEmailFormat(String email) {
+    final RegExp emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    return emailRegex.hasMatch(email);
+  }
 
-    if (context.mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => AuthPage(),
-        ),
+  void _handleSignup() {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text;
+    String confirmPassword = _confirmPasswordController.text;
+
+    setState(() {
+      _isEmailValid = _validEmailFormat(email);
+      _isPasswordValid = password.isNotEmpty;
+      _isConfirmPasswordValid = confirmPassword == password;
+    });
+
+    if (!_isEmailValid || !_isPasswordValid || !_isConfirmPasswordValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please enter valid credentials.")),
       );
+      return;
     }
+
+    // Handle actual signup logic here
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Signup successful!")),
+    );
+  }
+
+  void _goToLogin() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginPage1()),
+    );
   }
 
   @override
@@ -61,9 +73,8 @@ class LoginPage2State extends ConsumerState<LoginPage2> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // "Hello!" Text
               Text(
-                'Hello!',
+                'Sign Up!',
                 style: GoogleFonts.pacifico(
                   color: Color(0xFF1C1B14),
                   fontSize: 50,
@@ -77,41 +88,76 @@ class LoginPage2State extends ConsumerState<LoginPage2> {
                   ],
                 ),
               ),
-              SizedBox(height: 40),
+              SizedBox(height: 30),
 
-              // Displaying Email
+              // Email Field
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey, width: 2),
-                  ),
-                  child: Text(
-                    widget.email,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-
-              // OTP Input Field
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: TextField(
-                  controller: otpController,
-                  keyboardType: TextInputType.number,
+                child: TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    hintText: 'Enter OTP',
+                    hintText: 'Enter Email Address',
                     hintStyle: TextStyle(
-                        color: Colors.black.withOpacity(0.6), fontSize: 18),
+                      color: Colors.black.withOpacity(0.6),
+                      fontSize: 18,
+                    ),
                     border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey, width: 2),
+                      borderSide: BorderSide(
+                          color: _isEmailValid ? Colors.grey : Colors.red,
+                          width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 15),
+
+              // Password Field
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    hintText: 'Enter Password',
+                    hintStyle: TextStyle(
+                      color: Colors.black.withOpacity(0.6),
+                      fontSize: 18,
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: _isPasswordValid ? Colors.grey : Colors.red,
+                          width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 15),
+
+              // Confirm Password Field
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    hintText: 'Confirm Password',
+                    hintStyle: TextStyle(
+                      color: Colors.black.withOpacity(0.6),
+                      fontSize: 18,
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: _isConfirmPasswordValid ? Colors.grey : Colors.red,
+                          width: 2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
@@ -119,7 +165,7 @@ class LoginPage2State extends ConsumerState<LoginPage2> {
               ),
               SizedBox(height: 20),
 
-              // Arrow Button
+              // Signup Arrow Button
               Container(
                 decoration: BoxDecoration(
                   color: Color(0xFF65558F),
@@ -128,9 +174,25 @@ class LoginPage2State extends ConsumerState<LoginPage2> {
                 child: IconButton(
                   iconSize: 35,
                   icon: Icon(Icons.arrow_forward, color: Colors.white),
-                  onPressed: _verifyOtp,
+                  onPressed: _handleSignup,
                 ),
               ),
+
+              SizedBox(height: 10),
+
+              // Login Instead Text
+              TextButton(
+                onPressed: _goToLogin,
+                child: Text(
+                  'Login Instead',
+                  style: TextStyle(
+                    color: Colors.black.withOpacity(0.7),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              )
             ],
           ),
         ),
