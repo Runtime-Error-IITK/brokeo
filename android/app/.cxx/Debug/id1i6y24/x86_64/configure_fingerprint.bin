@@ -2,6 +2,7 @@ C/C++ Structured LogW
 U
 SC:\Users\suryp\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txtC
 A
+<<<<<<< Updated upstream
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	Ëµ•Šà2§ Ë»ˆåÖ2f
 d
 bC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\additional_project_files.txt	Øµ•Šà2 •‘šˆà2c
@@ -26,3 +27,29 @@ Z
 XC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\prefab_config.json	Øµ•Šà2( ±‘šˆà2a
 _
 ]C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\symbol_folder_index.txt	Øµ•Šà2T ²‘šˆà2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	‰ÓÌ¸à2§ Ë»ˆåÖ2f
+d
+bC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\additional_project_files.txt	‰ÓÌ¸à2 æ¢â´à2c
+a
+_C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\android_gradle_build.json	‰ÓÌ¸à2° ê¢â´à2h
+f
+dC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\android_gradle_build_mini.json	ŒÓÌ¸à2‹ î¢â´à2U
+S
+QC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\build.ninja	ŒÓÌ¸à2•Ô Ÿ¢â´à2Y
+W
+UC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\build.ninja.txt	ŒÓÌ¸à2^
+\
+ZC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\build_file_index.txt	ŒÓÌ¸à2S õ¢â´à2_
+]
+[C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\compile_commands.json	ŒÓÌ¸à2	c
+a
+_C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\compile_commands.json.bin	ŒÓÌ¸à2
+i
+g
+eC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\metadata_generation_command.txt	ŒÓÌ¸à2¶ ð¢â´à2\
+Z
+XC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\prefab_config.json	ŒÓÌ¸à2( ò¢â´à2a
+_
+]C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86_64\symbol_folder_index.txt	ŒÓÌ¸à2T ô¢â´à2
+>>>>>>> Stashed changes

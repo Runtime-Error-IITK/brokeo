@@ -44,8 +44,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+<<<<<<< Updated upstream
       debugShowCheckedModeBanner: false, // Remove debug banner
       home: AuthPage() // Set LoginPage1 as the home page
     );
+=======
+        debugShowCheckedModeBanner: false, // Remove debug banner
+        home:LoginPage1(), // Set LoginPage1 as the home page
+        );
+>>>>>>> Stashed changes
   }
 }

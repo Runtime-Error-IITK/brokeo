@@ -2,6 +2,7 @@ C/C++ Structured LogW
 U
 SC:\Users\suryp\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txtC
 A
+<<<<<<< Updated upstream
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	‰´•Šà2§ Ë»ˆåÖ2k
 i
 gC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\additional_project_files.txt	‰´•Šà2 ¸¿™ˆà2h
@@ -26,3 +27,29 @@ _
 ]C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\prefab_config.json	‰´•Šà2( Ä¿™ˆà2f
 d
 bC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\symbol_folder_index.txt	‰´•Šà2Y Ç¿™ˆà2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	½»Ì¸à2§ Ë»ˆåÖ2k
+i
+gC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\additional_project_files.txt	½»Ì¸à2 åÒá´à2h
+f
+dC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\android_gradle_build.json	¿»Ì¸à2º éÒá´à2m
+k
+iC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\android_gradle_build_mini.json	¿»Ì¸à2• òÒá´à2Z
+X
+VC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\build.ninja	¿»Ì¸à2®Ô ×Ðá´à2^
+\
+ZC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\build.ninja.txt	¿»Ì¸à2c
+a
+_C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\build_file_index.txt	¿»Ì¸à2S …Óá´à2d
+b
+`C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\compile_commands.json	¿»Ì¸à2	h
+f
+dC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\compile_commands.json.bin	¿»Ì¸à2
+n
+l
+jC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\metadata_generation_command.txt	¿»Ì¸à2Ï ôÒá´à2a
+_
+]C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\prefab_config.json	¿»Ì¸à2( ÿÒá´à2f
+d
+bC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\armeabi-v7a\symbol_folder_index.txt	¿»Ì¸à2Y Óá´à2
+>>>>>>> Stashed changes

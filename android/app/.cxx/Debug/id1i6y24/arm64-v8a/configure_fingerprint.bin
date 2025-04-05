@@ -2,6 +2,7 @@ C/C++ Structured LogW
 U
 SC:\Users\suryp\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txtC
 A
+<<<<<<< Updated upstream
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	Ü™•Šà2§ Ë»ˆåÖ2i
 g
 eC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\additional_project_files.txt	é™•Šà2 ÌèŽˆà2f
@@ -26,3 +27,29 @@ hC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\metada
 [C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\prefab_config.json	ì™•Šà2( ™éŽˆà2d
 b
 `C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\symbol_folder_index.txt	ì™•Šà2W éŽˆà2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	Þ°Ì¸à2§ Ë»ˆåÖ2i
+g
+eC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\additional_project_files.txt	Þ°Ì¸à2 –˜á´à2f
+d
+bC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\android_gradle_build.json	Þ°Ì¸à2¶ š˜á´à2k
+i
+gC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\android_gradle_build_mini.json	Þ°Ì¸à2‘ Ÿ˜á´à2X
+V
+TC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\build.ninja	Þ°Ì¸à2¤Ô “—á´à2\
+Z
+XC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\build.ninja.txt	Þ°Ì¸à2a
+_
+]C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\build_file_index.txt	Þ°Ì¸à2S ¦˜á´à2b
+`
+^C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\compile_commands.json	Þ°Ì¸à2	f
+d
+bC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\compile_commands.json.bin	Þ°Ì¸à2
+l
+j
+hC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\metadata_generation_command.txt	Þ°Ì¸à2Å ¡˜á´à2_
+]
+[C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\prefab_config.json	Þ°Ì¸à2( ¢˜á´à2d
+b
+`C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\arm64-v8a\symbol_folder_index.txt	Þ°Ì¸à2W £˜á´à2
+>>>>>>> Stashed changes

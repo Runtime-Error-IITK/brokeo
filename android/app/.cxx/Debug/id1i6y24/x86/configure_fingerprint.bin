@@ -2,6 +2,7 @@ C/C++ Structured LogW
 U
 SC:\Users\suryp\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txtC
 A
+<<<<<<< Updated upstream
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	Ú´•Šà2§ Ë»ˆåÖ2c
 a
 _C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\additional_project_files.txt	Ú´•Šà2 ¿æ™ˆà2`
@@ -26,3 +27,29 @@ W
 UC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\prefab_config.json	Ú´•Šà2( Éæ™ˆà2^
 \
 ZC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\symbol_folder_index.txt	Ú´•Šà2Q Ëæ™ˆà2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	¬ÒÌ¸à2§ Ë»ˆåÖ2c
+a
+_C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\additional_project_files.txt	¬ÒÌ¸à2 ´â´à2`
+^
+\C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\android_gradle_build.json	¬ÒÌ¸à2ª ºâ´à2e
+c
+aC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\android_gradle_build_mini.json	¬ÒÌ¸à2… ¿â´à2R
+P
+NC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\build.ninja	¬ÒÌ¸à2†Ô Óâ´à2V
+T
+RC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\build.ninja.txt	¬ÒÌ¸à2[
+Y
+WC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\build_file_index.txt	¬ÒÌ¸à2S Èâ´à2\
+Z
+XC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\compile_commands.json	­ÒÌ¸à2	`
+^
+\C:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\compile_commands.json.bin	­ÒÌ¸à2
+f
+d
+bC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\metadata_generation_command.txt	­ÒÌ¸à2§ Ââ´à2Y
+W
+UC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\prefab_config.json	­ÒÌ¸à2( Äâ´à2^
+\
+ZC:\Users\suryp\projects\brokeo\android\app\.cxx\Debug\id1i6y24\x86\symbol_folder_index.txt	­ÒÌ¸à2Q Æâ´à2
+>>>>>>> Stashed changes

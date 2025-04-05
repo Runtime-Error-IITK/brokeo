@@ -7,8 +7,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/material.dart';
+<<<<<<< Updated upstream
 import 'package:intl_phone_field/intl_phone_field.dart' show IntlPhoneField;
 import 'package:intl_phone_field/phone_number.dart' show PhoneNumber;
+=======
+import 'package:brokeo/frontend/login_pages/verify_email_page.dart';
+>>>>>>> Stashed changes
 
 class LoginPage1 extends ConsumerStatefulWidget {
   const LoginPage1({super.key});
@@ -38,6 +42,7 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
       verificationCompleted: (PhoneAuthCredential credential) async {
         final userCredential = await auth.signInWithCredential(credential);
 
+<<<<<<< Updated upstream
         if (context.mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -71,6 +76,39 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
           ),
         );
       },
+=======
+    log(email);
+
+    var acs = ActionCodeSettings(
+        // URL you want to redirect back to. The domain (www.example.com) for this
+        // URL must be whitelisted in the Firebase Console.
+        url: 'https://www.cse.iitk.ac.in/',
+        // This must be true
+        handleCodeInApp: true,
+        androidPackageName: 'com.example.brokeo',
+        // installIfNotAvailable
+        androidInstallApp: true,
+        // minimumVersion
+        androidMinimumVersion: '12');
+
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+      FirebaseAuth.instance.setLanguageCode('en'); // Replace 'en' with your desired locale code
+      FirebaseAuth.instance.sendSignInLinkToEmail(email: email, actionCodeSettings: acs);
+    } catch (e) {
+      log(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error sending email verification.")),
+      );
+      return;
+    }
+
+    // If the email passes validation, proceed with your authentication flow.
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => VerifyEmailPage(),
+      ),
+>>>>>>> Stashed changes
     );
   }
 
@@ -118,9 +156,15 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
+<<<<<<< Updated upstream
                     contentPadding: EdgeInsets.symmetric(
                         vertical: 20, horizontal: 16), // Adjusted padding
                     hintText: 'Enter Contact Number',
+=======
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                    hintText: 'Enter Email Address',
+>>>>>>> Stashed changes
                     hintStyle: TextStyle(
                       color: Colors.black.withOpacity(0.6),
                       fontSize: 18,
