@@ -4,11 +4,11 @@ import 'package:brokeo/frontend/home_pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:intl_phone_field/phone_number.dart';
 
 class LoginPage3 extends ConsumerStatefulWidget {
-  const LoginPage3({
-    super.key,
-  });
+  const LoginPage3({super.key});
 
   @override
   LoginPage3State createState() => LoginPage3State();
@@ -16,31 +16,26 @@ class LoginPage3 extends ConsumerStatefulWidget {
 
 class LoginPage3State extends ConsumerState<LoginPage3> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _budgetController = TextEditingController();
 
-  bool _isNameValid = true;
-  bool _isEmailValid = true;
-  bool _isBudgetValid = true;
+  PhoneNumber? phoneNumber;
 
-  bool _isValidEmail(String email) {
-    final RegExp emailRegex =
-        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    return emailRegex.hasMatch(email);
-  }
+  bool _isNameValid = true;
+  bool _isPhoneValid = true;
+  bool _isBudgetValid = true;
 
   void _validateAndProceed() {
     setState(() {
       _isNameValid = _nameController.text.isNotEmpty;
-      _isEmailValid = _emailController.text.isNotEmpty &&
-          _isValidEmail(_emailController.text);
+      _isPhoneValid =
+          phoneNumber != null && phoneNumber!.number.trim().isNotEmpty;
       _isBudgetValid = _budgetController.text.isNotEmpty;
     });
 
-    if (_isNameValid && _isEmailValid && _isBudgetValid) {
+    if (_isNameValid && _isPhoneValid && _isBudgetValid) {
       Map<String, dynamic> metadata = {
         'name': _nameController.text,
-        'email': _emailController.text,
+        'phone': phoneNumber!.completeNumber,
         'budget': int.parse(_budgetController.text),
       };
       ref
@@ -58,10 +53,10 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
   void _resetFields() {
     setState(() {
       _nameController.clear();
-      _emailController.clear();
       _budgetController.clear();
+      phoneNumber = null;
       _isNameValid = true;
-      _isEmailValid = true;
+      _isPhoneValid = true;
       _isBudgetValid = true;
     });
   }
@@ -71,7 +66,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       hintText: hintText,
       filled: true,
       fillColor: Colors.white,
-      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 16),
+      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
         borderSide:
@@ -101,7 +96,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
-              colors: [Color(0xFFB443B6), Colors.white],
+              colors: const [Color(0xFFB443B6), Colors.white],
             ),
           ),
           child: Column(
@@ -110,19 +105,19 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
               Text(
                 'Get Started!',
                 style: GoogleFonts.pacifico(
-                  color: Color(0xFF1C1B14),
+                  color: const Color(0xFF1C1B14),
                   fontSize: 40,
                   fontWeight: FontWeight.w400,
                   shadows: [
                     Shadow(
-                        offset: Offset(0, 4),
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.25)),
+                      offset: const Offset(0, 4),
+                      blurRadius: 4,
+                      color: Colors.black.withOpacity(0.25),
+                    ),
                   ],
                 ),
               ),
-              SizedBox(height: 30),
-
+              const SizedBox(height: 30),
               // Name Input
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -131,20 +126,63 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                   decoration: _inputDecoration("Name", _isNameValid),
                 ),
               ),
-              SizedBox(height: 15),
-
-              // Email Input
+              const SizedBox(height: 15),
+              // Phone Number Input with default country code +91
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: _inputDecoration("E-Mail", _isEmailValid),
+                child: IntlPhoneField(
+                  showCountryFlag: false,
+                  initialCountryCode: 'IN',
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 20, horizontal: 16),
+                    hintText: 'Enter Phone Number',
+                    hintStyle: TextStyle(
+                      color: Colors.black.withOpacity(0.6),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: _isPhoneValid ? Colors.grey : Colors.red,
+                          width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: _isPhoneValid ? Colors.grey : Colors.red,
+                          width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: _isPhoneValid ? Colors.blue : Colors.red,
+                          width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  textAlignVertical: TextAlignVertical(
+                      y: 0.4), // Ensures text is vertically centered
+                  textInputAction: TextInputAction.done,
+                  style: TextStyle(
+                    fontSize: 18, // Ensuring same size for prefix & number
+                    fontWeight: FontWeight.w500,
+                  ),
+                  dropdownTextStyle: TextStyle(
+                    fontSize: 18, // Same size for prefix
+                    fontWeight: FontWeight.w500,
+                  ),
+                  onChanged: (PhoneNumber number) {
+                    setState(() {
+                      phoneNumber = number;
+                    });
+                  },
                 ),
               ),
-              SizedBox(height: 15),
-
-              // Budget Input (Only Numbers)
+              const SizedBox(height: 15),
+              // Budget Input
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: TextFormField(
@@ -153,8 +191,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                   decoration: _inputDecoration("Budget", _isBudgetValid),
                 ),
               ),
-              SizedBox(height: 20),
-
+              const SizedBox(height: 20),
               // Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -166,16 +203,15 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                     child: ElevatedButton(
                       onPressed: _resetFields,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF65558F),
+                        backgroundColor: const Color(0xFF65558F),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      child:
-                          Text("Cancel", style: TextStyle(color: Colors.white)),
+                      child: const Text("Cancel",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
-
                   // Confirm Button
                   SizedBox(
                     width: 150,
@@ -183,12 +219,12 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                     child: ElevatedButton(
                       onPressed: _validateAndProceed,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF65558F),
+                        backgroundColor: const Color(0xFF65558F),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      child: Text("Confirm",
+                      child: const Text("Confirm",
                           style: TextStyle(color: Colors.white)),
                     ),
                   ),
