@@ -29,6 +29,11 @@ import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart'
 import 'package:brokeo/frontend/split_pages/split_history.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:brokeo/sms_handler.dart';
+import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -48,10 +53,141 @@ class _HomePageState extends ConsumerState<HomePage> {
   final emptyTransactionFilter = const TransactionFilter();
   final emptyCategoryFilter = const CategoryFilter();
 
+  static const platform = MethodChannel('sms_platform');
+
   @override
   void initState() {
     super.initState();
-    // Initialize any state variables or perform setup here
+    _checkAndRequestSmsPermission();
+    startListeningForSms();
+    SmsHandler.processNewSmsOnAppOpen();
+  }
+
+  Future<void> _checkAndRequestSmsPermission() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstTime = prefs.getBool('isFirstTime') ?? true;
+
+    if (isFirstTime) {
+      await _requestSmsPermission();
+      await prefs.setBool('isFirstTime', false);
+    }
+  }
+
+  Future<void> _requestSmsPermission() async {
+    final status = await Permission.sms.request();
+    if (status.isGranted) {
+      print("SMS permission granted");
+      // Listen for incoming messages
+      startListeningForSms();
+    } else if (status.isDenied) {
+      print("SMS permission denied");
+      // Show a popup to inform the user of the benefits of using sms permission
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "Granting SMS permission allows us to automatically fetch your transactions so you don't have to manually add new transactions."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _requestSmsPermission(); // Retry requesting permission
+              },
+              child: Text("Retry"),
+            ),
+            TextButton(
+              onPressed: () {
+                // Close the popup
+                Navigator.pop(context);
+              },
+              child: Text("Don't Allow"),
+            ),
+          ],
+        ),
+      );
+    } else if (status.isPermanentlyDenied) {
+      print("SMS permission permanently denied");
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "SMS permission is permanently denied. Please enable it in your device settings."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                openAppSettings(); // Open app settings for the user
+                Navigator.pop(context); // Close the popup
+              },
+              child: Text("Open Settings"),
+            ),
+          ],
+        );
+      });
+    } else if (status.isRestricted) {
+      print("SMS permission restricted");
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "SMS permission is restricted. Please check your device settings."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the popup
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      });
+    } else if (status.isLimited) {
+      print("SMS permission limited");
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "SMS permission is limited. Please check your device settings."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the popup
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      });
+    } else {
+      print("Unknown SMS permission status: $status");
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "Unknown SMS permission status. Please check your device settings."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the popup
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      });
+    }
+  }
+
+  // Start listening for incoming SMS messages
+  void startListeningForSms() {
+    print("Starting to listen for SMS messages...");
+    platform.setMethodCallHandler((call) async {
+      if (call.method == 'onSmsReceived') {
+        print("Received SMS message from platform channel");
+        final String newMessage = call.arguments as String;
+        SmsHandler.fetchTransactionData(newMessage);
+      }
+    });
   }
 
   @override
@@ -1067,6 +1203,12 @@ class _HomePageState extends ConsumerState<HomePage> {
   //     ),
   //   );
   // }
+
+  @override
+  void dispose() {
+    SmsHandler.saveAppCloseTime(); // Save the app's close time when the app is closed
+    super.dispose();
+  }
 }
 
 class ArcPainter extends CustomPainter {
