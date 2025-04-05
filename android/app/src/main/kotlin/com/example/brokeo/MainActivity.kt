@@ -1,5 +1,6 @@
 package com.example.brokeo
 
+import io.flutter.embedding.android.FlutterActivity
 import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context

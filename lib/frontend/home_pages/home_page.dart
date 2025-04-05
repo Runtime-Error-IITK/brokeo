@@ -3,6 +3,7 @@ import 'dart:math' show pi;
 import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/merchant.dart';
 import 'package:brokeo/backend/models/schedule.dart';
+import 'package:brokeo/backend/models/sms.dart';
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart'
     show CategoryFilter, categoryStreamProvider;
@@ -31,7 +32,6 @@ import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:brokeo/sms_handler.dart';
-import 'package:sms_advanced/sms_advanced.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -53,18 +53,14 @@ class _HomePageState extends ConsumerState<HomePage> {
   final emptyTransactionFilter = const TransactionFilter();
   final emptyCategoryFilter = const CategoryFilter();
 
-  @override
-  void initState() {
-    super.initState();
-    // Initialize any state variables or perform setup here
-  }
-
-  final SmsReceiver smsReceiver = SmsReceiver();
+  static const platform = MethodChannel('sms_platform');
 
   @override
   void initState() {
     super.initState();
     _checkAndRequestSmsPermission();
+    startListeningForSms();
+    SmsHandler.processNewSmsOnAppOpen(); // Process new SMS messages on app open
   }
 
   Future<void> _checkAndRequestSmsPermission() async {
@@ -82,8 +78,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (status.isGranted) {
       print("SMS permission granted");
       // Listen for incoming messages
-      listenForMessages();
-    } else {
+      startListeningForSms();
+    } else if (status.isDenied) {
       print("SMS permission denied");
       // Show a popup to inform the user of the benefits of using sms permission
       showDialog(
@@ -100,39 +96,98 @@ class _HomePageState extends ConsumerState<HomePage> {
               },
               child: Text("Retry"),
             ),
+            TextButton(
+              onPressed: () {
+                // Close the popup
+                Navigator.pop(context);
+              },
+              child: Text("Don't Allow"),
+            ),
           ],
         ),
       );
+    } else if (status.isPermanentlyDenied) {
+      print("SMS permission permanently denied");
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "SMS permission is permanently denied. Please enable it in your device settings."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                openAppSettings(); // Open app settings for the user
+                Navigator.pop(context); // Close the popup
+              },
+              child: Text("Open Settings"),
+            ),
+          ],
+        );
+      });
+    } else if (status.isRestricted) {
+      print("SMS permission restricted");
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "SMS permission is restricted. Please check your device settings."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the popup
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      });
+    } else if (status.isLimited) {
+      print("SMS permission limited");
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "SMS permission is limited. Please check your device settings."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the popup
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      });
+    } else {
+      print("Unknown SMS permission status: $status");
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: Text("SMS Permission"),
+          content: Text(
+              "Unknown SMS permission status. Please check your device settings."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the popup
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      });
     }
   }
 
-  void listenForMessages() async {
-    // Listen for incoming messages
-    smsReceiver.onSmsReceived?.listen((SmsMessage message) {
-      print("New SMS: ${message.body} at ${message.date}");
-      if (message.body != null) {
-        SmsHandler.fetchTransactionData(
-            message.body!, message.date!); // Send SMS body to FastAPI
+  // Start listening for incoming SMS messages
+  void startListeningForSms() {
+    print("Starting to listen for SMS messages...");
+    platform.setMethodCallHandler((call) async {
+      if (call.method == 'onSmsReceived') {
+        print("Received SMS message from platform channel");
+        final String newMessage = call.arguments as String;
+        SmsHandler.fetchTransactionData(newMessage);
       }
     });
-    // telephony.listenIncomingSms(
-    //   onNewMessage: (SmsMessage message) {
-    //     print("New SMS: ${message.body} at ${message.date}");
-    //     if (message.body != null) {
-    //       SmsHandler.fetchTransactionData(message.body!, message.date!); // Send SMS body to FastAPI
-    //     }
-    //   },
-    //   listenInBackground: true, // Listen to SMS in the background
-    //   onBackgroundMessage: onBackgroundMessage, // Provide the background message handler
-    // );
-  }
-
-  static void onBackgroundMessage(SmsMessage message) async {
-    // This function will be called when a new SMS is received in the background
-    print("Background SMS: ${message.body} at ${message.date}");
-    if (message.body != null) {
-      SmsHandler.fetchTransactionData(message.body!, message.date!);
-    }
   }
 
   @override
@@ -1127,6 +1182,12 @@ class _HomePageState extends ConsumerState<HomePage> {
   //     ),
   //   );
   // }
+
+  @override
+  void dispose() {
+    SmsHandler.saveAppCloseTime(); // Save the app's close time when the app is closed
+    super.dispose();
+  }
 }
 
 class ArcPainter extends CustomPainter {
