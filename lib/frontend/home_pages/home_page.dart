@@ -33,7 +33,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:brokeo/sms_handler.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -54,13 +54,47 @@ class _HomePageState extends ConsumerState<HomePage> {
   final emptyCategoryFilter = const CategoryFilter();
 
   static const platform = MethodChannel('sms_platform');
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
+    _initializeNotifications();
     _checkAndRequestSmsPermission();
     startListeningForSms();
     SmsHandler.processNewSmsOnAppOpen();
+  }
+
+  void _initializeNotifications() {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> _showNotification(String title, String body) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'sms_channel',
+      'SMS Notifications',
+      channelDescription: 'Notifications for SMS-based transactions',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      title,
+      body,
+      platformChannelSpecifics,
+    );
   }
 
   Future<void> _checkAndRequestSmsPermission() async {
