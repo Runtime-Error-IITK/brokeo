@@ -1,3 +1,6 @@
+// import 'package:brokeo/backend/services/providers/read_providers/split_transaction_stream_provider.dart'
+//     show SplitTransactionFilter, splitTransactionStreamProvider;
+// import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 // import 'package:flutter/material.dart';
 // import 'package:hooks_riverpod/hooks_riverpod.dart';
 // import 'package:intl/intl.dart';
@@ -9,9 +12,8 @@
 // class SplitHistoryPage extends ConsumerStatefulWidget {
 //   //final Map<String, dynamic> person;
 
-//   final Map<String, dynamic> split;
-
-//   const SplitHistoryPage({Key? key, required this.split}) : super(key: key);
+//   final String userId;
+//   const SplitHistoryPage({Key? key, required this.userId}) : super(key: key);
 
 //   // const SplitHistoryPage({Key? key, required this.split}) : super(key: key);
 
@@ -23,242 +25,234 @@
 
 // class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
 //   int _currentIndex = 3;
-//   List<Map<String, dynamic>> transactions = [];
 //   bool _isLoading = true;
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadTransactions();
-//   }
+//   // @override
+//   // void initState() {
+//   //   super.initState();
+//   //   _loadTransactions();
+//   // }
 
-//   Future<void> _loadTransactions() async {
-//     // Sample data - two example transactions
-//     final mockTransactions = [
-//       {
-//         'name': widget.split['name'],
-//         'amount': 200.0,
-//         'date': '31 Jan\'25, 19:00',
-//         'avatarText': widget.split['name'][0]
-//       },
-//       {
-//         'name': widget.split['name'],
-//         'amount': -150.0,
-//         'date': '30 Jan\'25, 12:30',
-//         'avatarText': widget.split['name'][0]
-//       },
-//     ];
+//   // Future<void> _loadTransactions() async {
+//   //   // Sample data - two example transactions
+//   //   final mockTransactions = [
+//   //     {
+//   //       'name': widget.split['name'],
+//   //       'amount': 200.0,
+//   //       'date': '31 Jan\'25, 19:00',
+//   //       'avatarText': widget.split['name'][0]
+//   //     },
+//   //     {
+//   //       'name': widget.split['name'],
+//   //       'amount': -150.0,
+//   //       'date': '30 Jan\'25, 12:30',
+//   //       'avatarText': widget.split['name'][0]
+//   //     },
+//   //   ];
 
-//     await Future.delayed(Duration(seconds: 1)); // Simulate network delay
+//   //   await Future.delayed(Duration(seconds: 1)); // Simulate network delay
 
-//     setState(() {
-//       transactions = mockTransactions;
-//       _isLoading = false;
-//     });
-//   }
+//   //   setState(() {
+//   //     transactions = mockTransactions;
+//   //     _isLoading = false;
+//   //   });
+//   // }
 
 //   @override
 //   Widget build(BuildContext context) {
-//     final totalOwed = transactions.fold<double>(
-//       0,
-//       (sum, transaction) => sum + transaction['amount'],
-//     );
+//     final splitFilter = SplitTransactionFilter(otherUserId: widget.userId);
+//     final asyncSplitTransactions =
+//         ref.watch(splitTransactionStreamProvider(splitFilter));
 
-//     return Scaffold(
-//       appBar: AppBar(
-//         leading: IconButton(
-//           icon: Icon(Icons.arrow_back),
-//           onPressed: () => Navigator.pop(context),
-//         ),
-//         title: Text(widget.split['name'], style: TextStyle(fontSize: 24)),
-//         centerTitle: true,
-//       ),
-//       body: _isLoading
-//           ? Center(child: CircularProgressIndicator())
-//           : Column(
-//               children: [
-//                 // "You owe", "owes you", or "Settled" message below app bar
-//                 Container(
-//                   padding: EdgeInsets.symmetric(
-//                     horizontal: 10, // More horizontal padding
-//                     vertical: 4, // Less vertical padding
-//                   ),
-//                   child: Center(
-//                     child: Text(
-//                       totalOwed > 0
-//                           ? 'You owe ${widget.split['name']} ₹${totalOwed.abs().toStringAsFixed(2)}'
-//                           : totalOwed < 0
-//                               ? '${widget.split['name']} owes you ₹${totalOwed.abs().toStringAsFixed(2)}'
-//                               : 'Settled',
-//                       style: TextStyle(
-//                         fontSize: 17,
-//                         fontWeight: FontWeight.bold,
-//                         color: totalOwed > 0
-//                             ? Colors.red
-//                             : totalOwed < 0
-//                                 ? Colors.green
-//                                 : Colors.black, // Neutral color for "Settled"
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 // Action buttons
-//                 Padding(
-//                   padding: EdgeInsets.symmetric(
-//                     horizontal: 16, // More horizontal padding
-//                     vertical: 4, // Less vertical padding
-//                   ),
-//                   child: Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//                     children: [
-//                       ElevatedButton(
-//                         onPressed: () => _showSettleUpConfirmation(context, totalOwed),
-//                         child: Text('Settle Up'),
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: Colors.purple,
-//                           foregroundColor: Colors.white,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
+//     final asyncUserName = ref.watch(userNameProvider(widget.userId));
 
-//                 // Transaction list
-//                 Expanded(
-//                   child: ListView.separated(
-//                     padding: EdgeInsets.zero,
-//                     itemCount: transactions.length,
-//                     itemBuilder: (context, index) {
-//                       final reversedIndex = transactions.length - 1 - index;
-//                       final transaction = transactions[reversedIndex];
-//                       final isPositive = transaction['amount'] > 0;
-//                       return InkWell(
-//                         onTap: () {},
-//                         child: Container(
-//                           padding: const EdgeInsets.symmetric(
-//                               vertical: 5, horizontal: 12),
-//                           child: Row(
-//                             children: [
-//                               CircleAvatar(
-//                                 radius: 20,
-//                                 backgroundColor: Colors.purple[100],
-//                                 child: Text(
-//                                   transaction['avatarText'],
-//                                   style: TextStyle(
-//                                     color: Colors.purple,
-//                                     fontWeight: FontWeight.bold,
-//                                   ),
+//     return asyncUserName.when(
+//         loading: () => const Center(child: CircularProgressIndicator()),
+//         error: (error, stack) {
+//           WidgetsBinding.instance.addPostFrameCallback((_) {
+//             ScaffoldMessenger.of(context).showSnackBar(
+//               SnackBar(content: Text("User error: $error")),
+//             );
+//           });
+//           return SizedBox.shrink();
+//         },
+//         data: (name) {
+//           return asyncSplitTransactions.when(
+//             loading: () => const Center(child: CircularProgressIndicator()),
+//             error: (error, stack) {
+//               WidgetsBinding.instance.addPostFrameCallback((_) {
+//                 ScaffoldMessenger.of(context).showSnackBar(
+//                   SnackBar(content: Text("Error: $error")),
+//                 );
+//               });
+//               return SizedBox.shrink();
+//             },
+//             data: (transactions) {
+//               final totalOwed = transactions.fold<double>(
+//                 0,
+//                 (sum, transaction) =>
+//                     sum +
+//                     ((transaction.userId == widget.userId)
+//                         ? transaction.splitAmounts[widget.userId]!
+//                         : -1 * transaction.splitAmounts[widget.userId]!),
+//               );
+
+//               return Scaffold(
+//                 appBar: AppBar(
+//                   leading: IconButton(
+//                     icon: Icon(Icons.arrow_back),
+//                     onPressed: () => Navigator.pop(context),
+//                   ),
+//                   title: Text(name, style: TextStyle(fontSize: 24)),
+//                   centerTitle: true,
+//                 ),
+//                 body: _isLoading
+//                     ? Center(child: CircularProgressIndicator())
+//                     : Column(
+//                         children: [
+//                           // "You owe", "owes you", or "Settled" message below app bar
+//                           Container(
+//                             padding: EdgeInsets.symmetric(
+//                               horizontal: 10, // More horizontal padding
+//                               vertical: 4, // Less vertical padding
+//                             ),
+//                             child: Center(
+//                               child: Text(
+//                                 totalOwed > 0
+//                                     ? 'You owe $name ₹${totalOwed.abs().toStringAsFixed(2)}'
+//                                     : totalOwed < 0
+//                                         ? '$name owes you ₹${totalOwed.abs().toStringAsFixed(2)}'
+//                                         : 'Settled',
+//                                 style: TextStyle(
+//                                   fontSize: 17,
+//                                   fontWeight: FontWeight.bold,
+//                                   color: totalOwed > 0
+//                                       ? Colors.red
+//                                       : totalOwed < 0
+//                                           ? Colors.green
+//                                           : Colors
+//                                               .black, // Neutral color for "Settled"
 //                                 ),
 //                               ),
-//                               SizedBox(width: 16),
-//                               Expanded(
-//                                 child: Column(
-//                                   crossAxisAlignment: CrossAxisAlignment.start,
-//                                   children: [
-//                                     Row(
-//                                       mainAxisAlignment: MainAxisAlignment
-//                                           .spaceBetween, // Aligns name & amount like _buildBalanceRow
+//                             ),
+//                           ),
+//                           // Action buttons
+//                           Padding(
+//                             padding: EdgeInsets.symmetric(
+//                               horizontal: 16, // More horizontal padding
+//                               vertical: 4, // Less vertical padding
+//                             ),
+//                             child: Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                               children: [
+//                                 ElevatedButton(
+//                                   onPressed: () => _showSettleUpConfirmation(
+//                                       context, totalOwed),
+//                                   style: ElevatedButton.styleFrom(
+//                                     backgroundColor: Colors.purple,
+//                                     foregroundColor: Colors.white,
+//                                   ),
+//                                   child: Text('Settle Up'),
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+
+//                           // Transaction list
+//                           Expanded(
+//                             child: ListView.separated(
+//                               padding: EdgeInsets.zero,
+//                               itemCount: transactions.length,
+//                               itemBuilder: (context, index) {
+//                                 final reversedIndex =
+//                                     transactions.length - 1 - index;
+//                                 final transaction = transactions[reversedIndex];
+
+//                                 final isPositive =
+//                                     transaction.userId == widget.userId;
+//                                 return InkWell(
+//                                   onTap: () {},
+//                                   child: Container(
+//                                     padding: const EdgeInsets.symmetric(
+//                                         vertical: 5, horizontal: 12),
+//                                     child: Row(
 //                                       children: [
-//                                         Text(
-//                                           transaction['name'],
-//                                           style: TextStyle(
-//                                             // Matches label style
-//                                             fontSize: 16,
-//                                             color: Colors
-//                                                 .black, // Black text for name
+//                                         CircleAvatar(
+//                                           radius: 20,
+//                                           backgroundColor: Colors.purple[100],
+//                                           child: Text(
+//                                             name[0],
+//                                             style: TextStyle(
+//                                               color: Colors.purple,
+//                                               fontWeight: FontWeight.bold,
+//                                             ),
 //                                           ),
 //                                         ),
-//                                         Text(
-//                                           '₹${transaction['amount'].abs().toStringAsFixed(2)}',
-//                                           style: TextStyle(
-//                                             color: isPositive
-//                                                 ? Colors.green
-//                                                 : Colors.red,
-//                                             fontSize:
-//                                                 17, // Matches amount style
-//                                             fontWeight: FontWeight
-//                                                 .w600, // Bold like _buildBalanceRow
+//                                         SizedBox(width: 16),
+//                                         Expanded(
+//                                           child: Column(
+//                                             crossAxisAlignment:
+//                                                 CrossAxisAlignment.start,
+//                                             children: [
+//                                               Row(
+//                                                 mainAxisAlignment: MainAxisAlignment
+//                                                     .spaceBetween, // Aligns name & amount like _buildBalanceRow
+//                                                 children: [
+//                                                   Text(
+//                                                     name,
+//                                                     style: TextStyle(
+//                                                       // Matches label style
+//                                                       fontSize: 16,
+//                                                       color: Colors
+//                                                           .black, // Black text for name
+//                                                     ),
+//                                                   ),
+//                                                   Text(
+//                                                     '₹${transaction.splitAmounts[widget.userId]!.abs().toStringAsFixed(2)}',
+//                                                     style: TextStyle(
+//                                                       color: isPositive
+//                                                           ? Colors.green
+//                                                           : Colors.red,
+//                                                       fontSize:
+//                                                           17, // Matches amount style
+//                                                       fontWeight: FontWeight
+//                                                           .w600, // Bold like _buildBalanceRow
+//                                                     ),
+//                                                   ),
+//                                                 ],
+//                                               ),
+//                                               SizedBox(
+//                                                   height:
+//                                                       4), // Small spacing between name and date
+//                                               Text(
+//                                                 DateFormat(
+//                                                         "MMM dd, yyyy, hh:mm ")
+//                                                     .format(transaction.date),
+//                                                 style: TextStyle(
+//                                                   color: Colors.grey.shade600,
+//                                                   fontSize: 14,
+//                                                 ),
+//                                               ),
+//                                             ],
 //                                           ),
 //                                         ),
 //                                       ],
 //                                     ),
-//                                     SizedBox(
-//                                         height:
-//                                             4), // Small spacing between name and date
-//                                     Text(
-//                                       transaction['date'],
-//                                       style: TextStyle(
-//                                         color: Colors.grey.shade600,
-//                                         fontSize: 14,
-//                                       ),
-//                                     ),
-//                                   ],
-//                                 ),
+//                                   ),
+//                                 );
+//                               },
+//                               separatorBuilder: (context, index) => Divider(
+//                                 height: 1,
+//                                 color: Colors.grey.shade300,
 //                               ),
-//                             ],
+//                             ),
 //                           ),
-//                         ),
-//                       );
-//                     },
-//                     separatorBuilder: (context, index) => Divider(
-//                       height: 1,
-//                       color: Colors.grey.shade300,
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//       bottomNavigationBar: buildBottomNavigationBar(),
-//     );
-//   }
-
-//   Widget buildBottomNavigationBar() {
-//     return BottomNavigationBar(
-//       currentIndex: _currentIndex,
-//       onTap: (index) {
-//         if (index != _currentIndex) {
-//           setState(() {
-//             _currentIndex = index;
-//           });
-//         }
-//         if (index == 0) {
-//           Navigator.push(
-//             context,
-//             MaterialPageRoute(
-//               builder: (context) =>
-//                   brokeo_split.HomePage(name: "Darshan", budget: 5000),
-//             ),
+//                         ],
+//                       ),
+//               );
+//             },
 //           );
-//         } else if (index == 1) {
-//           Navigator.push(
-//             context,
-//             MaterialPageRoute(
-//               builder: (context) => CategoriesPage(),
-//             ),
-//           );
-//         } else if (index == 2) {
-//           Navigator.push(
-//             context,
-//             MaterialPageRoute(
-//               builder: (context) => AnalyticsPage(),
-//             ),
-//           );
-//         }
-//       },
-//       type: BottomNavigationBarType.fixed,
-//       selectedItemColor: Colors.purple,
-//       unselectedItemColor: Colors.grey,
-//       iconSize: 24,
-//       selectedFontSize: 12,
-//       unselectedFontSize: 12,
-//       items: [
-//         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-//         BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
-//         BottomNavigationBarItem(
-//             icon: Icon(Icons.analytics), label: "Analytics"),
-//         BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-//       ],
-//     );
+//         });
 //   }
 
 //   // Shows a dialog/popup to add a new transaction
@@ -497,7 +491,8 @@
 //                   ),
 //                   keyboardType: TextInputType.numberWithOptions(decimal: true),
 //                   inputFormatters: [
-//                     FilteringTextInputFormatter.allow(RegExp(r'^-?\d+\.?\d{0,2}')),
+//                     FilteringTextInputFormatter.allow(
+//                         RegExp(r'^-?\d+\.?\d{0,2}')),
 //                   ],
 //                   validator: (value) {
 //                     if (value == null || value.isEmpty) {
@@ -548,7 +543,8 @@
 //                     transactions.add({
 //                       'name': widget.split['name'],
 //                       'amount': -enteredAmount,
-//                       'date': DateFormat('dd MMM\'yy, HH:mm').format(DateTime.now()),
+//                       'date': DateFormat('dd MMM\'yy, HH:mm')
+//                           .format(DateTime.now()),
 //                       'avatarText': widget.split['name'][0],
 //                     });
 //                   });

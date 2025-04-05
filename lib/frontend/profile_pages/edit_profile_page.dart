@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:brokeo/frontend/login_pages/login_page3.dart';
 class EditProfilePage extends ConsumerStatefulWidget {
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
@@ -23,7 +24,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     // Set default values
     _nameController.text = "Aujasvit Datta";
     _emailController.text = "aujasvit@dhichik.com";
-    _phoneController.text = "123-456-7890";
+    _phoneController.text = "+91 9870131789"; // Default phone number
     _addressController.text = "Hall X, IIT X";
     _budgetController.text = "500";
   }
@@ -80,42 +81,67 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   decoration: InputDecoration(
                     labelText: "E-Mail",
                     border: OutlineInputBorder(),
+                    enabled: false, // Visually indicate the field is read-only
                   ),
                   keyboardType: TextInputType.emailAddress,
+                  readOnly: true, // Make the email field non-editable
                 ),
                 SizedBox(height: 16),
 
                 // Phone Input
 
                 SizedBox(height: 8),
-                TextFormField(
-                  controller: _phoneController,
+                IntlPhoneField(
+                  showCountryFlag: false,
+                  initialCountryCode: 'IN',
+                  initialValue: "9870131789", // Default phone number without country code
                   decoration: InputDecoration(
                     labelText: "Phone Number",
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.phone,
+                  onChanged: (value) {
+                    setState(() {
+                      _phoneController.text = value.completeNumber.trim();
+                    });
+                  },
+                  onSaved: (value) {
+                    _phoneController.text = value?.completeNumber.trim() ?? '';
+                  },
+                  controller: null, // Remove the controller to avoid conflicts
                 ),
                 SizedBox(height: 16),
 
-                // Address Input
-                SizedBox(height: 8),
-                TextFormField(
-                  controller: _addressController,
-                  decoration: InputDecoration(
-                    labelText: "Address",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16),
+                // // Address Input
+                // SizedBox(height: 8),
+                // TextFormField(
+                //   controller: _addressController,
+                //   decoration: InputDecoration(
+                //     labelText: "Address",
+                //     border: OutlineInputBorder(),
+                //   ),
+                // ),
+                // SizedBox(height: 16),
 
-               
                 // Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton(
                       onPressed: () {
+                        // Validate fields
+                        if (_nameController.text.trim().isEmpty ||
+                            _phoneController.text.trim().isEmpty ||
+                            _addressController.text.trim().isEmpty ||
+                            _budgetController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Please fill in all the fields."),
+                            ),
+                          );
+                          return;
+                        }
+
                         // Save logic
                         print("Name: ${_nameController.text}");
                         print("Email: ${_emailController.text}");
@@ -145,7 +171,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
                         padding: EdgeInsets.symmetric(
                             horizontal: 24.0, vertical: 12.0),
                       ),

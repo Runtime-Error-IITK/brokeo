@@ -1,3 +1,6 @@
+// import 'package:brokeo/backend/models/split_transaction.dart';
+// import 'package:brokeo/backend/services/providers/read_providers/split_transaction_stream_provider.dart'
+//     show splitTransactionStreamProvider;
 // import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 // import 'package:flutter/material.dart';
 // import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
@@ -5,15 +8,21 @@
 // import 'package:brokeo/frontend/split_pages/split_history.dart';
 // import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 // import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import 'package:flutter/material.dart';
 
 class ManageSplitsPage extends StatelessWidget {
-  const ManageSplitsPage({super.key});
+  const ManageSplitsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return const Text("Hello");
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Normal Stateless Widget'),
+      ),
+      body: const Center(
+        child: Text('Hello, Flutter!'),
+      ),
+    );
   }
 }
 
@@ -23,53 +32,48 @@ class ManageSplitsPage extends StatelessWidget {
 // }
 
 // class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
-//   int _currentIndex = 3;
-//   List<brokeo_split.Split> splits =
-//       []; // Now using Split model instead of raw data
+//   int _currentIndex = 3; // Set the initial index to 3 for the Split tab
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadSplits(); // Load data when widget initializes
-//   }
+//   // Future<void> _loadSplits() async {
+//   //   // Simulated data - replace with your actual data fetching logic
+//   //   final mockData = [
+//   //     {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
+//   //     {"name": "Darshan", "amount": 510.0, "isSettled": false},
+//   //     {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
+//   //     {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
+//   //     {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
+//   //     {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
+//   //     {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
+//   //     {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
+//   //     {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
+//   //     {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+//   //     {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+//   //     {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+//   //     {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
+//   //     {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
+//   //   ];
 
-//   Future<void> _loadSplits() async {
-//     // Simulated data - replace with your actual data fetching logic
-//     final mockData = [
-//       {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
-//       {"name": "Darshan", "amount": 510.0, "isSettled": false},
-//       {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
-//       {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
-//       {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
-//       {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
-//       {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
-//       {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
-//       {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
-//       {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-//       {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-//       {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-//       {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-//       {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
-//     ];
+//   //   // Convert raw data to Split objects
 
-//     // Convert raw data to Split objects
-
-//     setState(() {
-//       splits =
-//           mockData.map((item) => brokeo_split.Split.fromMap(item)).toList();
-//     });
-//   }
+//   //   setState(() {
+//   //     splits =
+//   //         mockData.map((item) => brokeo_split.Split.fromMap(item)).toList();
+//   //   });
+//   // }
 
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
 //       //backgroundColor: Color.fromARGB(255, 255, 247, 254),
 //       body: ListView.separated(
-//         padding: const EdgeInsets.symmetric(horizontal: 16.0), // Added horizontal padding
-//         itemCount: splits.length + 2, // increased count: spacer + summary card + splits
+//         padding: const EdgeInsets.symmetric(
+//             horizontal: 16.0), // Added horizontal padding
+//         itemCount: splits.length +
+//             2, // increased count: spacer + summary card + splits
 //         itemBuilder: (context, index) {
 //           if (index == 0) {
-//             return const SizedBox(height: 20); // Spacer to lower the summary card
+//             return const SizedBox(
+//                 height: 20); // Spacer to lower the summary card
 //           } else if (index == 1) {
 //             // Summary Card moved to be scrollable
 //             return Container(
@@ -79,7 +83,8 @@ class ManageSplitsPage extends StatelessWidget {
 //                 borderRadius: BorderRadius.circular(16.0),
 //                 boxShadow: [
 //                   BoxShadow(
-//                     color: const Color.fromARGB(255, 237, 155, 219).withOpacity(0.2),
+//                     color: const Color.fromARGB(255, 237, 155, 219)
+//                         .withOpacity(0.2),
 //                     blurRadius: 8,
 //                     spreadRadius: 1,
 //                     offset: const Offset(0, 4),
@@ -138,7 +143,6 @@ class ManageSplitsPage extends StatelessWidget {
 //               shape: const CircleBorder(),
 //             )
 //           : null,
-//       bottomNavigationBar: buildBottomNavigationBar(),
 //     );
 //   }
 
@@ -170,13 +174,13 @@ class ManageSplitsPage extends StatelessWidget {
 //     );
 //   }
 
-//   Widget _buildSplitTile(brokeo_split.Split split) {
+//   Widget _buildSplitTile(SplitTransaction split) {
 //     return InkWell(
 //       onTap: () {
 //         Navigator.push(
 //           context,
 //           MaterialPageRoute(
-//             builder: (context) => SplitHistoryPage(split: split.toMap()),
+//             builder: (context) => SplitHistoryPage(),
 //           ),
 //         );
 //       },
@@ -224,62 +228,6 @@ class ManageSplitsPage extends StatelessWidget {
 //           ),
 //         ],
 //       ),
-//     );
-//   }
-
-//   Widget buildBottomNavigationBar() {
-//     return BottomNavigationBar(
-//       currentIndex: _currentIndex,
-//       onTap: (index) {
-//         if (index != _currentIndex) {
-//           setState(() {
-//             _currentIndex = index;
-//           });
-//         }
-//         if (index == 0) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//               builder: (context) =>
-//                   brokeo_split.HomePage(name: "Darshan", budget: 5000),
-//             ),
-//           );
-//         } else if (index == 1) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//               builder: (context) => CategoriesPage(),
-//             ),
-//           );
-//         } else if (index == 2) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//               builder: (context) => AnalyticsPage(),
-//             ),
-//           );
-//         } else if (index == 3) {
-//           Navigator.push(
-//             context,
-//             MaterialPageRoute(
-//               builder: (context) => ManageSplitsPage(),
-//             ),
-//           );
-//         }
-//       },
-//       type: BottomNavigationBarType.fixed,
-//       selectedItemColor: Colors.purple,
-//       unselectedItemColor: Colors.grey,
-//       iconSize: 24,
-//       selectedFontSize: 12,
-//       unselectedFontSize: 12,
-//       items: [
-//         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-//         BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
-//         BottomNavigationBarItem(
-//             icon: Icon(Icons.analytics), label: "Analytics"),
-//         BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-//       ],
 //     );
 //   }
 // }

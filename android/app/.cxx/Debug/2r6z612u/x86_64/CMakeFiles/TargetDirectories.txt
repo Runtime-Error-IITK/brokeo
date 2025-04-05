@@ -1,0 +1,2 @@
+C:/Users/Darshan/OneDrive/Desktop/brokeo/android/app/.cxx/Debug/2r6z612u/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/Darshan/OneDrive/Desktop/brokeo/android/app/.cxx/Debug/2r6z612u/x86_64/CMakeFiles/rebuild_cache.dir

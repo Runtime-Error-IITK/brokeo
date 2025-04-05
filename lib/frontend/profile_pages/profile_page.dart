@@ -120,21 +120,21 @@ class ProfilePage extends ConsumerWidget {
 
             Divider(),
 
-            // Help & Support
-            ListTile(
-              leading: Icon(Icons.help_outline, color: Colors.purple),
-              title: Text(
-                "Help & Support",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => FAQsPage()),
-                );
-              },
-            ),
+            // // Help & Support
+            // ListTile(
+            //   leading: Icon(Icons.help_outline, color: Colors.purple),
+            //   title: Text(
+            //     "Help & Support",
+            //     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            //   ),
+            //   trailing: Icon(Icons.arrow_forward_ios, size: 16),
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (context) => FAQsPage()),
+            //     );
+            //   },
+            // ),
 
             // Contact Us
             ListTile(
@@ -158,10 +158,7 @@ class ProfilePage extends ConsumerWidget {
               ),
               trailing: Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => PrivacyPolicyPage()),
-                );
+                _showPrivacyPolicyDialog(context);
               },
             ),
 
@@ -195,48 +192,125 @@ class ProfilePage extends ConsumerWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Text(
-                    "Email: ",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "support@brokeo.com",
+              if (title == "About Us") ...[
+                Text(
+                  "We are Runtime-Error, a passionate team of 10 individuals dedicated to improving financial management and delivering a seamless user experience.\n\n"
+                  "If you have any questions or need assistance, feel free to reach out to us via the email or phone number provided on the Contact Us page.\n\n",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    Text(
+                      "Email: ",
                       style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Text(
-                    "Phone: ",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    Expanded(
+                      child: Text(
+                        "shreyjsolanki@gmail.com",
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "+91 9876543210",
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text(
+                      "Phone: ",
                       style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
+                    Expanded(
+                      child: Text(
+                        "+91 9574662607",
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Helper method to show the Privacy Policy dialog
+  void _showPrivacyPolicyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Center(
+            child: Text(
+              "Privacy Policy",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: "Data We Collect\n",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  TextSpan(
+                    text: "Phone Number—Required for login.\n"
+                        "Transaction Data—Includes budgets, spending categories, and transactions.\n"
+                        "SMS Data—Only accessed if you enable transaction tracking.\n",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  TextSpan(
+                    text: "How We Use Your Data\n",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  TextSpan(
+                    text: "To provide core features such as budgeting and analytics.\n"
+                        "SMS data remains on your device and is not stored on our servers.\n",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  TextSpan(
+                    text: "Data Security\n",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  TextSpan(
+                    text: "Your data is securely stored in Firebase, Google’s cloud infrastructure.\n",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  TextSpan(
+                    text: "Your Control\n",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  TextSpan(
+                    text: "You can disable SMS access at any time through app settings.\n"
+                        "Your data can be exported via the app when needed.",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
           ),
           actions: [
             TextButton(

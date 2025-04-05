@@ -33,7 +33,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:brokeo/sms_handler.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -54,13 +54,49 @@ class _HomePageState extends ConsumerState<HomePage> {
   final emptyCategoryFilter = const CategoryFilter();
 
   static const platform = MethodChannel('sms_platform');
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
+    _initializeNotifications();
     _checkAndRequestSmsPermission();
     startListeningForSms();
     SmsHandler.processNewSmsOnAppOpen();
+  }
+
+  void _initializeNotifications() {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> _showNotification(String title, String body) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'sms_channel',
+      'SMS Notifications',
+      channelDescription: 'Notifications for SMS-based transactions',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      title,
+      body,
+      platformChannelSpecifics,
+    );
   }
 
   Future<void> _checkAndRequestSmsPermission() async {
@@ -108,73 +144,81 @@ class _HomePageState extends ConsumerState<HomePage> {
       );
     } else if (status.isPermanentlyDenied) {
       print("SMS permission permanently denied");
-      showDialog(context: context, builder: (context) {
-        return AlertDialog(
-          title: Text("SMS Permission"),
-          content: Text(
-              "SMS permission is permanently denied. Please enable it in your device settings."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                openAppSettings(); // Open app settings for the user
-                Navigator.pop(context); // Close the popup
-              },
-              child: Text("Open Settings"),
-            ),
-          ],
-        );
-      });
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("SMS Permission"),
+              content: Text(
+                  "SMS permission is permanently denied. Please enable it in your device settings."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    openAppSettings(); // Open app settings for the user
+                    Navigator.pop(context); // Close the popup
+                  },
+                  child: Text("Open Settings"),
+                ),
+              ],
+            );
+          });
     } else if (status.isRestricted) {
       print("SMS permission restricted");
-      showDialog(context: context, builder: (context) {
-        return AlertDialog(
-          title: Text("SMS Permission"),
-          content: Text(
-              "SMS permission is restricted. Please check your device settings."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the popup
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      });
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("SMS Permission"),
+              content: Text(
+                  "SMS permission is restricted. Please check your device settings."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the popup
+                  },
+                  child: Text("OK"),
+                ),
+              ],
+            );
+          });
     } else if (status.isLimited) {
       print("SMS permission limited");
-      showDialog(context: context, builder: (context) {
-        return AlertDialog(
-          title: Text("SMS Permission"),
-          content: Text(
-              "SMS permission is limited. Please check your device settings."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the popup
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      });
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("SMS Permission"),
+              content: Text(
+                  "SMS permission is limited. Please check your device settings."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the popup
+                  },
+                  child: Text("OK"),
+                ),
+              ],
+            );
+          });
     } else {
       print("Unknown SMS permission status: $status");
-      showDialog(context: context, builder: (context) {
-        return AlertDialog(
-          title: Text("SMS Permission"),
-          content: Text(
-              "Unknown SMS permission status. Please check your device settings."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the popup
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      });
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("SMS Permission"),
+              content: Text(
+                  "Unknown SMS permission status. Please check your device settings."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the popup
+                  },
+                  child: Text("OK"),
+                ),
+              ],
+            );
+          });
     }
   }
 
@@ -1206,7 +1250,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   void dispose() {
-    SmsHandler.saveAppCloseTime(); // Save the app's close time when the app is closed
+    SmsHandler
+        .saveAppCloseTime(); // Save the app's close time when the app is closed
     super.dispose();
   }
 }

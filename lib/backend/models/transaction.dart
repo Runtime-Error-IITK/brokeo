@@ -49,6 +49,14 @@ class Transaction {
       sms: cloudTransaction.sms,
     );
   }
+
+  // factory Transaction.fromMessage({
+  //   required double amount,
+  //   required String merchantName,
+  //   required String sms,
+  //   required String categoryName,
+  //   required DateTime date,
+  // }) {}
 }
 
 class CloudTransaction {
@@ -97,14 +105,15 @@ class CloudTransaction {
   }
 
   factory CloudTransaction.fromSnapshot(DocumentSnapshot snapshot) {
+    final data = snapshot.data() as Map<String, dynamic>;
     return CloudTransaction(
       transactionId: snapshot.id,
-      amount: (snapshot[amountColumn] as num).toDouble(),
-      date: (snapshot[dateColumn] as Timestamp).toDate(),
-      merchantId: snapshot[merchantIdColumn] as String,
-      categoryId: snapshot[categoryIdColumn] as String,
-      userId: snapshot[userIdColumn] as String,
-      sms: snapshot[smsColumn] as String,
+      amount: (data[amountColumn] as num).toDouble(),
+      date: (data[dateColumn] as Timestamp).toDate(),
+      merchantId: data[merchantIdColumn] as String,
+      categoryId: data[categoryIdColumn] as String,
+      userId: data[userIdColumn] as String,
+      sms: data[smsColumn] as String,
     );
   }
 

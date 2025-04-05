@@ -56,3 +56,20 @@ final userMetadataStreamProvider =
     };
   });
 });
+
+final userNameProvider =
+    StreamProvider.autoDispose.family<String, String>((ref, userId) {
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .snapshots()
+      .map((snapshot) {
+    if (!snapshot.exists || snapshot.data() == null) {
+      // Return an empty string if no data is found.
+      return "";
+    }
+    final data = snapshot.data()!;
+    // Assumes the user's name is stored under the 'name' field.
+    return data['name'] as String? ?? "";
+  });
+});
