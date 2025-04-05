@@ -1,291 +1,318 @@
-// import 'package:flutter/material.dart';
-// import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
-// import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
-// import 'package:brokeo/frontend/split_pages/choose_split_type.dart';
-// import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
-// import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter/material.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/split_pages/choose_split_type.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 
-// // Ensure that the ChooseTransactionsPage class is defined in the imported file
-// // or define it below if it is missing.
-// class SplitBetweenPage extends ConsumerStatefulWidget {
-//   final Map<String, dynamic> transaction;
 
-//   const SplitBetweenPage({Key? key, required this.transaction}) : super(key: key);
+// Ensure that the ChooseTransactionsPage class is defined in the imported file
+// or define it below if it is missing.
+class SplitBetweenPage extends ConsumerStatefulWidget {
+  final Map<String, dynamic> transaction;
 
-//   @override
-//   _SplitBetweenPageState createState() => _SplitBetweenPageState();
-// }
+  const SplitBetweenPage({Key? key, required this.transaction}) : super(key: key);
 
-// class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
-//   int _currentIndex = 3;
-//   List<String> contacts = [
-//     "Abeer Singh",
-//     "Abel George",
-//     "Alan Abraham",
-//     "Amar Guniyal",
-//     "Anant Kumar",
-//     "Ansh Yadav",
-//     "Aryan Singh",
-//     "Ash Ketchum",
-//     "Astitva Verma",
-//     "Aujasvit Datta",
-//   ];
-//   TextEditingController _searchController = TextEditingController();
-//   Map<String, bool> selectedContacts = {};
+  @override
+  _SplitBetweenPageState createState() => _SplitBetweenPageState();
+}
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     // Initialize all contacts as not selected
-//     for (var contact in contacts) {
-//       selectedContacts[contact] = false;
-//     }
-//   }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     // Calculate if any contacts are selected
-//     bool hasSelectedContacts =
-//         selectedContacts.values.any((isSelected) => isSelected);
 
-//     // Add filtering logic based on search text
-//     final filteredContacts = _searchController.text.isEmpty
-//         ? contacts
-//         : contacts.where((contact) =>
-//             contact.toLowerCase().contains(_searchController.text.toLowerCase())).toList();
+class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
+  int _currentIndex = 3;
 
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Split Between'),
-//       ),
-//       body: Column(
-//         children: [
-//           // Transaction Details Card
-//           Card(
-//             margin: EdgeInsets.all(16),
-//             child: Padding(
-//               padding: EdgeInsets.all(16),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Text(
-//                     'Splitting Transaction',
-//                     style: TextStyle(
-//                       fontSize: 18,
-//                       fontWeight: FontWeight.bold,
-//                       color: Colors.purple,
-//                     ),
-//                   ),
-//                   SizedBox(height: 12),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text(
-//                         widget.transaction["name"],
-//                         style: TextStyle(
-//                           fontSize: 16,
-//                           fontWeight: FontWeight.w500,
-//                         ),
-//                       ),
-//                       Text(
-//                         '₹${widget.transaction["amount"]}',
-//                         style: TextStyle(
-//                           fontSize: 16,
-//                           fontWeight: FontWeight.bold,
-//                           color: Colors.purple,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                   SizedBox(height: 8),
-//                   Divider(),
-//                   SizedBox(height: 8),
-//                   Text(
-//                     'Select contacts to split with:',
-//                     style: TextStyle(
-//                       fontSize: 14,
-//                       color: Colors.grey[600],
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
+  Future<void> _fetchContacts(BuildContext context) async {
+    print("Requesting permission to access contacts...");
+    final status = await Permission.contacts.request();
+    if (status.isGranted) {
+      print("Permission granted. Fetching contacts...");
+      try {
+        const platform = MethodChannel('com.example.contacts/fetch');
+        final List<dynamic> contactDetails = await platform.invokeMethod('getContacts');
+        print("Contacts fetched successfully: ${contactDetails.length} contacts found.");
 
-//           // Search Bar
-//           Padding(
-//             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-//             child: TextField(
-//               controller: _searchController,
-//               decoration: InputDecoration(
-//                 hintText: 'Search Contact',
-//                 prefixIcon: Icon(Icons.search),
-//                 border: OutlineInputBorder(
-//                   borderRadius: BorderRadius.circular(10.0),
-//                 ),
-//                 contentPadding: EdgeInsets.symmetric(vertical: 12.0),
-//               ),
-//               onChanged: (value) {
-//                 setState(() {}); // triggers rebuild with new filteredContacts
-//               },
-//             ),
-//           ),
+        // Extract only the names from the contact details, handling null or missing names
+        setState(() {
+          contacts = contactDetails
+              // .where((contact) => contact is Map && contact.containsKey('name') && contact['name'] != null) // Ensure 'name' exists and is not null
+              .map((contact) => contact['name'] as String? ?? "Unknown") // Default to "Unknown" if name is null
+              .toList();
+        });
+      } on PlatformException catch (e) {
+        print("Failed to fetch contacts: ${e.message}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to fetch contacts: ${e.message}")),
+        );
+      }
+    } else {
+      print("Permission denied.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Contacts permission denied")),
+      );
+    }
+  }
 
-//           // Contacts List now uses filteredContacts instead of contacts.
-//           Expanded(
-//             child: ListView.builder(
-//               itemCount: filteredContacts.length,
-//               itemBuilder: (context, index) {
-//                 final contact = filteredContacts[index];
-//                 final firstLetter = contact[0];
+  List<String> contacts = []; // Updated to dynamically fetch contact names
+  TextEditingController _searchController = TextEditingController();
+  Map<String, bool> selectedContacts = {};
 
-//                 // Show letter header if it's the first contact with this letter
-//                 final showHeader =
-//                     index == 0 || filteredContacts[index - 1][0] != firstLetter;
+  @override
+  void initState() {
+    super.initState();
+    _fetchContacts(context); // Fetch contacts when the page is initialized
+    // Initialize all contacts as not selected
+    for (var contact in contacts) {
+      selectedContacts[contact] = false;
+    }
+  }
 
-//                 return Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     if (showHeader)
-//                       Padding(
-//                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-//                         child: Text(
-//                           firstLetter,
-//                           style: TextStyle(
-//                             fontSize: 18,
-//                             fontWeight: FontWeight.bold,
-//                             color: Colors.grey[600],
-//                           ),
-//                         ),
-//                       ),
-//                     ListTile(
-//                       leading: CircleAvatar(
-//                         backgroundColor: Colors.purple[100],
-//                         child: Text(
-//                           firstLetter,
-//                           style: TextStyle(
-//                             fontWeight: FontWeight.bold,
-//                             color: Colors.purple,
-//                           ),
-//                         ),
-//                       ),
-//                       title: Text(
-//                         contact,
-//                         style: TextStyle(
-//                           fontSize: 16,
-//                           color: Colors.black87,
-//                         ),
-//                       ),
-//                       trailing: Checkbox(
-//                         value: selectedContacts[contact] ?? false,
-//                         onChanged: (bool? value) {
-//                           setState(() {
-//                             selectedContacts[contact] = value ?? false;
-//                           });
-//                         },
-//                         activeColor: Colors.purple,
-//                       ),
-//                       onTap: () {
-//                         setState(() {
-//                           selectedContacts[contact] =
-//                               !(selectedContacts[contact] ?? false);
-//                         });
-//                       },
-//                     ),
-//                   ],
-//                 );
-//               },
-//             ),
-//           ),
-//         ],
-//       ),
+  @override
+  Widget build(BuildContext context) {
+    // Calculate if any contacts are selected
+    bool hasSelectedContacts =
+        selectedContacts.values.any((isSelected) => isSelected);
 
-//       floatingActionButton: hasSelectedContacts
-//           ? ScaleTransition(
-//               scale: CurvedAnimation(
-//                 parent: ModalRoute.of(context)!.animation!,
-//                 curve: Curves.elasticOut,
-//               ),
-//               child: FloatingActionButton(
-//                 onPressed: () {
-//                   //redirect to choosesplitype page
-//                   Navigator.push(
-//                     context,
-//                     MaterialPageRoute(
-//                       builder: (context) => ChooseSplitTypePage(
-//                         transaction: widget.transaction,
-//                         selectedContacts: selectedContacts.entries
-//                             .where((entry) => entry.value)
-//                             .map((entry) => entry.key)
-//                             .toList(),
-//                       ),
-//                     ),
-//                   );
-//                 },
-//                 backgroundColor: const Color.fromARGB(
-//                   255, 97, 53, 186),
-//                 elevation: 4,
-//                 child: const Icon(
-//                   Icons.arrow_forward,
-//                   color: Colors.white,
-//                 ),
-//               ),
-//             )
-//           : null,
+    // Add filtering logic based on search text
+    final filteredContacts = _searchController.text.isEmpty
+        ? contacts
+        : contacts.where((contact) =>
+            contact.toLowerCase().contains(_searchController.text.toLowerCase())).toList();
 
-//       bottomNavigationBar: BottomNavigationBar(
-//         currentIndex: _currentIndex,
-//         onTap: (index) {
-//           if (index != _currentIndex) {
-//             setState(() {
-//               _currentIndex = index;
-//             });
-//           }
-//           if (index == 0) {
-//             Navigator.pushReplacement(
-//               context,
-//               MaterialPageRoute(
-//                 builder: (context) =>
-//                     brokeo_home.HomePage(name: "Darshan", budget: 5000),
-//               ),
-//             );
-//           } else if (index == 1) {
-//             Navigator.pushReplacement(
-//               context,
-//               MaterialPageRoute(
-//                 builder: (context) => CategoriesPage(),
-//               ),
-//             );
-//           } else if (index == 2) {
-//             Navigator.pushReplacement(
-//               context,
-//               MaterialPageRoute(
-//                 builder: (context) => AnalyticsPage(),
-//               ),
-//             );
-//           }
-//         },
-//         type: BottomNavigationBarType.fixed,
-//         selectedItemColor: Colors.purple,
-//         unselectedItemColor: Colors.grey,
-//         iconSize: 24,
-//         selectedFontSize: 12,
-//         unselectedFontSize: 12,
-//         items: [
-//           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.list), label: "Transactions"),
-//           BottomNavigationBarItem(
-//               icon: Icon(Icons.analytics), label: "Analytics"),
-//           BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-//         ],
-//       ),
-//     );
-//   }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Split Between'),
+      ),
+      body: Column(
+        children: [
+          // Transaction Details Card
+          Card(
+            margin: EdgeInsets.all(16),
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Splitting Transaction',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        widget.transaction["transactionId"], // Provide a default value if name is null
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '₹${widget.transaction["amount"]}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Divider(),
+                  SizedBox(height: 8),
+                  Text(
+                    'Select contacts to split with:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
-//   @override
-//   void dispose() {
-//     _searchController.dispose();
-//     super.dispose();
-//   }
-// }
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search Contact',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 12.0),
+              ),
+              onChanged: (value) {
+                setState(() {}); // triggers rebuild with new filteredContacts
+              },
+            ),
+          ),
+
+          // Contacts List now uses filteredContacts instead of contacts.
+          Expanded(
+            child: ListView.builder(
+              itemCount: filteredContacts.length,
+              itemBuilder: (context, index) {
+                final contact = filteredContacts[index];
+                final firstLetter = contact[0];
+
+                // Show letter header if it's the first contact with this letter
+                final showHeader =
+                    index == 0 || filteredContacts[index - 1][0] != firstLetter;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (showHeader)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Text(
+                          firstLetter,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.purple[100],
+                        child: Text(
+                          firstLetter,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        contact,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      trailing: Checkbox(
+                        value: selectedContacts[contact] ?? false,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            selectedContacts[contact] = value ?? false;
+                          });
+                        },
+                        activeColor: Colors.purple,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          selectedContacts[contact] =
+                              !(selectedContacts[contact] ?? false);
+                        });
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+
+      floatingActionButton: hasSelectedContacts
+          ? ScaleTransition(
+              scale: CurvedAnimation(
+                parent: ModalRoute.of(context)!.animation!,
+                curve: Curves.elasticOut,
+              ),
+              child: FloatingActionButton(
+                onPressed: () {
+                  //redirect to choosesplitype page
+                  // Navigator.push(
+                    // context,
+                    // MaterialPageRoute(
+                      // builder: (context) => ChooseSplitTypePage(
+                      //   transaction: widget.transaction,
+                      //   selectedContacts: selectedContacts.entries
+                      //       .where((entry) => entry.value)
+                      //       .map((entry) => entry.key)
+                      //       .toList(),
+                      // ),
+                    // ),
+                  // );
+                },
+                backgroundColor: const Color.fromARGB(
+                  255, 97, 53, 186),
+                elevation: 4,
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          : null,
+
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          if (index != _currentIndex) {
+            setState(() {
+              _currentIndex = index;
+            });
+          }
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    brokeo_home.HomePage(),
+              ),
+            );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CategoriesPage(),
+              ),
+            );
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AnalyticsPage(),
+              ),
+            );
+          }
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.purple,
+        unselectedItemColor: Colors.grey,
+        iconSize: 24,
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.list), label: "Transactions"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.analytics), label: "Analytics"),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+}
