@@ -38,6 +38,8 @@ class Category {
     );
   }
 
+
+
   @override
   String toString() {
     return "Category{name: $name, categoryId: $categoryId, budget: $budget, userId: $userId}";
