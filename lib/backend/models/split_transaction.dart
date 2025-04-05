@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SplitTransaction {
   final String splitTransactionId;
-  final double amount;
+
   final DateTime date;
   final String description;
   final bool isPayment;
@@ -11,13 +11,24 @@ class SplitTransaction {
 
   SplitTransaction({
     required this.splitTransactionId,
-    required this.amount,
     required this.date,
     required this.description,
     required this.isPayment,
     required this.userId,
     required this.splitAmounts,
   });
+
+  factory SplitTransaction.fromCloudSplitTransaction(
+      CloudSplitTransaction cloudSplitTransaction) {
+    return SplitTransaction(
+      splitTransactionId: cloudSplitTransaction.splitTransactionId,
+      date: cloudSplitTransaction.date,
+      description: cloudSplitTransaction.description,
+      isPayment: cloudSplitTransaction.isPayment,
+      userId: cloudSplitTransaction.userId,
+      splitAmounts: cloudSplitTransaction.splitAmounts,
+    );
+  }
 
   @override
   bool operator ==(covariant Object other) {
@@ -35,13 +46,12 @@ class SplitTransaction {
 
   @override
   String toString() {
-    return "SplitTransaction{splitTransactionId: $splitTransactionId, amount: $amount, date: $date, description: $description, isPayment: $isPayment, userId: $userId, splitAmounts: ${splitAmounts.toString()}}";
+    return "SplitTransaction{splitTransactionId: $splitTransactionId, date: $date, description: $description, isPayment: $isPayment, userId: $userId, splitAmounts: ${splitAmounts.toString()}}";
   }
 }
 
 class CloudSplitTransaction {
   final String splitTransactionId;
-  final double amount;
   final DateTime date;
   final String description;
   final bool isPayment;
@@ -50,7 +60,6 @@ class CloudSplitTransaction {
 
   CloudSplitTransaction({
     required this.splitTransactionId,
-    required this.amount,
     required this.date,
     required this.description,
     required this.isPayment,
@@ -74,14 +83,13 @@ class CloudSplitTransaction {
 
   @override
   String toString() {
-    return "CloudSplitTransaction{splitTransactionId: $splitTransactionId, amount: $amount, date: $date, description: $description, isPayment: $isPayment, userId: $userId, splitAmounts: ${splitAmounts.toString()}}";
+    return "CloudSplitTransaction{splitTransactionId: $splitTransactionId, date: $date, description: $description, isPayment: $isPayment, userId: $userId, splitAmounts: ${splitAmounts.toString()}}";
   }
 
   factory CloudSplitTransaction.fromSplitTransaction(
       SplitTransaction splitTransaction) {
     return CloudSplitTransaction(
       splitTransactionId: splitTransaction.splitTransactionId,
-      amount: splitTransaction.amount,
       date: splitTransaction.date,
       description: splitTransaction.description,
       isPayment: splitTransaction.isPayment,
@@ -93,8 +101,7 @@ class CloudSplitTransaction {
   factory CloudSplitTransaction.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>;
     return CloudSplitTransaction(
-      splitTransactionId: data['splitTransactionId'] as String,
-      amount: (data['amount'] as num).toDouble(),
+      splitTransactionId: snapshot.id,
       date: (data['date'] as Timestamp).toDate(),
       description: data['description'] as String,
       isPayment: data['isPayment'] as bool,
@@ -108,7 +115,6 @@ class CloudSplitTransaction {
   Map<String, dynamic> toFirestore() {
     return {
       splitTransactionIdColumn: splitTransactionId,
-      amountColumn: amount,
       dateColumn: date,
       descriptionColumn: description,
       isPaymentColumn: isPayment,
@@ -119,7 +125,6 @@ class CloudSplitTransaction {
 }
 
 const String splitTransactionIdColumn = 'splitTransactionId';
-const String amountColumn = 'amount';
 const String dateColumn = 'date';
 const String descriptionColumn = 'description';
 const String isPaymentColumn = 'isPayment';
