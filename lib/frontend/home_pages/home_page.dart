@@ -387,11 +387,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                         ),
                       ),
                       Spacer(),
-                      IconButton(
-                        icon: Icon(Icons.notifications,
-                            size: 28, color: Colors.black54),
-                        onPressed: () {},
-                      ),
+                      // IconButton(
+                      //   icon: Icon(Icons.notifications,
+                      //       size: 28, color: Colors.black54),
+                      //   onPressed: () {},
+                      // ),
                     ],
                   ),
                   SizedBox(height: 20),
