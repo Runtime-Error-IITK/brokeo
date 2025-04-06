@@ -4,10 +4,11 @@ import 'package:brokeo/frontend/profile_pages/faqs_page.dart'; // Import FAQsPag
 import 'package:brokeo/frontend/profile_pages/privacy_policy_page.dart'; // Import PrivacyPolicyPage
 import 'package:brokeo/frontend/profile_pages/budget_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart'; // Import BudgetPage
+import 'package:permission_handler/permission_handler.dart';
 
 class ProfilePage extends ConsumerWidget {
   @override
-  Widget build(BuildContext context,WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) {
     bool _notificationsEnabled = true; // State variable for notifications
 
     return Scaffold(
@@ -89,22 +90,6 @@ class ProfilePage extends ConsumerWidget {
 
             Divider(),
 
-            // Notifications Toggle
-            ListTile(
-              leading: Icon(Icons.notifications, color: Colors.purple),
-              title: Text(
-                "Notifications",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Switch(
-                value: _notificationsEnabled,
-                onChanged: (value) {
-                  // TODO: Notify backend team to configure notifications
-                },
-                activeColor: Colors.purple,
-              ),
-            ),
-
             // Permissions Section
             ListTile(
               leading: Icon(Icons.lock, color: Colors.purple),
@@ -113,8 +98,8 @@ class ProfilePage extends ConsumerWidget {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                // TODO: Navigate to permissions page
+              onTap: () async {
+                await openAppSettings();
               },
             ),
 
@@ -287,7 +272,8 @@ class ProfilePage extends ConsumerWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   TextSpan(
-                    text: "To provide core features such as budgeting and analytics.\n"
+                    text:
+                        "To provide core features such as budgeting and analytics.\n"
                         "SMS data remains on your device and is not stored on our servers.\n",
                     style: TextStyle(fontSize: 16),
                   ),
@@ -296,7 +282,8 @@ class ProfilePage extends ConsumerWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   TextSpan(
-                    text: "Your data is securely stored in Firebase, Google’s cloud infrastructure.\n",
+                    text:
+                        "Your data is securely stored in Firebase, Google’s cloud infrastructure.\n",
                     style: TextStyle(fontSize: 16),
                   ),
                   TextSpan(
@@ -304,7 +291,8 @@ class ProfilePage extends ConsumerWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   TextSpan(
-                    text: "You can disable SMS access at any time through app settings.\n"
+                    text:
+                        "You can disable SMS access at any time through app settings.\n"
                         "Your data can be exported via the app when needed.",
                     style: TextStyle(fontSize: 16),
                   ),

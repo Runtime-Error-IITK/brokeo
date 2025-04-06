@@ -78,25 +78,15 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Total Budget Input
+                // Total Budget Display
                 Text(
                   "Total Budget",
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8.0),
-                TextFormField(
-                  controller: _totalBudgetController,
-                  decoration: const InputDecoration(
-                    labelText: "",
-                    prefixText: "₹",
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    setState(() {
-                      _totalBudget = double.tryParse(value) ?? _totalBudget;
-                    });
-                  },
+                Text(
+                  "₹${_totalBudget.toStringAsFixed(0)}",
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 16.0),
 
@@ -137,11 +127,27 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                               border: OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
-                            onChanged: (value) {
+                            onChanged: (value) async {
                               final updatedBudget = double.tryParse(value) ?? category.budget;
                               setState(() {
                                 _updatedBudgets[category.categoryId] = updatedBudget;
+                                _totalBudget = categories.fold(
+                                  0.0,
+                                  (sum, category) => sum + (_updatedBudgets[category.categoryId] ?? category.budget),
+                                );
                               });
+
+                              final categoryService = ref.read(categoryServiceProvider);
+                              if (categoryService != null) {
+                                await categoryService.updateCloudCategory(
+                                  CloudCategory(
+                                    categoryId: category.categoryId,
+                                    name: category.name,
+                                    budget: updatedBudget,
+                                    userId: category.userId,
+                                  ),
+                                );
+                              }
                             },
                           ),
                         ),
@@ -149,66 +155,6 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                     ),
                   );
                 }).toList(),
-
-                // Save Button
-                const SizedBox(height: 16.0),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (_totalBudget < categoriesTotal) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Total budget cannot be less than the sum of category budgets."),
-                          ),
-                        );
-                        return;
-                      }
-
-                      final categoryService = ref.read(categoryServiceProvider);
-                      if (categoryService != null) {
-                        try {
-                          for (var category in categories) {
-                            final updatedBudget = _updatedBudgets[category.categoryId] ?? category.budget;
-                            categoryService.updateCloudCategory(
-                              CloudCategory(
-                                categoryId: category.categoryId,
-                                name: category.name,
-                                budget: updatedBudget,
-                                userId: category.userId,
-                              ),
-                            );
-                          }
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Budget updated successfully!")),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Failed to update budget: $e")),
-                            );
-                          }
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 16.0), // Wider button
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0), // More rounded corners
-                      ),
-                      backgroundColor: Colors.purple,
-                    ),
-                    child: Text(
-                      "Save",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           );
