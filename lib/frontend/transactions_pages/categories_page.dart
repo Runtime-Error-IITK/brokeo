@@ -269,15 +269,79 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
   }
 
   Widget buildDonutChart() {
-    // In a real app, you'd fetch these from your database.
-    // Here, we define some dummy data:
+    final categoryFilter = CategoryFilter();
+    final asyncCategories = ref.watch(categoryStreamProvider(categoryFilter));
+    final asyncTransactions = ref.watch(transactionStreamProvider(TransactionFilter()));
+
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      // child: DonutChartWidget(),
+      padding: const EdgeInsets.only(top: 20, bottom: 10), // Added padding above and reduced below
+      child: asyncCategories.when(
+        loading: () => Center(child: CircularProgressIndicator()),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Category error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (categories) {
+          return asyncTransactions.when(
+            loading: () => Center(child: CircularProgressIndicator()),
+            error: (error, stack) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Transaction error: $error")),
+                );
+              });
+              return SizedBox.shrink();
+            },
+            data: (transactions) {
+              double totalSpent = transactions.fold(0, (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
+
+              return FutureBuilder<Map<String, Color>>(
+                future: loadCategoryColors(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error loading category colors"));
+                  }
+
+                  final colorMapping = snapshot.data!;
+
+                  List<CategoryData> categoryData = categories.map((category) {
+                    double categorySpent = transactions
+                        .where((t) => t.categoryId == category.categoryId)
+                        .fold(0, (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
+
+                    double percentage = totalSpent > 0 ? (categorySpent / totalSpent) * 100 : 0;
+
+                    return CategoryData(
+                      name: category.name,
+                      percentage: percentage,
+                      color: colorMapping[category.name] ?? Colors.grey,
+                    );
+                  }).toList();
+
+                  return Column(
+                    children: [
+                      CustomPaint(
+                        size: Size(160, 160),
+                        painter: DonutChartPainter(categoryData),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
-  /// Builds a grid of categories (2 columns)..
   Widget buildCategoryGrid() {
     final categoryFilter = CategoryFilter();
     final asyncCategories = ref.watch(categoryStreamProvider(categoryFilter));
@@ -1189,6 +1253,48 @@ class ArcPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class DonutChartPainter extends CustomPainter {
+  final List<CategoryData> categories;
+
+  DonutChartPainter(this.categories);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = min(size.width, size.height) / 2;
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 20;
+
+    double startAngle = -pi / 2;
+
+    for (var category in categories) {
+      final sweepAngle = (category.percentage / 100) * 2 * pi;
+      paint.color = category.color;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        false,
+        paint,
+      );
+      startAngle += sweepAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class CategoryData {
+  final String name;
+  final double percentage;
+  final Color color;
+
+  CategoryData({required this.name, required this.percentage, required this.color});
 }
 
 /// Model to hold each category's name, percentage, and color.
