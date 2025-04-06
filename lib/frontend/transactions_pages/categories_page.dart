@@ -216,6 +216,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                             ],
                           ),
                           // Amount Spent Section
+                        SizedBox(width: 20), // Added spacing between the two columns
                           Column(
                             children: [
                               Text(

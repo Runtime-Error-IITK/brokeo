@@ -1,3 +1,5 @@
+import 'package:brokeo/frontend/login_pages/login_page1.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/profile_pages/edit_profile_page.dart';
 import 'package:brokeo/frontend/profile_pages/faqs_page.dart'; // Import FAQsPage
@@ -159,6 +161,41 @@ class ProfilePage extends ConsumerWidget {
               trailing: Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 _showContactDialog(context, "About Us");
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.info, color: Colors.purple),
+              title: Text(
+                "Logout",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              trailing: Icon(Icons.logout, size: 16),
+              onTap: () async {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginPage1(), // Replace with your login page
+                    ),
+                    (Route<dynamic> route) => false,
+                  );
+                } on FirebaseAuthException catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Error logging out: ${e.code}"),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Error logging out: $e"),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
             ),
           ],
