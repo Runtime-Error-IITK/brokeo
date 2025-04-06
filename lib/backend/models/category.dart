@@ -105,7 +105,6 @@ class CloudCategory {
       nameColumn: name,
       budgetColumn: budget,
       userIdColumn: userId,
-      categoryIdColumn: categoryId,
     };
   }
 }
