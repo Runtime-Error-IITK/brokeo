@@ -14,13 +14,14 @@ final firebaseUserProvider = StreamProvider<User?>((ref) {
 });
 
 // Provider to extract the current user's UID (or null if not logged in)
-final userIdProvider = Provider<String?>(
-  (ref) {
-    // final userAsync = ref.watch(firebaseUserProvider);
-    // AsData returns the data if available, otherwise null
-    return "Rb7tSCHRLVcui8kBatw0hkKKApj2";
-  },
-);
+final userIdProvider = Provider<String?>((ref) {
+  final userAsync = ref.watch(firebaseUserProvider);
+  return userAsync.when(
+    data: (user) => user?.uid,
+    loading: () => null,
+    error: (_, __) => null,
+  );
+});
 
 final userMetadataStreamProvider =
     StreamProvider.autoDispose<Map<String, dynamic>>((ref) {

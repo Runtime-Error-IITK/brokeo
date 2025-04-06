@@ -6,7 +6,7 @@ class SplitTransaction {
   final DateTime date;
   final String description;
   final bool isPayment;
-  final String userId;
+  final String userPhone;
   final Map<String, double> splitAmounts;
 
   SplitTransaction({
@@ -14,7 +14,7 @@ class SplitTransaction {
     required this.date,
     required this.description,
     required this.isPayment,
-    required this.userId,
+    required this.userPhone,
     required this.splitAmounts,
   });
 
@@ -25,7 +25,7 @@ class SplitTransaction {
       date: cloudSplitTransaction.date,
       description: cloudSplitTransaction.description,
       isPayment: cloudSplitTransaction.isPayment,
-      userId: cloudSplitTransaction.userId,
+      userPhone: cloudSplitTransaction.userId,
       splitAmounts: cloudSplitTransaction.splitAmounts,
     );
   }
@@ -36,17 +36,17 @@ class SplitTransaction {
 
     return other is SplitTransaction &&
         other.splitTransactionId == splitTransactionId &&
-        other.userId == userId;
+        other.userPhone == userPhone;
   }
 
   @override
   int get hashCode {
-    return splitTransactionId.hashCode ^ userId.hashCode;
+    return splitTransactionId.hashCode ^ userPhone.hashCode;
   }
 
   @override
   String toString() {
-    return "SplitTransaction{splitTransactionId: $splitTransactionId, date: $date, description: $description, isPayment: $isPayment, userId: $userId, splitAmounts: ${splitAmounts.toString()}}";
+    return "SplitTransaction{splitTransactionId: $splitTransactionId, date: $date, description: $description, isPayment: $isPayment, userId: $userPhone, splitAmounts: ${splitAmounts.toString()}}";
   }
 }
 
@@ -93,7 +93,7 @@ class CloudSplitTransaction {
       date: splitTransaction.date,
       description: splitTransaction.description,
       isPayment: splitTransaction.isPayment,
-      userId: splitTransaction.userId,
+      userId: splitTransaction.userPhone,
       splitAmounts: splitTransaction.splitAmounts,
     );
   }
@@ -118,7 +118,7 @@ class CloudSplitTransaction {
       dateColumn: date,
       descriptionColumn: description,
       isPaymentColumn: isPayment,
-      userIdColumn: userId,
+      userPhoneColumn: userId,
       splitAmountsColumn: splitAmounts,
     };
   }
@@ -128,5 +128,5 @@ const String splitTransactionIdColumn = 'splitTransactionId';
 const String dateColumn = 'date';
 const String descriptionColumn = 'description';
 const String isPaymentColumn = 'isPayment';
-const String userIdColumn = 'userId';
+const String userPhoneColumn = 'userPhone';
 const String splitAmountsColumn = 'splitAmounts';

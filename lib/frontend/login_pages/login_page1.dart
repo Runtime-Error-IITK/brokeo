@@ -3,6 +3,8 @@ import 'dart:developer' show log;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:brokeo/frontend/login_pages/login_page2.dart';
+import 'package:firebase_auth/firebase_auth.dart'
+    show FirebaseAuth, FirebaseAuthException, UserCredential;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -26,8 +28,43 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
     return emailRegex.hasMatch(email);
   }
 
+  Future<void> _login() async {
+    try {
+      // Attempt to sign in with email and password
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      // If sign-in is successful, navigate to the next page (for example, HomePage)
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => AuthPage(),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'No user found for that email.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Wrong password provided.';
+          break;
+        default:
+          errorMessage = e.message ?? 'An error occurred. Please try again.';
+          errorMessage =
+              "Wrong email or password. An error occured (${e.code})";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+  }
+
   void _verifyEmail() async {
-    final auth = ref.read(firebaseAuthProvider);
     final email = _emailController.text.trim();
 
     if (email.isEmpty || !_validEmailFormat(email)) {
@@ -40,13 +77,7 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
       return;
     }
 
-    log(email);
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => AuthPage(),
-      ),
-    );
+    _login();
   }
 
   @override
