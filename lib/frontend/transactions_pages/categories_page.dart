@@ -311,7 +311,23 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
               return SizedBox.shrink();
             },
             data: (transactions) {
-              double totalSpent = transactions.fold(0, (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
+              final now = DateTime.now();
+              final startOfMonth = DateTime(now.year, now.month, 1);
+              final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+
+              final monthlyTransactions = transactions.where((t) =>
+                  t.date.isAfter(startOfMonth) && t.date.isBefore(endOfMonth)).toList();
+
+              double totalSpent = monthlyTransactions.fold(0, (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
+
+              if (totalSpent == 0) {
+                return Center(
+                  child: Text(
+                    "No transactions this month",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                );
+              }
 
               return FutureBuilder<Map<String, Color>>(
                 future: loadCategoryColors(),
@@ -326,7 +342,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                   final colorMapping = snapshot.data!;
 
                   List<CategoryData> categoryData = categories.map((category) {
-                    double categorySpent = transactions
+                    double categorySpent = monthlyTransactions
                         .where((t) => t.categoryId == category.categoryId)
                         .fold(0, (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
 
@@ -822,6 +838,11 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
         return SizedBox.shrink();
       },
       data: (transactions) {
+        if (transactions.isEmpty) {
+          return Center(
+            child: Text("No transactions yet", style: TextStyle(fontSize: 16, color: Colors.grey)),
+          );
+        }
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
           itemCount: transactions.length,

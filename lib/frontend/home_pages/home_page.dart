@@ -539,7 +539,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   filteredTransactions.isEmpty
                       ? Center(
                           child: Text(
-                            "No Transactions Yet",
+                            "No Transactions this month",
                             style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
