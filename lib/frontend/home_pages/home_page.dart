@@ -334,9 +334,15 @@ class _HomePageState extends ConsumerState<HomePage> {
             return SizedBox.shrink();
           },
           data: (transactions) {
+            final now = DateTime.now();
+            final startOfMonth = DateTime(now.year, now.month, 1);
+            final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+            final filteredTransactions = transactions.where((transaction) {
+              return transaction.date.isAfter(startOfMonth) && transaction.date.isBefore(endOfMonth);
+            }).toList();
             double totalSpent = 0;
-            for (var transaction in transactions) {
-              totalSpent -= transaction.amount < 0.0 ? transaction.amount : 0.0;
+            for (var transaction in filteredTransactions) {
+              totalSpent -= transaction.amount < 0 ? transaction.amount : 0;
             }
 
             double budget = userMetadata[budgetId] ?? 0.0;
@@ -466,9 +472,15 @@ class _HomePageState extends ConsumerState<HomePage> {
         return SizedBox.shrink();
       },
       data: (transactions) {
+        final now = DateTime.now();
+        final startOfMonth = DateTime(now.year, now.month, 1);
+        final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+        final filteredTransactions = transactions.where((transaction) {
+          return transaction.date.isAfter(startOfMonth) && transaction.date.isBefore(endOfMonth);
+        }).toList();
         // log(transactions.length.toString());
         List<Transaction> transactionsToShow =
-            showAllTransactions ? transactions : transactions.take(3).toList();
+            showAllTransactions ? filteredTransactions : filteredTransactions.take(3).toList();
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
           decoration: BoxDecoration(
@@ -522,7 +534,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   SizedBox(height: 10),
 
                   /// Transaction List or Empty Message
-                  transactions.isEmpty
+                  filteredTransactions.isEmpty
                       ? Center(
                           child: Text(
                             "No Transactions Yet",
