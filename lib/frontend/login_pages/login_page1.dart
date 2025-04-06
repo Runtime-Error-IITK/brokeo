@@ -1,5 +1,7 @@
 import 'dart:developer' show log;
 
+import 'package:brokeo/backend/default_categories.dart'
+    show ensureDefaultCategories;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:brokeo/frontend/login_pages/login_page2.dart';
@@ -36,6 +38,11 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
+      final user = userCredential.user;
+      if (user != null) {
+        await ensureDefaultCategories(user.uid);
+      }
       // If sign-in is successful, navigate to the next page (for example, HomePage)
       if (!mounted) return;
       Navigator.of(context).pushReplacement(

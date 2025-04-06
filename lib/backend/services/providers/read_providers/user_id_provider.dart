@@ -52,7 +52,6 @@ final userMetadataStreamProvider =
 
     return {
       'budget': budgetDouble,
-      'email': emailStr,
       'name': nameStr,
     };
   });

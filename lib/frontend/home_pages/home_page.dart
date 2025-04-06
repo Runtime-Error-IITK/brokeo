@@ -323,6 +323,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         return SizedBox.shrink();
       },
       data: (userMetadata) {
+        log(userMetadata.toString());
         return transactionsAsync.when(
           loading: () => const CircularProgressIndicator(),
           error: (error, stack) {
@@ -336,18 +337,22 @@ class _HomePageState extends ConsumerState<HomePage> {
           data: (transactions) {
             final now = DateTime.now();
             final startOfMonth = DateTime(now.year, now.month, 1);
-            final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+            final endOfMonth =
+                DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
             final filteredTransactions = transactions.where((transaction) {
-              return transaction.date.isAfter(startOfMonth) && transaction.date.isBefore(endOfMonth);
+              return transaction.date.isAfter(startOfMonth) &&
+                  transaction.date.isBefore(endOfMonth);
             }).toList();
             double totalSpent = 0;
             for (var transaction in filteredTransactions) {
               totalSpent -= transaction.amount < 0 ? transaction.amount : 0;
             }
 
-            final categoriesAsync = ref.watch(categoryStreamProvider(emptyCategoryFilter));
+            final categoriesAsync =
+                ref.watch(categoryStreamProvider(emptyCategoryFilter));
             final categories = categoriesAsync.value ?? [];
-            double budget = categories.fold(0.0, (sum, category) => sum + category.budget);
+            double budget = userMetadata['budget'] ?? 0.0;
+            log(budget.toString());
             double percentageSpent = (totalSpent / budget) * 100;
             String currentMonth = DateFormat.MMMM().format(DateTime.now());
             String name = userMetadata[nameId] ?? 'User';
@@ -476,13 +481,16 @@ class _HomePageState extends ConsumerState<HomePage> {
       data: (transactions) {
         final now = DateTime.now();
         final startOfMonth = DateTime(now.year, now.month, 1);
-        final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+        final endOfMonth =
+            DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
         final filteredTransactions = transactions.where((transaction) {
-          return transaction.date.isAfter(startOfMonth) && transaction.date.isBefore(endOfMonth);
+          return transaction.date.isAfter(startOfMonth) &&
+              transaction.date.isBefore(endOfMonth);
         }).toList();
         // log(transactions.length.toString());
-        List<Transaction> transactionsToShow =
-            showAllTransactions ? filteredTransactions : filteredTransactions.take(3).toList();
+        List<Transaction> transactionsToShow = showAllTransactions
+            ? filteredTransactions
+            : filteredTransactions.take(3).toList();
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
           decoration: BoxDecoration(
