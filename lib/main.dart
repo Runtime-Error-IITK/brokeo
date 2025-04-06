@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false, // Remove debug banner
-        home:LoginPage1(), // Set LoginPage1 as the home page
+        home:AuthPage(), // Set LoginPage1 as the home page
         );
   }
 }
