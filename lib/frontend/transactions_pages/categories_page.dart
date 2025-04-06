@@ -130,7 +130,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
 
     final asyncUserMetadata = ref.watch(userMetadataStreamProvider);
     final asyncCategories = ref.watch(categoryStreamProvider(CategoryFilter()));
-  
+
     return asyncUserMetadata.when(
       loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stack) {
@@ -173,37 +173,36 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                 final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
                 final daysRemaining = lastDayOfMonth.day - now.day;
                 double dailySafeToSpend = (budget - totalSpent) / daysRemaining;
-                double progress = totalSpent / budget;
                 final currentMonth =
                     DateFormat.MMMM().format(now); // e.g., "January"
-  
+
                 return Padding(
                   padding: const EdgeInsets.all(14.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: Column(
                     children: [
-                      // Circular arc showing "Safe to Spend"
-                      CustomPaint(
-                        size: Size(160, 160),
-                        painter: ArcPainter(
-                          progress: progress,
-                          strokeWidth: 8,
-                          color: Colors.deepPurple,
+                      // Centered Month
+                      Text(
+                        currentMonth,
+                        style: TextStyle(
+                          fontSize: 18, // Same font size as "Safe to Spend" and "Amount Spent"
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
-                        child: Container(
-                          width: 130,
-                          height: 130,
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          // Safe to Spend Section
+                          Column(
                             children: [
                               Text(
                                 "Safe to Spend",
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 18, // Same font size as "Amount Spent"
                                   color: Colors.black54,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
                               SizedBox(height: 4),
                               Text(
@@ -216,40 +215,26 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                      SizedBox(width: 15),
-                      // Right column: Current Month & "Amount Spent"
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Current Month
-                          Text(
-                            currentMonth,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          // "Amount Spent" label
-                          Text(
-                            "Amount Spent",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: 6),
-                          // Amount spent value
-                          Text(
-                            "₹${totalSpent.toStringAsFixed(0)}",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+                          // Amount Spent Section
+                          Column(
+                            children: [
+                              Text(
+                                "Amount Spent",
+                                style: TextStyle(
+                                  fontSize: 18, // Same font size as "Safe to Spend"
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                "₹${totalSpent.toStringAsFixed(0)}",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

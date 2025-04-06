@@ -75,9 +75,13 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                // centerTitle: true, // This centers the title widget
+                automaticallyImplyLeading: false, // This removes the back button
                 title: Container(
                   width: 100, // Adjust width as needed
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade50, // Light purple background
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedFilter,
@@ -101,9 +105,15 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                   ),
                 ),
                 actions: [
-                  IconButton(
-                    icon: Icon(Icons.ios_share),
-                    onPressed: () => _exportToCSV(currentData, dates),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.purple.shade50, // Light purple background
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.ios_share),
+                      onPressed: () => _exportToCSV(currentData, dates),
+                    ),
                   ),
                   // If you want some padding on the right, wrap it in Padding:
                   Padding(
