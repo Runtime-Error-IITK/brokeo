@@ -345,7 +345,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               totalSpent -= transaction.amount < 0 ? transaction.amount : 0;
             }
 
-            double budget = userMetadata[budgetId] ?? 0.0;
+            final categoriesAsync = ref.watch(categoryStreamProvider(emptyCategoryFilter));
+            final categories = categoriesAsync.value ?? [];
+            double budget = categories.fold(0.0, (sum, category) => sum + category.budget);
             double percentageSpent = (totalSpent / budget) * 100;
             String currentMonth = DateFormat.MMMM().format(DateTime.now());
             String name = userMetadata[nameId] ?? 'User';

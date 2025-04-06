@@ -129,7 +129,8 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
     );
 
     final asyncUserMetadata = ref.watch(userMetadataStreamProvider);
-
+    final asyncCategories = ref.watch(categoryStreamProvider(CategoryFilter()));
+  
     return asyncUserMetadata.when(
       loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stack) {
@@ -141,108 +142,121 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
         return SizedBox.shrink();
       },
       data: (userMetaData) {
-        return asynCurrentMonthTransactions.when(
+        return asyncCategories.when(
           loading: () => Center(child: CircularProgressIndicator()),
           error: (error, stack) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("User error: $error")),
+                SnackBar(content: Text("Category error: $error")),
               );
             });
             return SizedBox.shrink();
           },
-          data: (transactions) {
-            double totalSpent = 0;
-            for (var transaction in transactions) {
-              totalSpent -= transaction.amount < 0 ? transaction.amount : 0;
-            }
-            double budget = userMetaData['budget'];
-            final now = DateTime.now();
-            final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
-            final daysRemaining = lastDayOfMonth.day - now.day;
-            double dailySafeToSpend = (budget - totalSpent) / daysRemaining;
-            double progress = totalSpent / budget;
-            final currentMonth =
-                DateFormat.MMMM().format(now); // e.g., "January"
-
-            return Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Circular arc showing "Safe to Spend"
-                  CustomPaint(
-                    size: Size(160, 160),
-                    painter: ArcPainter(
-                      progress: progress,
-                      strokeWidth: 8,
-                      color: Colors.deepPurple,
-                    ),
-                    child: Container(
-                      width: 130,
-                      height: 130,
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Safe to Spend",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
-                            ),
-                            textAlign: TextAlign.center,
+          data: (categories) {
+            return asynCurrentMonthTransactions.when(
+              loading: () => Center(child: CircularProgressIndicator()),
+              error: (error, stack) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Transaction error: $error")),
+                  );
+                });
+                return SizedBox.shrink();
+              },
+              data: (transactions) {
+                double totalSpent = 0;
+                for (var transaction in transactions) {
+                  totalSpent -= transaction.amount < 0 ? transaction.amount : 0;
+                }
+                double budget = categories.fold(0.0, (sum, category) => sum + category.budget);
+                final now = DateTime.now();
+                final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+                final daysRemaining = lastDayOfMonth.day - now.day;
+                double dailySafeToSpend = (budget - totalSpent) / daysRemaining;
+                double progress = totalSpent / budget;
+                final currentMonth =
+                    DateFormat.MMMM().format(now); // e.g., "January"
+  
+                return Padding(
+                  padding: const EdgeInsets.all(14.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Circular arc showing "Safe to Spend"
+                      CustomPaint(
+                        size: Size(160, 160),
+                        painter: ArcPainter(
+                          progress: progress,
+                          strokeWidth: 8,
+                          color: Colors.deepPurple,
+                        ),
+                        child: Container(
+                          width: 130,
+                          height: 130,
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Safe to Spend",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                "₹${dailySafeToSpend.toStringAsFixed(0)}/day",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 4),
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                      // Right column: Current Month & "Amount Spent"
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Current Month
                           Text(
-                            "₹${dailySafeToSpend.toStringAsFixed(0)}/day",
+                            currentMonth,
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          // "Amount Spent" label
+                          Text(
+                            "Amount Spent",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          // Amount spent value
+                          Text(
+                            "₹${totalSpent.toStringAsFixed(0)}",
+                            style: TextStyle(
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  SizedBox(width: 15),
-                  // Right column: Current Month & "Amount Spent"
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Current Month
-                      Text(
-                        currentMonth,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      // "Amount Spent" label
-                      Text(
-                        "Amount Spent",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      // Amount spent value
-                      Text(
-                        "₹${totalSpent.toStringAsFixed(0)}",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
