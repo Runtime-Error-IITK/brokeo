@@ -12,201 +12,191 @@ class EditProfilePage extends ConsumerStatefulWidget {
 }
 
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _budgetController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Set default values
     _nameController.text = "";
+    // Initialize email controller with the current user's email
     _emailController.text =
         ref.read(firebaseAuthProvider).currentUser?.email ?? "";
-    _phoneController.text = ""; // Default phone number
+    _phoneController.text = "";
   }
 
   @override
   Widget build(BuildContext context) {
     final asyncMetadata = ref.watch(userMetadataStreamProvider);
     return asyncMetadata.when(
-        loading: () => Center(child: CircularProgressIndicator()),
-        error: (error, stack) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Edit Profile Error: $error")),
-            );
-          });
-          return const SizedBox.shrink();
-        },
-        data: (metadata) {
-          _nameController.text = metadata['name'] ?? "";
-          _phoneController.text =
-              metadata['phone'] ?? ""; // Default phone number
+      loading: () => Center(child: CircularProgressIndicator()),
+      error: (error, stack) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Edit Profile Error: $error")),
+          );
+        });
+        return const SizedBox.shrink();
+      },
+      data: (metadata) {
+        _nameController.text = metadata['name'] ?? "";
+        _phoneController.text = metadata['phone'] ?? "";
 
-          return Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              leading: IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {
-                  Navigator.pop(context); // Navigate back
-                },
-              ),
-              title: Text(
-                "Edit Profile",
-                style:
-                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-              ),
-              centerTitle: true,
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
             ),
-            body: Container(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name Input
-
-                      SizedBox(height: 8),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: "Full Name",
-                          border: OutlineInputBorder(),
-                        ),
+            title: Text(
+              "Edit Profile",
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
+          ),
+          body: Form(
+            key: _formKey,
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Name Input with validation
+                    SizedBox(height: 8),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: "Full Name",
+                        border: OutlineInputBorder(),
                       ),
-                      SizedBox(height: 16),
-
-                      // Email Input
-
-                      SizedBox(height: 8),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
-                          labelText: "E-Mail",
-                          border: OutlineInputBorder(),
-                          enabled:
-                              false, // Visually indicate the field is read-only
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        readOnly: true, // Make the email field non-editable
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Name cannot be empty";
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    // Email Input (disabled and greyed out)
+                    SizedBox(height: 8),
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: "E-Mail",
+                        border: OutlineInputBorder(),
+                        fillColor: Colors.grey[200],
+                        filled: false,
                       ),
-                      SizedBox(height: 16),
-
-                      SizedBox(height: 8),
-                      IntlPhoneField(
-                        showCountryFlag: false,
-                        initialCountryCode: 'IN',
-                        initialValue:
-                            "9870131789", // Default phone number without country code
-                        decoration: InputDecoration(
-                          labelText: "Phone Number",
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.phone,
-                        onChanged: (value) {
-                          setState(() {
-                            _phoneController.text = value.completeNumber.trim();
-                          });
-                        },
-                        onSaved: (value) {
-                          _phoneController.text =
-                              value?.completeNumber.trim() ?? '';
-                        },
-                        controller:
-                            null, // Remove the controller to avoid conflicts
+                      keyboardType: TextInputType.emailAddress,
+                      enabled:
+                          false, // Disables editing and greys out the field
+                    ),
+                    SizedBox(height: 16),
+                    // Phone Number Input using IntlPhoneField
+                    SizedBox(height: 8),
+                    IntlPhoneField(
+                      showCountryFlag: false,
+                      initialCountryCode: 'IN',
+                      initialValue: "9870131789",
+                      decoration: InputDecoration(
+                        labelText: "Phone Number",
+                        border: OutlineInputBorder(),
                       ),
-                      SizedBox(height: 16),
+                      keyboardType: TextInputType.phone,
+                      onChanged: (value) {
+                        setState(() {
+                          _phoneController.text = value.completeNumber.trim();
+                        });
+                      },
+                      onSaved: (value) {
+                        _phoneController.text =
+                            value?.completeNumber.trim() ?? '';
+                      },
+                      // Remove the controller to avoid conflicts with the onChanged handler
+                      controller: null,
+                    ),
+                    SizedBox(height: 16),
+                    // Save Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Validate the form
+                            if (_formKey.currentState!.validate()) {
+                              final newMetadata = metadata;
+                              newMetadata['name'] = _nameController.text.trim();
+                              newMetadata['phone'] =
+                                  _phoneController.text.trim();
 
-                      // // Address Input
-                      // SizedBox(height: 8),
-                      // TextFormField(
-                      //   controller: _addressController,
-                      //   decoration: InputDecoration(
-                      //     labelText: "Address",
-                      //     border: OutlineInputBorder(),
-                      //   ),
-                      // ),
-                      // SizedBox(height: 16),
+                              final metadataService =
+                                  ref.read(userMetadataServiceProvider);
 
-                      // Buttons
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              // Validate fields
-                              if (_nameController.text.trim().isNotEmpty &&
-                                  _phoneController.text.trim().isNotEmpty) {
-                                final newMetadata = metadata;
-                                newMetadata['name'] =
-                                    _nameController.text.trim();
-                                newMetadata['phone'] =
-                                    _phoneController.text.trim();
-
-                                final metadataService =
-                                    ref.read(userMetadataServiceProvider);
-
-                                if (metadataService != null) {
-                                  await metadataService.updateUserMetadata(
-                                    metadata: newMetadata,
-                                  );
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("User metadata updated"),
-                                      ),
-                                    );
-                                  }
-                                } else {
+                              if (metadataService != null) {
+                                await metadataService.updateUserMetadata(
+                                  metadata: newMetadata,
+                                );
+                                if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content:
-                                          Text("Error updating user metadata "),
+                                      content: Text("User metadata updated"),
                                     ),
                                   );
                                 }
-
+                              } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content:
-                                        Text("Please fill in all the fields."),
+                                        Text("Error updating user metadata"),
                                   ),
                                 );
-                                return;
                               }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 24.0, vertical: 12.0),
-                            ),
-                            child: Text(
-                              "Save",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                        Theme.of(context).colorScheme.onPrimary,
-                                  ),
-                            ),
+                            } else {
+                              // If validation fails, notify the user
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text("Please fill in all the fields."),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 24.0, vertical: 12.0),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                          child: Text(
+                            "Save",
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 }

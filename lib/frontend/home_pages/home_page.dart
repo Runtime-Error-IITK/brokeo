@@ -112,11 +112,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _requestSmsPermission() async {
     final status = await Permission.sms.request();
     if (status.isGranted) {
-      print("SMS permission granted");
+      log("SMS permission granted");
       // Listen for incoming messages
       startListeningForSms();
     } else if (status.isDenied) {
-      print("SMS permission denied");
+      log("SMS permission denied");
       // Show a popup to inform the user of the benefits of using sms permission
       showDialog(
         context: context,
@@ -143,7 +143,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       );
     } else if (status.isPermanentlyDenied) {
-      print("SMS permission permanently denied");
+      log("SMS permission permanently denied");
       showDialog(
           context: context,
           builder: (context) {
@@ -163,7 +163,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             );
           });
     } else if (status.isRestricted) {
-      print("SMS permission restricted");
+      log("SMS permission restricted");
       showDialog(
           context: context,
           builder: (context) {
@@ -182,7 +182,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             );
           });
     } else if (status.isLimited) {
-      print("SMS permission limited");
+      log("SMS permission limited");
       showDialog(
           context: context,
           builder: (context) {
@@ -201,7 +201,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             );
           });
     } else {
-      print("Unknown SMS permission status: $status");
+      log("Unknown SMS permission status: $status");
       showDialog(
           context: context,
           builder: (context) {
@@ -224,10 +224,10 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   // Start listening for incoming SMS messages
   void startListeningForSms() {
-    print("Starting to listen for SMS messages...");
+    log("Starting to listen for SMS messages...");
     platform.setMethodCallHandler((call) async {
       if (call.method == 'onSmsReceived') {
-        print("Received SMS message from platform channel");
+        log("Received SMS message from platform channel");
         final String newMessage = call.arguments as String;
         SmsHandler.fetchTransactionData(newMessage);
       }
@@ -246,7 +246,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             _buildCategories(), // <-- NEW CATEGORIES SECTION
             // _buildScheduledPayments(scheduledPayments),
             // _buildSplits(splits),
-            // _buildBudget(budgetCategories),
+            _buildBudget(),
           ],
         ),
       ),
@@ -461,6 +461,218 @@ class _HomePageState extends ConsumerState<HomePage> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildBudget() {
+    final asyncCategories =
+        ref.watch(categoryStreamProvider(emptyCategoryFilter));
+    return asyncCategories.when(
+        loading: () => const CircularProgressIndicator(),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Homepage Budget error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (categories) {
+          double overallBudget = 0;
+          for (var category in categories) {
+            overallBudget += category.budget;
+          }
+
+          List<Category> categoriesToShow = showAllBudgetCategories
+              ? categories
+              : categories.take(3).toList();
+
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+                stops: [0.0, 0.5, 1.0],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              color: Color(0xFFEDE7F6),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// **Header**: "Budget", plus icon, expand icon
+                    Row(
+                      children: [
+                        Text(
+                          "Budget",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon:
+                              Icon(Icons.add, size: 22, color: Colors.black54),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => BudgetPage()),
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            showAllBudgetCategories
+                                ? Icons.expand_less
+                                : Icons.expand_more,
+                            size: 22,
+                            color: Colors.black54,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              showAllBudgetCategories =
+                                  !showAllBudgetCategories;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+
+                    /// **Overall Budget** row
+                    _buildBudgetTile("Overall Budget", overallBudget),
+
+                    // Divider below the summary row
+                    Divider(color: Colors.grey[300], height: 20),
+
+                    // If no categories, show "No Budget Yet"
+                    if (categories.isEmpty)
+                      Center(
+                        child: Text(
+                          "No Budget Yet",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      )
+                    else
+                      // Otherwise, list the categories
+                      Column(
+                        children: categoriesToShow.asMap().entries.map((entry) {
+                          return Column(
+                            children: [
+                              _buildBudgetCategoryTile(entry.value),
+                              if (entry.key < categoriesToShow.length - 1)
+                                Divider(color: Colors.grey[300]),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  Widget _buildBudgetTile(String label, double amount) {
+    // bool isNegative = amount < 0;
+    // Color amountColor = isNegative ? Colors.red : Colors.green;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          // Circle avatar with first letter
+          // CircleAvatar(
+          //   backgroundColor: Colors.purple[100],
+          //   child: Text(
+          //     label[0].toUpperCase(), // e.g. "O" for "Overall"
+          //     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
+          //   ),
+          // ),
+          SizedBox(width: 12),
+
+          // Label
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+
+          // Amount
+          Text(
+            "₹${amount.abs().toStringAsFixed(0)}",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBudgetCategoryTile(Category category) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(
+              categoryId: category.categoryId,
+            ),
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            // Circle avatar with emoji
+            CircleAvatar(
+              backgroundColor: Colors.redAccent.withOpacity(0.1),
+              child: Image.asset(
+                'assets/category_icon/${category.name}.jpg',
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
+            ),
+            SizedBox(width: 12),
+
+            // Category Name
+            Expanded(
+              child: Text(
+                category.name,
+                style: TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+            ),
+
+            // Amount (green if positive, red if negative)
+            Text(
+              "₹${category.budget.abs().toStringAsFixed(0)}",
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
