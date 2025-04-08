@@ -519,7 +519,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         Spacer(),
                         IconButton(
                           icon:
-                              Icon(Icons.add, size: 22, color: Colors.black54),
+                              Icon(Icons.edit, size: 22, color: Colors.black54),
                           onPressed: () {
                             Navigator.push(
                               context,
