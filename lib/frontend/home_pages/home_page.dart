@@ -65,7 +65,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     _initializeNotifications();
     _checkAndRequestSmsPermission();
     startListeningForSms();
-    SmsHandler.processNewSmsOnAppOpen();
   }
 
   void _initializeNotifications() {
@@ -1483,13 +1482,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   //     ),
   //   );
   // }
-
-  @override
-  void dispose() {
-    SmsHandler
-        .saveAppCloseTime(); // Save the app's close time when the app is closed
-    super.dispose();
-  }
 }
 
 class ArcPainter extends CustomPainter {
