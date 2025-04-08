@@ -4,21 +4,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Schedule {
   final String scheduleId;
-  final String merchantId;
-  final String categoryId;
   final String userId;
   final double amount;
-  final List<DateTime> dates;
-  final int timePeriod;
+  final String merchantName;
+  final DateTime date;
+  final String description;
 
   Schedule({
     required this.scheduleId,
     required this.amount,
-    required this.merchantId,
-    required this.categoryId,
-    required this.dates,
-    required this.timePeriod,
     required this.userId,
+    required this.merchantName,
+    required this.date,
+    required this.description,
   });
 
   @override
@@ -38,39 +36,35 @@ class Schedule {
   factory Schedule.fromCloudSchedule(CloudSchedule cloudSchedule) {
     return Schedule(
       scheduleId: cloudSchedule.scheduleId,
-      merchantId: cloudSchedule.merchantId,
-      categoryId: cloudSchedule.categoryId,
-      userId: cloudSchedule.userId,
       amount: cloudSchedule.amount,
-      dates: cloudSchedule.dates,
-      timePeriod: cloudSchedule.timePeriod,
+      userId: cloudSchedule.userId,
+      merchantName: cloudSchedule.merchantName,
+      date: cloudSchedule.date,
+      description: cloudSchedule.description,
     );
   }
 
   @override
   String toString() {
-    final jsonDates = jsonEncode(dates);
-    return "Schedule{scheduleId: $scheduleId, amount: $amount, merchantId: $merchantId, categoryId: $categoryId, dates: $jsonDates, timePeriod: $timePeriod, userId: $userId}";
+    return "Schedule{scheduleId: $scheduleId, amount: $amount, merchantName: $merchantName, date: $date, userId: $userId, description: $description}";
   }
 }
 
 class CloudSchedule {
   final String scheduleId;
-  final String merchantId;
-  final String categoryId;
   final String userId;
   final double amount;
-  final List<DateTime> dates;
-  final int timePeriod;
+  final String merchantName;
+  final DateTime date;
+  final String description;
 
   CloudSchedule({
     required this.scheduleId,
-    required this.merchantId,
-    required this.categoryId,
-    required this.userId,
     required this.amount,
-    required this.dates,
-    required this.timePeriod,
+    required this.userId,
+    required this.merchantName,
+    required this.date,
+    required this.description,
   });
 
   @override
@@ -90,57 +84,46 @@ class CloudSchedule {
   factory CloudSchedule.fromSnapshot(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    final List<dynamic> timestampList = data[datesColumn] as List<dynamic>;
-    final List<DateTime> dateList = timestampList
-        .map((timestamp) => (timestamp as Timestamp).toDate())
-        .toList();
-
     return CloudSchedule(
       scheduleId: data[scheduleIdColumn] as String,
-      merchantId: data[merchantIdColumn] as String,
-      categoryId: data[categoryIdColumn] as String,
-      userId: data[userIdColumn] as String,
       amount: (data[amountColumn] as num).toDouble(),
-      dates: dateList,
-      timePeriod: data[timePeriodColumn] as int,
+      date: (data[dateColumn] as Timestamp).toDate(),
+      merchantName: data[merchantNameColumn] as String,
+      userId: data[userIdColumn] as String,
+      description: data[descriptionColumn] as String,
     );
   }
 
   factory CloudSchedule.fromSchedule(Schedule schedule) {
     return CloudSchedule(
       scheduleId: schedule.scheduleId,
-      merchantId: schedule.merchantId,
-      categoryId: schedule.categoryId,
-      userId: schedule.userId,
       amount: schedule.amount,
-      dates: schedule.dates,
-      timePeriod: schedule.timePeriod,
+      date: schedule.date,
+      merchantName: schedule.merchantName,
+      userId: schedule.userId,
+      description: schedule.description,
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      scheduleIdColumn: scheduleId,
-      merchantIdColumn: merchantId,
-      categoryIdColumn: categoryId,
+      merchantNameColumn: merchantName,
       userIdColumn: userId,
       amountColumn: amount,
-      datesColumn: dates.map((date) => Timestamp.fromDate(date)).toList(),
-      timePeriodColumn: timePeriod,
+      dateColumn: Timestamp.fromDate(date),
+      descriptionColumn: description,
     };
   }
 
   @override
   String toString() {
-    final jsonDates = jsonEncode(dates);
-    return "CloudCategory{scheduleId: $scheduleId, amount: $amount, merchantId: $merchantId, categoryId: $categoryId, dates: $jsonDates, timePeriod: $timePeriod, userId: $userId}";
+    return "CloudSchedule{scheduleId: $scheduleId, amount: $amount, merchantName: $merchantName, date: $date, userId: $userId, description: $description}";
   }
 }
 
-String scheduleIdColumn = "scheduleId";
-String amountColumn = "amount";
-String merchantIdColumn = "merchantId";
-String categoryIdColumn = "categoryId";
-String datesColumn = "dates";
-String timePeriodColumn = "timePeriod";
-String userIdColumn = "userId";
+const String scheduleIdColumn = "scheduleId";
+const String amountColumn = "amount";
+const String dateColumn = "date";
+const String merchantNameColumn = "merchantName";
+const String userIdColumn = "userId";
+const String descriptionColumn = "description";
