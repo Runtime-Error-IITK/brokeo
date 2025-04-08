@@ -9,7 +9,7 @@ import 'package:brokeo/backend/services/providers/read_providers/category_stream
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart'
     show MerchantFilter, merchantStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/schedule_stream_provider.dart'
-    show scheduleStreamProvider;
+    show ScheduleFilter, scheduleStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
@@ -244,7 +244,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             _buildProfileAndBudgetSection(),
             _buildTransactions(),
             _buildCategories(), // <-- NEW CATEGORIES SECTION
-            // _buildScheduledPayments(scheduledPayments),
+            _buildScheduledPayments(),
             // _buildSplits(splits),
             _buildBudget(),
           ],
@@ -1337,150 +1337,156 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  // Widget _buildScheduledPayments() {
-  //   final asyncScheduledPayments = ref.watch(scheduleStreamProvider);
+  Widget _buildScheduledPayments() {
+    // If not expanded, only show top 3
+    final now = DateTime.now();
+    final todayMidnight = DateTime(now.year, now.month, now.day);
+    final filter = ScheduleFilter(startDate: todayMidnight);
+    final asyncSchedules =
+        ref.watch(scheduleStreamProvider(filter)); // Fetch scheduled payments
 
-  //   return asyncScheduledPayments.when(
-  //       loading: () => const CircularProgressIndicator(),
-  //       error: (error, stack) {
-  //         WidgetsBinding.instance.addPostFrameCallback((_) {
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(content: Text("Schedule error: $error")),
-  //           );
-  //         });
-  //         return SizedBox.shrink();
-  //       },
-  //       data: (payments) {
-  //         List<Schedule> paymentsToShow =
-  //             showAllScheduledPayments ? payments : payments.take(3).toList();
+    return asyncSchedules.when(
+        loading: () => const CircularProgressIndicator(),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Scheduled Payment error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (payments) {
+          List<Schedule> paymentsToShow =
+              showAllScheduledPayments ? payments : payments.take(3).toList();
 
-  //         return Container(
-  //           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-  //           decoration: BoxDecoration(
-  //             gradient: LinearGradient(
-  //               colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
-  //               stops: [0.0, 0.5, 1.0],
-  //               begin: Alignment.centerLeft,
-  //               end: Alignment.centerRight,
-  //             ),
-  //             borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-  //           ),
-  //           child: Card(
-  //             shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(20)),
-  //             color: Color(0xFFEDE7F6),
-  //             elevation: 0,
-  //             child: Padding(
-  //               padding: const EdgeInsets.all(12),
-  //               child: Column(
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: [
-  //                   // Header row
-  //                   Row(
-  //                     children: [
-  //                       Text(
-  //                         "Scheduled Payments",
-  //                         style: TextStyle(
-  //                             fontSize: 16, fontWeight: FontWeight.bold),
-  //                       ),
-  //                       Spacer(),
-  //                       IconButton(
-  //                         icon:
-  //                             Icon(Icons.add, size: 22, color: Colors.black54),
-  //                         onPressed: () {
-  //                           // TODO: Handle "Add Scheduled Payment"
-  //                         },
-  //                       ),
-  //                       IconButton(
-  //                         icon: Icon(
-  //                           showAllScheduledPayments
-  //                               ? Icons.expand_less
-  //                               : Icons.expand_more,
-  //                           size: 22,
-  //                           color: Colors.black54,
-  //                         ),
-  //                         onPressed: () {
-  //                           setState(() {
-  //                             showAllScheduledPayments =
-  //                                 !showAllScheduledPayments;
-  //                           });
-  //                         },
-  //                       ),
-  //                     ],
-  //                   ),
-  //                   SizedBox(height: 10),
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+                stops: [0.0, 0.5, 1.0],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              color: Color(0xFFEDE7F6),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Row(
+                      children: [
+                        Text(
+                          "Scheduled Payments",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon:
+                              Icon(Icons.add, size: 22, color: Colors.black54),
+                          onPressed: () {
+                            // TODO: Handle "Add Scheduled Payment"
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            showAllScheduledPayments
+                                ? Icons.expand_less
+                                : Icons.expand_more,
+                            size: 22,
+                            color: Colors.black54,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              showAllScheduledPayments =
+                                  !showAllScheduledPayments;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
 
-  //                   // If empty
-  //                   payments.isEmpty
-  //                       ? Center(
-  //                           child: Text(
-  //                             "No Scheduled Payments Yet",
-  //                             style: TextStyle(
-  //                               fontSize: 16,
-  //                               fontWeight: FontWeight.bold,
-  //                               color: Colors.black54,
-  //                             ),
-  //                           ),
-  //                         )
-  //                       : Column(
-  //                           children:
-  //                               paymentsToShow.asMap().entries.map((entry) {
-  //                             return Column(
-  //                               children: [
-  //                                 _buildScheduledPaymentTile(entry.value),
-  //                                 if (entry.key < paymentsToShow.length - 1)
-  //                                   Divider(color: Colors.grey[300]),
-  //                               ],
-  //                             );
-  //                           }).toList(),
-  //                         ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         );
-  //       });
-  // }
+                    // If empty
+                    payments.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No Scheduled Payments Yet",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          )
+                        : Column(
+                            children:
+                                paymentsToShow.asMap().entries.map((entry) {
+                              return Column(
+                                children: [
+                                  _buildScheduledPaymentTile(entry.value),
+                                  if (entry.key < paymentsToShow.length - 1)
+                                    Divider(color: Colors.grey[300]),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
 
-  // Widget _buildScheduledPaymentTile(ScheduledPayment payment) {
-  //   return InkWell(
-  //     onTap: () {
-  //       // TODO: Implement onTap logic for scheduled payment
-  //       // For example, open payment details or show a dialog.
-  //     },
-  //     child: Padding(
-  //       padding: const EdgeInsets.symmetric(vertical: 5),
-  //       child: Row(
-  //         children: [
-  //           // Circle avatar with first letter
-  //           CircleAvatar(
-  //             backgroundColor: Colors.purple[100],
-  //             child: Text(
-  //               payment.name[0],
-  //               style: TextStyle(
-  //                   fontWeight: FontWeight.bold, color: Colors.purple),
-  //             ),
-  //           ),
-  //           SizedBox(width: 12),
-  //           Expanded(
-  //             child: Text(
-  //               payment.name,
-  //               style: TextStyle(fontSize: 14, color: Colors.black87),
-  //             ),
-  //           ),
-  //           Text(
-  //             "₹${payment.amount.toStringAsFixed(0)}",
-  //             style: TextStyle(
-  //               fontSize: 14,
-  //               fontWeight: FontWeight.bold,
-  //               color: Colors.red,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
+// Single Scheduled Payment tile
+  Widget _buildScheduledPaymentTile(Schedule payment) {
+    return InkWell(
+      onTap: () {
+        // TODO: Implement onTap logic for scheduled payment
+        // For example, open payment details or show a dialog.
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            // Circle avatar with first letter
+            CircleAvatar(
+              backgroundColor: Colors.purple[100],
+              child: Text(
+                payment.merchantName,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.purple),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                payment.merchantName,
+                style: TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+            ),
+            Text(
+              "₹${payment.amount.toStringAsFixed(0)}",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   void dispose() {
