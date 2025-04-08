@@ -168,7 +168,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                 for (var transaction in transactions) {
                   totalSpent -= transaction.amount < 0 ? transaction.amount : 0;
                 }
-                double budget = categories.fold(0.0, (sum, category) => sum + category.budget);
+                double budget = userMetaData['budget'] ?? 0.0;
                 final now = DateTime.now();
                 final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
                 final daysRemaining = lastDayOfMonth.day - now.day;
@@ -184,7 +184,8 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                       Text(
                         currentMonth,
                         style: TextStyle(
-                          fontSize: 18, // Same font size as "Safe to Spend" and "Amount Spent"
+                          fontSize:
+                              18, // Same font size as "Safe to Spend" and "Amount Spent"
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
@@ -200,7 +201,8 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                               Text(
                                 "Safe to Spend",
                                 style: TextStyle(
-                                  fontSize: 18, // Same font size as "Amount Spent"
+                                  fontSize:
+                                      18, // Same font size as "Amount Spent"
                                   color: Colors.black54,
                                 ),
                               ),
@@ -216,13 +218,16 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                             ],
                           ),
                           // Amount Spent Section
-                        SizedBox(width: 20), // Added spacing between the two columns
+                          SizedBox(
+                              width:
+                                  20), // Added spacing between the two columns
                           Column(
                             children: [
                               Text(
                                 "Amount Spent",
                                 style: TextStyle(
-                                  fontSize: 18, // Same font size as "Safe to Spend"
+                                  fontSize:
+                                      18, // Same font size as "Safe to Spend"
                                   color: Colors.black54,
                                 ),
                               ),
@@ -271,10 +276,12 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
   Widget buildDonutChart() {
     final categoryFilter = CategoryFilter();
     final asyncCategories = ref.watch(categoryStreamProvider(categoryFilter));
-    final asyncTransactions = ref.watch(transactionStreamProvider(TransactionFilter()));
+    final asyncTransactions =
+        ref.watch(transactionStreamProvider(TransactionFilter()));
 
     return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 10), // Added padding above and reduced below
+      padding: const EdgeInsets.only(
+          top: 20, bottom: 10), // Added padding above and reduced below
       child: asyncCategories.when(
         loading: () => Center(child: CircularProgressIndicator()),
         error: (error, stack) {
@@ -299,12 +306,17 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
             data: (transactions) {
               final now = DateTime.now();
               final startOfMonth = DateTime(now.year, now.month, 1);
-              final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
+              final endOfMonth =
+                  DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
 
-              final monthlyTransactions = transactions.where((t) =>
-                  t.date.isAfter(startOfMonth) && t.date.isBefore(endOfMonth)).toList();
+              final monthlyTransactions = transactions
+                  .where((t) =>
+                      t.date.isAfter(startOfMonth) &&
+                      t.date.isBefore(endOfMonth))
+                  .toList();
 
-              double totalSpent = monthlyTransactions.fold(0, (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
+              double totalSpent = monthlyTransactions.fold(
+                  0, (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
 
               if (totalSpent == 0) {
                 return Center(
@@ -330,9 +342,11 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                   List<CategoryData> categoryData = categories.map((category) {
                     double categorySpent = monthlyTransactions
                         .where((t) => t.categoryId == category.categoryId)
-                        .fold(0, (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
+                        .fold(0,
+                            (sum, t) => sum + (t.amount < 0 ? -t.amount : 0));
 
-                    double percentage = totalSpent > 0 ? (categorySpent / totalSpent) * 100 : 0;
+                    double percentage =
+                        totalSpent > 0 ? (categorySpent / totalSpent) * 100 : 0;
 
                     return CategoryData(
                       name: category.name,
@@ -826,7 +840,8 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
       data: (transactions) {
         if (transactions.isEmpty) {
           return Center(
-            child: Text("No transactions yet", style: TextStyle(fontSize: 16, color: Colors.grey)),
+            child: Text("No transactions yet",
+                style: TextStyle(fontSize: 16, color: Colors.grey)),
           );
         }
         return ListView.builder(
@@ -1315,7 +1330,8 @@ class CategoryData {
   final double percentage;
   final Color color;
 
-  CategoryData({required this.name, required this.percentage, required this.color});
+  CategoryData(
+      {required this.name, required this.percentage, required this.color});
 }
 
 /// Model to hold each category's name, percentage, and color.
