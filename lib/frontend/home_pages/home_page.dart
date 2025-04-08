@@ -1561,45 +1561,98 @@ void showAddScheduledPaymentDialog(BuildContext context) {
 }
 
 // Single Scheduled Payment tile
-  Widget _buildScheduledPaymentTile(Schedule payment) {
-    return InkWell(
-      onTap: () {
-        // TODO: Implement onTap logic for scheduled payment
-        // For example, open payment details or show a dialog.
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(
-          children: [
-            // Circle avatar with first letter
-            CircleAvatar(
-              backgroundColor: Colors.purple[100],
-              child: Text(
-                payment.merchantName,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, color: Colors.purple),
-              ),
+ Widget _buildScheduledPaymentTile(Schedule payment) {
+  return InkWell(
+    onTap: () {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                payment.merchantName,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
-              ),
+            title: Text('Scheduled Payment Details'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text("Name: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Expanded(child: Text(payment.merchantName)),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text("Amount: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Expanded(child: Text("₹${payment.amount.toStringAsFixed(0)}")),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text("Description: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Expanded(child: Text(payment.description ?? "—")),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  // children: [
+                  //   Text("Scheduled Date: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                  //   Expanded(
+                  //     child: Text("${payment.scheduledDate.toLocal()}".split(' ')[0]),
+                  //   ),
+                  // ],
+                ),
+              ],
             ),
-            Text(
-              "₹${payment.amount.toStringAsFixed(0)}",
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Close"),
+              ),
+            ],
+          );
+        },
+      );
+    },
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.purple[100],
+            child: Text(
+              payment.merchantName.isNotEmpty
+                  ? payment.merchantName[0].toUpperCase()
+                  : "?",
               style: TextStyle(
-                fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Colors.red,
+                color: Colors.purple,
               ),
             ),
-          ],
-        ),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              payment.merchantName,
+              style: TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+          ),
+          Text(
+            "₹${payment.amount.toStringAsFixed(0)}",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   void dispose() {
