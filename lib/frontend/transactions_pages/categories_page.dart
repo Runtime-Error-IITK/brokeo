@@ -321,7 +321,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
               if (totalSpent == 0) {
                 return Center(
                   child: Text(
-                    "No transactions this month",
+                    "No spends this month",
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 );
