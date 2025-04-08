@@ -1394,6 +1394,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                               Icon(Icons.add, size: 22, color: Colors.black54),
                           onPressed: () {
                             // TODO: Handle "Add Scheduled Payment"
+                            // log("aaaaa");
+                            showAddScheduledPaymentDialog(context);
                           },
                         ),
                         IconButton(
@@ -1446,6 +1448,117 @@ class _HomePageState extends ConsumerState<HomePage> {
           );
         });
   }
+
+void showAddScheduledPaymentDialog(BuildContext context) {
+  final _nameController = TextEditingController();
+  final _amountController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  DateTime? selectedDate;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text('Add Scheduled Payment'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(labelText: 'Name'),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Amount (₹)'),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: _descriptionController,
+                    decoration: InputDecoration(labelText: 'Description'),
+                  ),
+                  SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          selectedDate == null
+                              ? 'No Date Chosen'
+                              : '${selectedDate!.toLocal()}'.split(' ')[0],
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.calendar_today),
+                        onPressed: () async {
+                          final pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now().add(Duration(days: 1)),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2100),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              selectedDate = pickedDate;
+                            });
+                          }
+                        },
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              ElevatedButton(
+                child: Text('Add'),
+                onPressed: () {
+                  final name = _nameController.text.trim();
+                  final amount = _amountController.text.trim();
+                  final description = _descriptionController.text.trim();
+
+                  if (name.isEmpty || amount.isEmpty || description.isEmpty || selectedDate == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Please fill all fields")),
+                    );
+                    return;
+                  }
+
+                  final now = DateTime.now();
+                  if (selectedDate!.isBefore(DateTime(now.year, now.month, now.day))) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Please select a future date")),
+                    );
+                    return;
+                  }
+
+                  // Everything is valid, proceed (just print for now)
+                  print("Name: $name");
+                  print("Amount: ₹$amount");
+                  print("Description: $description");
+                  print("Date: ${selectedDate!.toLocal()}");
+
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
 
 // Single Scheduled Payment tile
   Widget _buildScheduledPaymentTile(Schedule payment) {
