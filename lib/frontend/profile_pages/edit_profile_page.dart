@@ -155,7 +155,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         padding: EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 12.0),
+                            horizontal: 40.0, vertical: 12.0),
                       ),
                       child: Text(
                         "Save",
@@ -165,25 +165,25 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                             ),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Cancel logic
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 12.0),
-                      ),
-                      child: Text(
-                        "Cancel",
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSecondary,
-                            ),
-                      ),
-                    ),
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     // Cancel logic
+                    //     Navigator.pop(context);
+                    //   },
+                    //   style: ElevatedButton.styleFrom(
+                    //     backgroundColor:
+                    //         Theme.of(context).colorScheme.secondary,
+                    //     padding: EdgeInsets.symmetric(
+                    //         horizontal: 24.0, vertical: 12.0),
+                    //   ),
+                    //   child: Text(
+                    //     "Cancel",
+                    //     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    //           fontWeight: FontWeight.bold,
+                    //           color: Theme.of(context).colorScheme.onSecondary,
+                    //         ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ],

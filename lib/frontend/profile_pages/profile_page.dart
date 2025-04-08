@@ -252,7 +252,7 @@ class ProfilePage extends ConsumerWidget {
                     ),
                     Expanded(
                       child: Text(
-                        "shreyjsolanki@gmail.com",
+                        "brokeo@gmail.com",
                         style: TextStyle(
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
