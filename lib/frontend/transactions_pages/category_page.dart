@@ -39,7 +39,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
       error: (error, stack) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Error: $error")),
+            SnackBar(content: Text("Category Error: $error")),
           );
         });
         return const SizedBox.shrink();
@@ -60,7 +60,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
           error: (error, stack) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Error: $error")),
+                SnackBar(content: Text("Category Error: $error")),
               );
             });
             return const SizedBox.shrink();

@@ -72,7 +72,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
       error: (error, stack) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Error: $error")),
+            SnackBar(content: Text("Manage Splits Error: $error")),
           );
         });
         return const SizedBox.shrink();
