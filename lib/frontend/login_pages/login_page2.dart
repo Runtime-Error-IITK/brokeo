@@ -101,6 +101,7 @@ class _SignupPageState extends State<LoginPage2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       body: Center(
         child: Container(
           width: double.infinity,
@@ -116,6 +117,7 @@ class _SignupPageState extends State<LoginPage2> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const SizedBox(height: 200),
                 Text(
                   'Sign Up!',
                   style: GoogleFonts.pacifico(
