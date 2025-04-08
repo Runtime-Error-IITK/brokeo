@@ -1,3 +1,4 @@
+import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/frontend/login_pages/login_page1.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,195 +13,214 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     bool _notificationsEnabled = true; // State variable for notifications
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context); // Navigate back
-          },
-        ),
-        title: Text(
-          "Profile",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Profile Picture and Name
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.purple[100],
-                    child: Icon(Icons.person, size: 50, color: Colors.purple),
+    final asyncUsermetadata = ref.watch(userMetadataStreamProvider);
+    return asyncUsermetadata.when(
+      loading: () => Center(child: CircularProgressIndicator()),
+      error: (error, stack) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Profile page Error: $error")),
+          );
+        });
+        return const SizedBox.shrink();
+      },
+      data: (metadata) {
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () {
+                Navigator.pop(context); // Navigate back
+              },
+            ),
+            title: Text(
+              "Profile",
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+            ),
+            centerTitle: true,
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Profile Picture and Name
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.purple[100],
+                        child:
+                            Icon(Icons.person, size: 50, color: Colors.purple),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        metadata['name'] ?? "Unknown User",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        "${ref.read(firebaseAuthProvider).currentUser?.email ?? "Unknown user"} | ${metadata['phone']}",
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Aujasvit Datta",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+
+                // Edit Profile Option
+                ListTile(
+                  leading: Icon(Icons.edit, color: Colors.purple),
+                  title: Text(
+                    "Edit profile information",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
-                  SizedBox(height: 5),
-                  Text(
-                    "aujasvit@dhichik.com | +91 9870131789",
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                    textAlign: TextAlign.center,
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditProfilePage()),
+                    );
+                  },
+                ),
+
+                // Budget Section
+                ListTile(
+                  leading:
+                      Icon(Icons.account_balance_wallet, color: Colors.purple),
+                  title: Text(
+                    "Budget",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
-                ],
-              ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => BudgetPage()),
+                    );
+                  },
+                ),
+
+                Divider(),
+
+                // Permissions Section
+                ListTile(
+                  leading: Icon(Icons.lock, color: Colors.purple),
+                  title: Text(
+                    "Permissions",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    await openAppSettings();
+                  },
+                ),
+
+                Divider(),
+
+                // // Help & Support
+                // ListTile(
+                //   leading: Icon(Icons.help_outline, color: Colors.purple),
+                //   title: Text(
+                //     "Help & Support",
+                //     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                //   ),
+                //   trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => FAQsPage()),
+                //     );
+                //   },
+                // ),
+
+                // Contact Us
+                ListTile(
+                  leading: Icon(Icons.contact_mail, color: Colors.purple),
+                  title: Text(
+                    "Contact us",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    _showContactDialog(context, "Contact Us");
+                  },
+                ),
+
+                // Privacy Policy
+                ListTile(
+                  leading: Icon(Icons.privacy_tip, color: Colors.purple),
+                  title: Text(
+                    "Privacy policy",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    _showPrivacyPolicyDialog(context);
+                  },
+                ),
+
+                Divider(),
+
+                // About Us Section
+                ListTile(
+                  leading: Icon(Icons.info, color: Colors.purple),
+                  title: Text(
+                    "About Us",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    _showContactDialog(context, "About Us");
+                  },
+                ),
+                Divider(),
+                ListTile(
+                  leading: Icon(Icons.info, color: Colors.purple),
+                  title: Text(
+                    "Logout",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  trailing: Icon(Icons.logout, size: 16),
+                  onTap: () async {
+                    try {
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              LoginPage1(), // Replace with your login page
+                        ),
+                        (Route<dynamic> route) => false,
+                      );
+                    } on FirebaseAuthException catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Error logging out: ${e.code}"),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Error logging out: $e"),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
-
-            // Edit Profile Option
-            ListTile(
-              leading: Icon(Icons.edit, color: Colors.purple),
-              title: Text(
-                "Edit profile information",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EditProfilePage()),
-                );
-              },
-            ),
-
-            // Budget Section
-            ListTile(
-              leading: Icon(Icons.account_balance_wallet, color: Colors.purple),
-              title: Text(
-                "Budget",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => BudgetPage()),
-                );
-              },
-            ),
-
-            Divider(),
-
-            // Permissions Section
-            ListTile(
-              leading: Icon(Icons.lock, color: Colors.purple),
-              title: Text(
-                "Permissions",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () async {
-                await openAppSettings();
-              },
-            ),
-
-            Divider(),
-
-            // // Help & Support
-            // ListTile(
-            //   leading: Icon(Icons.help_outline, color: Colors.purple),
-            //   title: Text(
-            //     "Help & Support",
-            //     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            //   ),
-            //   trailing: Icon(Icons.arrow_forward_ios, size: 16),
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(builder: (context) => FAQsPage()),
-            //     );
-            //   },
-            // ),
-
-            // Contact Us
-            ListTile(
-              leading: Icon(Icons.contact_mail, color: Colors.purple),
-              title: Text(
-                "Contact us",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                _showContactDialog(context, "Contact Us");
-              },
-            ),
-
-            // Privacy Policy
-            ListTile(
-              leading: Icon(Icons.privacy_tip, color: Colors.purple),
-              title: Text(
-                "Privacy policy",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                _showPrivacyPolicyDialog(context);
-              },
-            ),
-
-            Divider(),
-
-            // About Us Section
-            ListTile(
-              leading: Icon(Icons.info, color: Colors.purple),
-              title: Text(
-                "About Us",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                _showContactDialog(context, "About Us");
-              },
-            ),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.info, color: Colors.purple),
-              title: Text(
-                "Logout",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(Icons.logout, size: 16),
-              onTap: () async {
-                try {
-                  await FirebaseAuth.instance.signOut();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LoginPage1(), // Replace with your login page
-                    ),
-                    (Route<dynamic> route) => false,
-                  );
-                } on FirebaseAuthException catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Error logging out: ${e.code}"),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Error logging out: $e"),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
