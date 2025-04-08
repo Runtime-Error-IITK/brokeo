@@ -28,6 +28,8 @@ import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/frontend/split_pages/split_history.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
+import 'scheduled_payment_detail_page.dart';
+import 'package:brokeo/models/scheduled_payment_model.dart' as schedModel;
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:brokeo/sms_handler.dart';
@@ -63,7 +65,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     _initializeNotifications();
     _checkAndRequestSmsPermission();
     startListeningForSms();
-    SmsHandler.processNewSmsOnAppOpen();
   }
 
   void _initializeNotifications() {
@@ -1481,13 +1482,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   //     ),
   //   );
   // }
-
-  @override
-  void dispose() {
-    SmsHandler
-        .saveAppCloseTime(); // Save the app's close time when the app is closed
-    super.dispose();
-  }
 }
 
 class ArcPainter extends CustomPainter {
