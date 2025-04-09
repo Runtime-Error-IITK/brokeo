@@ -1628,13 +1628,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ],
                   ),
                   SizedBox(height: 8),
-                  // Uncomment the below if you want to show scheduled date too inside popup.
                   Row(
                     children: [
                       Text("Scheduled Date: ",
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       Expanded(
-                        child: Text("${DateFormat('dd-MM-yyyy').format(payment.date.toLocal())}"),
+                        child: Text(
+                          "${DateFormat('dd-MM-yyyy').format(payment.date.toLocal())}",
+                        ),
                       ),
                     ],
                   ),
@@ -1646,11 +1647,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                   child: Text("Close"),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    // Replace the following with your "mark as paid" action
-                    log("Marking ${payment.merchantName} as paid.");
-                    Navigator.pop(context);
-                  },
+                  onPressed: payment.paid
+                      ? null
+                      : () {
+                          log("Marking ${payment.merchantName} as paid.");
+                          Navigator.pop(context);
+                        },
                   child: Text("Mark as Paid"),
                 ),
               ],
@@ -1694,9 +1696,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: payment.paid
-                        ? Colors.green
-                        : Colors.red, // Change color based on payment status
+                    color: payment.paid ? Colors.green : Colors.red,
                   ),
                 ),
               ],
