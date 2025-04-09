@@ -58,4 +58,27 @@ class ScheduleService {
       return null;
     }
   }
+
+  Future<CloudSchedule?> updateSchedule(CloudSchedule schedule) async {
+    final scheduleRef = FirebaseFirestore.instance
+        .collection('schedules')
+        .doc(userId)
+        .collection('userSchedules')
+        .doc(schedule.scheduleId);
+
+    try {
+      await scheduleRef.update(schedule.toFirestore());
+      final docSnap = await scheduleRef.get();
+      if (docSnap.exists) {
+        log("Updated schedule with id: ${schedule.scheduleId}");
+        return CloudSchedule.fromSnapshot(docSnap);
+      } else {
+        log("Failed to retrieve updated schedule");
+        return null;
+      }
+    } catch (e) {
+      log("Error updating schedule: $e");
+      return null;
+    }
+  }
 }

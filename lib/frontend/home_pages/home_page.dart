@@ -1624,7 +1624,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     children: [
                       Text("Description: ",
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      Expanded(child: Text(payment.description )),
+                      Expanded(child: Text(payment.description)),
                     ],
                   ),
                   SizedBox(height: 8),
@@ -1646,11 +1646,32 @@ class _HomePageState extends ConsumerState<HomePage> {
                   onPressed: () => Navigator.pop(context),
                   child: Text("Close"),
                 ),
-                ElevatedButton(
+                TextButton(
                   onPressed: payment.paid
                       ? null
                       : () {
-                          log("Marking ${payment.merchantName} as paid.");
+                          // Mark as paid
+                          final newSchedule = Schedule(
+                            scheduleId: payment.scheduleId,
+                            userId: payment.userId,
+                            amount: payment.amount,
+                            merchantName: payment.merchantName,
+                            date: payment.date,
+                            description: payment.description,
+                            paid: true,
+                          );
+                          final scheduleService =
+                              ref.read(scheduleServiceProvider);
+                          if (scheduleService == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("User not logged in")),
+                            );
+                            return;
+                          } else {
+                            scheduleService.updateSchedule(
+                                CloudSchedule.fromSchedule(newSchedule));
+                          }
+
                           Navigator.pop(context);
                         },
                   child: Text("Mark as Paid"),
