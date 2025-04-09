@@ -1,28 +1,72 @@
+import 'dart:async';
+
+import 'package:brokeo/frontend/home_pages/home_page.dart';
+import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class EmailVerificationPage extends StatefulWidget {
-  const EmailVerificationPage({super.key});
+// Providers (provided by you)
+final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
+  return FirebaseAuth.instance;
+});
+
+final firebaseUserProvider = StreamProvider<User?>((ref) {
+  final auth = ref.watch(firebaseAuthProvider);
+  return auth.authStateChanges();
+});
+
+// Convert your widget into a ConsumerStatefulWidget
+class EmailVerificationPage extends ConsumerStatefulWidget {
+  const EmailVerificationPage({Key? key}) : super(key: key);
 
   @override
-  State<EmailVerificationPage> createState() => _EmailVerificationPageState();
+  ConsumerState<EmailVerificationPage> createState() =>
+      _EmailVerificationPageState();
 }
 
-class _EmailVerificationPageState extends State<EmailVerificationPage> {
+class _EmailVerificationPageState extends ConsumerState<EmailVerificationPage> {
   bool _isResending = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start polling every 5 seconds.
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      final firebaseAuth = ref.read(firebaseAuthProvider);
+      final user = firebaseAuth.currentUser;
+      if (user != null) {
+        await user.reload();
+        if (user.emailVerified) {
+          // Cancel the timer to stop polling.
+          _timer?.cancel();
+          if (mounted) {
+            // Navigate to HomePage once the email is verified.
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const AuthPage()),
+            );
+          }
+        }
+      }
+    });
+  }
 
   Future<void> _resendVerificationEmail() async {
     try {
       setState(() {
         _isResending = true;
       });
-      User? user = FirebaseAuth.instance.currentUser;
+      // Use the firebaseAuthProvider to get the FirebaseAuth instance.
+      final firebaseAuth = ref.read(firebaseAuthProvider);
+      final user = firebaseAuth.currentUser;
       if (user != null && !user.emailVerified) {
         await user.sendEmailVerification();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Verification email sent.")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Verification email sent.")),
+          );
+        }
       }
       setState(() {
         _isResending = false;
@@ -38,7 +82,18 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Watch the firebaseUserProvider
+    final firebaseUserAsync = ref.watch(firebaseUserProvider);
+
+    // The timer handles polling for email verification,
+    // so no need to rely solely on authStateChanges() here.
     return Scaffold(
       body: Center(
         child: Container(
@@ -58,14 +113,14 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 200),
-                  // Replace the title text with a mail icon.
+                  // Display a mail icon
                   Icon(
                     Icons.mail_outline_outlined,
                     color: const Color(0xFF1C1B14),
                     size: 150,
                   ),
                   const SizedBox(height: 50),
-                  Text(
+                  const Text(
                     'A verification link has been sent to your email. Please check your inbox and verify your account.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -86,7 +141,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                     ),
                     child: _isResending
                         ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           )
                         : const Text(
                             'Resend Verification Email',

@@ -47,13 +47,18 @@ class _SignupPageState extends State<LoginPage2> {
 
     try {
       // Create a new user with email and password.
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      await userCredential.user?.sendEmailVerification();
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Signup successful!")),
+        const SnackBar(
+            content: Text("Verification Link sent. Please check email inbox.")),
       );
 
       // Navigate to the LoginPage1 (or any other page) after successful signup.
@@ -101,7 +106,6 @@ class _SignupPageState extends State<LoginPage2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       body: Center(
         child: Container(
           width: double.infinity,

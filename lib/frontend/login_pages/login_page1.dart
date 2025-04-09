@@ -5,6 +5,7 @@ import 'package:brokeo/backend/default_categories.dart'
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:brokeo/frontend/login_pages/login_page2.dart';
+import 'package:brokeo/frontend/login_pages/verify.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, UserCredential;
 import 'package:flutter/material.dart';
@@ -42,14 +43,26 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
       final user = userCredential.user;
       if (user != null) {
         await ensureDefaultCategories(user.uid);
+        if (user.emailVerified == false) {
+          await user.sendEmailVerification();
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => EmailVerificationPage(),
+              ),
+              (route) => false,
+            );
+          }
+          if (!mounted) return;
+        } else {
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => AuthPage(),
+            ),
+          );
+        }
       }
-      // If sign-in is successful, navigate to the next page (for example, HomePage)
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => AuthPage(),
-        ),
-      );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       String errorMessage;
