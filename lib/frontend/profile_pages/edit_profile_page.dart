@@ -14,9 +14,14 @@ class EditProfilePage extends ConsumerStatefulWidget {
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  // Controllers for name and email remain
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  // Remove assignment to phone controller in the phone field; we'll use a separate state variable.
   final TextEditingController _phoneController = TextEditingController();
+
+  // State variable to hold the complete phone number
+  String _completePhoneNumber = "";
 
   @override
   void initState() {
@@ -43,7 +48,32 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       },
       data: (metadata) {
         _nameController.text = metadata['name'] ?? "";
-        _phoneController.text = metadata['phone'] ?? "";
+        // We don't assign _phoneController here because we are using IntlPhoneField to manage phone state
+
+        // --- START: Phone Extraction Logic with Logging ---
+        // Assume phone is non-empty and may be in the format "+919579332746".
+        String phoneFromMetadata = metadata['phone'] ?? "";
+        // Set default values.
+        String displayCountryCode = "IN";
+        String displayPhoneNumber = phoneFromMetadata;
+
+        if (phoneFromMetadata.isNotEmpty &&
+            phoneFromMetadata.startsWith('+') &&
+            phoneFromMetadata.length > 3) {
+          String dialCode = phoneFromMetadata.substring(0, 3); // e.g., "+91"
+          if (dialCode == "+91") {
+            displayCountryCode = "IN";
+          } else {
+            // If needed, add mapping for other dial codes
+            displayCountryCode = dialCode;
+          }
+          displayPhoneNumber = phoneFromMetadata.substring(3).trim();
+        }
+        // Combine the country code and phone for the complete phone number.
+        _completePhoneNumber = displayCountryCode == "IN"
+            ? "+91" + displayPhoneNumber
+            : displayCountryCode + displayPhoneNumber;
+        // --- END: Phone Extraction Logic with Logging ---
 
         return Scaffold(
           appBar: AppBar(
@@ -97,31 +127,32 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         filled: false,
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      enabled:
-                          false, // Disables editing and greys out the field
+                      enabled: false,
                     ),
                     SizedBox(height: 16),
                     // Phone Number Input using IntlPhoneField
                     SizedBox(height: 8),
                     IntlPhoneField(
                       showCountryFlag: false,
-                      initialCountryCode: 'IN',
-                      initialValue: "9870131789",
+                      initialCountryCode: displayCountryCode, // Dynamically set
+                      initialValue: displayPhoneNumber, // Dynamically set (without dial code)
                       decoration: InputDecoration(
                         labelText: "Phone Number",
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.phone,
+                      // Use callbacks to update our state variable instead of _phoneController
                       onChanged: (value) {
                         setState(() {
-                          _phoneController.text = value.completeNumber.trim();
+                          _completePhoneNumber = value.completeNumber.trim();
+                          
                         });
                       },
                       onSaved: (value) {
-                        _phoneController.text =
-                            value?.completeNumber.trim() ?? '';
+                        _completePhoneNumber =
+                            value?.completeNumber.trim() ?? "";
+                       
                       },
-                      // Remove the controller to avoid conflicts with the onChanged handler
                       controller: null,
                     ),
                     SizedBox(height: 16),
@@ -131,12 +162,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       children: [
                         ElevatedButton(
                           onPressed: () async {
-                            // Validate the form
                             if (_formKey.currentState!.validate()) {
+                              // Trigger onSaved callback on all form fields.
+                              _formKey.currentState!.save();
+
                               final newMetadata = metadata;
                               newMetadata['name'] = _nameController.text.trim();
-                              newMetadata['phone'] =
-                                  _phoneController.text.trim();
+                              // Update metadata with our _completePhoneNumber variable.
+                              newMetadata['phone'] = _completePhoneNumber.trim();
+
 
                               final metadataService =
                                   ref.read(userMetadataServiceProvider);
@@ -145,6 +179,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 await metadataService.updateUserMetadata(
                                   metadata: newMetadata,
                                 );
+                                
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -153,6 +188,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                   );
                                 }
                               } else {
+                                
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content:
@@ -161,7 +197,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 );
                               }
                             } else {
-                              // If validation fails, notify the user
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content:
