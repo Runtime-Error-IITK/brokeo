@@ -15,6 +15,8 @@ import 'package:brokeo/backend/services/providers/read_providers/transaction_str
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/backend/services/providers/write_providers/merchant_service.dart'
     show merchantServiceProvider;
+import 'package:brokeo/backend/services/providers/write_providers/schedule_service.dart'
+    show scheduleServiceProvider;
 import 'package:brokeo/backend/services/providers/write_providers/transaction_service.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
@@ -1449,210 +1451,239 @@ class _HomePageState extends ConsumerState<HomePage> {
         });
   }
 
-void showAddScheduledPaymentDialog(BuildContext context) {
-  final _nameController = TextEditingController();
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  DateTime? selectedDate;
+  void showAddScheduledPaymentDialog(BuildContext context) {
+    final _nameController = TextEditingController();
+    final _amountController = TextEditingController();
+    final _descriptionController = TextEditingController();
+    DateTime? selectedDate;
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text('Add Scheduled Payment'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(labelText: 'Name'),
-                  ),
-                  SizedBox(height: 8),
-                  TextField(
-                    controller: _amountController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'Amount (₹)'),
-                  ),
-                  SizedBox(height: 8),
-                  TextField(
-                    controller: _descriptionController,
-                    decoration: InputDecoration(labelText: 'Description'),
-                  ),
-                  SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          selectedDate == null
-                              ? 'No Date Chosen'
-                              : '${selectedDate!.toLocal()}'.split(' ')[0],
-                          style: TextStyle(fontSize: 12),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text('Add Scheduled Payment'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(labelText: 'Name'),
+                    ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'Amount (₹)'),
+                    ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(labelText: 'Description'),
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            selectedDate == null
+                                ? 'No Date Chosen'
+                                : '${selectedDate!.toLocal()}'.split(' ')[0],
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.calendar_today),
-                        onPressed: () async {
-                          final pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now().add(Duration(days: 1)),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime(2100),
-                          );
-                          if (pickedDate != null) {
-                            setState(() {
-                              selectedDate = pickedDate;
-                            });
-                          }
-                        },
-                      )
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                child: Text('Cancel'),
-                onPressed: () => Navigator.pop(context),
-              ),
-              ElevatedButton(
-                child: Text('Add'),
-                onPressed: () {
-                  final name = _nameController.text.trim();
-                  final amount = _amountController.text.trim();
-                  final description = _descriptionController.text.trim();
-
-                  if (name.isEmpty || amount.isEmpty || description.isEmpty || selectedDate == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Please fill all fields")),
-                    );
-                    return;
-                  }
-
-                  final now = DateTime.now();
-                  if (selectedDate!.isBefore(DateTime(now.year, now.month, now.day))) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Please select a future date")),
-                    );
-                    return;
-                  }
-
-                  // Everything is valid, proceed (just print for now)
-                  print("Name: $name");
-                  print("Amount: ₹$amount");
-                  print("Description: $description");
-                  print("Date: ${selectedDate!.toLocal()}");
-
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
-
-// Single Scheduled Payment tile
- Widget _buildScheduledPaymentTile(Schedule payment) {
-  return InkWell(
-    onTap: () {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text('Scheduled Payment Details'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text("Name: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                    Expanded(child: Text(payment.merchantName)),
+                        IconButton(
+                          icon: Icon(Icons.calendar_today),
+                          onPressed: () async {
+                            final pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  DateTime.now().add(Duration(days: 1)),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2100),
+                            );
+                            if (pickedDate != null) {
+                              setState(() {
+                                selectedDate = pickedDate;
+                              });
+                            }
+                          },
+                        )
+                      ],
+                    ),
                   ],
                 ),
-                SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text("Amount: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                    Expanded(child: Text("₹${payment.amount.toStringAsFixed(0)}")),
-                  ],
+              ),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text("Description: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                    Expanded(child: Text(payment.description ?? "—")),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Row(
-                  // children: [
-                  //   Text("Scheduled Date: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                  //   Expanded(
-                  //     child: Text("${payment.scheduledDate.toLocal()}".split(' ')[0]),
-                  //   ),
-                  // ],
+                ElevatedButton(
+                  child: Text('Add'),
+                  onPressed: () {
+                    final name = _nameController.text.trim();
+                    final amount = _amountController.text.trim();
+                    final description = _descriptionController.text.trim();
+
+                    if (name.isEmpty ||
+                        amount.isEmpty ||
+                        description.isEmpty ||
+                        selectedDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Please fill all fields")),
+                      );
+                      return;
+                    }
+
+                    final now = DateTime.now();
+                    if (selectedDate!
+                        .isBefore(DateTime(now.year, now.month, now.day))) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Please select a future date")),
+                      );
+                      return;
+                    }
+                    final userId = ref.read(userIdProvider);
+                    if (userId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("User not logged in")),
+                      );
+                      return;
+                    }
+                    final schedule = Schedule(
+                        merchantName: name,
+                        amount: double.parse(amount),
+                        description: description,
+                        date: selectedDate!,
+                        userId: userId,
+                        scheduleId: "",
+                        paid: false);
+
+                    final scheduleService = ref.read(scheduleServiceProvider);
+
+                    if (scheduleService == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("User not logged in")),
+                      );
+                      return;
+                    } else {
+                      scheduleService
+                          .insertSchedule(CloudSchedule.fromSchedule(schedule));
+                    }
+                    Navigator.pop(context);
+                  },
                 ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("Close"),
+            );
+          },
+        );
+      },
+    );
+  }
+
+// Single Scheduled Payment tile
+  Widget _buildScheduledPaymentTile(Schedule payment) {
+    return InkWell(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            ],
-          );
-        },
-      );
-    },
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.purple[100],
-            child: Text(
-              payment.merchantName.isNotEmpty
-                  ? payment.merchantName[0].toUpperCase()
-                  : "?",
+              title: Text('Scheduled Payment Details'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text("Name: ",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Expanded(child: Text(payment.merchantName)),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text("Amount: ",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: Text("₹${payment.amount.toStringAsFixed(0)}")),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text("Description: ",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Expanded(child: Text(payment.description ?? "—")),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                      // children: [
+                      //   Text("Scheduled Date: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                      //   Expanded(
+                      //     child: Text("${payment.scheduledDate.toLocal()}".split(' ')[0]),
+                      //   ),
+                      // ],
+                      ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Close"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.purple[100],
+              child: Text(
+                payment.merchantName.isNotEmpty
+                    ? payment.merchantName[0].toUpperCase()
+                    : "?",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                payment.merchantName,
+                style: TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+            ),
+            Text(
+              "₹${payment.amount.toStringAsFixed(0)}",
               style: TextStyle(
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Colors.purple,
+                color: Colors.red,
               ),
             ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              payment.merchantName,
-              style: TextStyle(fontSize: 14, color: Colors.black87),
-            ),
-          ),
-          Text(
-            "₹${payment.amount.toStringAsFixed(0)}",
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   void dispose() {

@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:cloud_firestore/cloud_firestore.dart'
     show FirebaseFirestore, Query, Timestamp;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,7 +14,6 @@ final scheduleStreamProvider = StreamProvider.autoDispose
   if (userId == null) {
     return const Stream.empty();
   }
-
   // Build the base query using the userId.
   // Adjust the collection path as per your Firestore data structure.
   Query query = FirebaseFirestore.instance
@@ -34,6 +35,7 @@ final scheduleStreamProvider = StreamProvider.autoDispose
   return snapshots.map((querySnapshot) {
     return querySnapshot.docs.map((doc) {
       final cloudSchedule = CloudSchedule.fromSnapshot(doc);
+      // log("I'm here");
       return Schedule.fromCloudSchedule(cloudSchedule);
     }).toList();
   });

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' show log;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -9,6 +10,7 @@ class Schedule {
   final String merchantName;
   final DateTime date;
   final String description;
+  final bool paid;
 
   Schedule({
     required this.scheduleId,
@@ -17,6 +19,7 @@ class Schedule {
     required this.merchantName,
     required this.date,
     required this.description,
+    required this.paid,
   });
 
   @override
@@ -41,12 +44,13 @@ class Schedule {
       merchantName: cloudSchedule.merchantName,
       date: cloudSchedule.date,
       description: cloudSchedule.description,
+      paid: cloudSchedule.paid,
     );
   }
 
   @override
   String toString() {
-    return "Schedule{scheduleId: $scheduleId, amount: $amount, merchantName: $merchantName, date: $date, userId: $userId, description: $description}";
+    return "Schedule{scheduleId: $scheduleId, amount: $amount, merchantName: $merchantName, date: $date, userId: $userId, description: $description, paid: $paid}";
   }
 }
 
@@ -57,6 +61,7 @@ class CloudSchedule {
   final String merchantName;
   final DateTime date;
   final String description;
+  final bool paid;
 
   CloudSchedule({
     required this.scheduleId,
@@ -65,6 +70,7 @@ class CloudSchedule {
     required this.merchantName,
     required this.date,
     required this.description,
+    this.paid = false,
   });
 
   @override
@@ -83,15 +89,19 @@ class CloudSchedule {
 
   factory CloudSchedule.fromSnapshot(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-
-    return CloudSchedule(
-      scheduleId: data[scheduleIdColumn] as String,
+    log("Entered this place");
+    final cloudSchedule = CloudSchedule(
+      scheduleId: doc.id,
       amount: (data[amountColumn] as num).toDouble(),
       date: (data[dateColumn] as Timestamp).toDate(),
       merchantName: data[merchantNameColumn] as String,
       userId: data[userIdColumn] as String,
       description: data[descriptionColumn] as String,
+      paid: data[paidColumn] as bool? ?? false,
     );
+
+    // log(cloudSchedule.toString());
+    return cloudSchedule;
   }
 
   factory CloudSchedule.fromSchedule(Schedule schedule) {
@@ -102,6 +112,7 @@ class CloudSchedule {
       merchantName: schedule.merchantName,
       userId: schedule.userId,
       description: schedule.description,
+      paid: schedule.paid,
     );
   }
 
@@ -112,6 +123,7 @@ class CloudSchedule {
       amountColumn: amount,
       dateColumn: Timestamp.fromDate(date),
       descriptionColumn: description,
+      paidColumn: paid,
     };
   }
 
@@ -127,3 +139,4 @@ const String dateColumn = "date";
 const String merchantNameColumn = "merchantName";
 const String userIdColumn = "userId";
 const String descriptionColumn = "description";
+const String paidColumn = "paid";
