@@ -1624,7 +1624,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     children: [
                       Text("Description: ",
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      Expanded(child: Text(payment.description ?? "—")),
+                      Expanded(child: Text(payment.description )),
                     ],
                   ),
                   SizedBox(height: 8),
