@@ -9,23 +9,121 @@ import 'package:brokeo/backend/services/providers/write_providers/transaction_se
     show transactionServiceProvider;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 
-class TransactionDetailPage extends ConsumerWidget {
+class TransactionDetailPage extends ConsumerStatefulWidget {
   final Transaction transaction;
-
   const TransactionDetailPage({Key? key, required this.transaction})
       : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TransactionDetailPage> createState() =>
+      _TransactionDetailPageState();
+}
+
+class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
+  // Keep the current category in state (initialized from the transaction).
+  late String _currentCategory;
+
+  // Sample list of available categories.
+  final List<String> _availableCategories = [
+    'Food',
+    'Travel',
+    'Shopping',
+    'Bills',
+    'Other',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Assuming your transaction has a field `category`. You can adjust if needed.
+    _currentCategory = 'Other';
+  }
+
+  void _showEditCategoryDialog() {
+    String selectedCategory = _currentCategory;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setStateDialog) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text('Edit Category'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Display current default category.
+                Row(
+                  children: [
+                    Text("Current: ",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(selectedCategory),
+                  ],
+                ),
+                SizedBox(height: 20),
+                // Dropdown to select new category.
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  items: _availableCategories.map((String category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setStateDialog(() {
+                        selectedCategory = value;
+                      });
+                    }
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Select Category',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Cancel"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Update the category in this page's state.
+                  setState(() {
+                    _currentCategory = selectedCategory;
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text("Category updated to $_currentCategory")),
+                  );
+                },
+                child: Text("Save"),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Fetch the merchant data using the merchantId from the transaction.
-    // We use a MerchantFilter with only merchantId since that's all we need.
     final merchantAsync = ref.watch(merchantStreamProvider(
-        MerchantFilter(merchantId: transaction.merchantId)));
+      MerchantFilter(merchantId: widget.transaction.merchantId),
+    ));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(transaction.amount < 0
+        title: Text(widget.transaction.amount < 0
             ? "Debit Transaction"
             : "Credit Transaction"),
         backgroundColor: Colors.white,
@@ -41,11 +139,11 @@ class TransactionDetailPage extends ConsumerWidget {
             Text("Amount",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(
-              "₹${transaction.amount.abs().toStringAsFixed(0)} ${transaction.amount < 0 ? 'Debited' : 'Credited'}",
+              "₹${widget.transaction.amount.abs().toStringAsFixed(0)} ${widget.transaction.amount < 0 ? 'Debited' : 'Credited'}",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
-              "${_convertNumberToWords(transaction.amount.abs().toInt())} Rupees Only",
+              "${_convertNumberToWords(widget.transaction.amount.abs().toInt())} Rupees Only",
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
             SizedBox(height: 20),
@@ -54,7 +152,6 @@ class TransactionDetailPage extends ConsumerWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Row(
               children: [
-                // Fetch the merchant name asynchronously.
                 merchantAsync.when(
                   loading: () => SizedBox(
                     width: 24,
@@ -65,7 +162,6 @@ class TransactionDetailPage extends ConsumerWidget {
                       style:
                           TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   data: (merchants) {
-                    // If a merchant is found, display its name; otherwise, display a placeholder.
                     final name = merchants.isNotEmpty
                         ? merchants.first.name
                         : "Unknown Merchant";
@@ -75,20 +171,54 @@ class TransactionDetailPage extends ConsumerWidget {
                   },
                 ),
                 SizedBox(width: 10),
-                // Icon(Icons.restaurant, color: Colors.red),
               ],
             ),
             // Transaction ID section.
             Text(
-              "Transaction ID: #${transaction.transactionId}",
+              "Transaction ID: #${widget.transaction.transactionId}",
               style: TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+            SizedBox(height: 20),
+            // Category section.
+            Text("Category",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            DropdownButtonHideUnderline(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: DropdownButton<String>(
+                  value: _currentCategory,
+                  isExpanded: true,
+                  icon: Icon(Icons.arrow_drop_down),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _currentCategory = value;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Category updated to $value")),
+                      );
+                    }
+                  },
+                  items: _availableCategories.map((String category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
             SizedBox(height: 20),
             // SMS section.
             Text("SMS",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(
-              transaction.sms,
+              widget.transaction.sms,
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
             Spacer(),
@@ -98,7 +228,8 @@ class TransactionDetailPage extends ConsumerWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    _showDeleteConfirmationDialog(ref, context, transaction);
+                    _showDeleteConfirmationDialog(
+                        ref, context, widget.transaction);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -129,7 +260,6 @@ class TransactionDetailPage extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () async {
-                // Get the TransactionService instance.
                 final transactionService = ref.read(transactionServiceProvider);
                 if (transactionService == null) {
                   if (context.mounted) {
@@ -139,8 +269,6 @@ class TransactionDetailPage extends ConsumerWidget {
                   }
                   return;
                 }
-
-                // Attempt to delete the transaction.
                 final success = await transactionService.deleteTransaction(
                     transactionId: transaction.transactionId);
                 if (success) {
@@ -149,9 +277,8 @@ class TransactionDetailPage extends ConsumerWidget {
                       SnackBar(
                           content: Text("Transaction deleted successfully!")),
                     );
-                    Navigator.pop(context); // Close the dialog.
-                    Navigator.pop(
-                        context); // Close the transaction detail page.
+                    Navigator.pop(context);
+                    Navigator.pop(context);
                   }
                 } else {
                   if (context.mounted) {
