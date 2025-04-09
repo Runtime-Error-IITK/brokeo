@@ -1134,30 +1134,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                         ),
                       ],
                     ),
-                    // Text(
-                    //   "₹${transaction.amount.abs()}",
-                    //   style: TextStyle(
-                    //     fontSize: 14,
-                    //     fontWeight: FontWeight.bold,
-                    //     color:
-                    //         transaction.amount < 0 ? Colors.red : Colors.green,
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
-              // if (expandedTransactionIndex == index)
-              //   Padding(
-              //     padding:
-              //         const EdgeInsets.only(left: 50, right: 10, bottom: 8),
-              //     child: Align(
-              //       alignment: Alignment.centerLeft,
-              //       child: Text(
-              //         "Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}\nCategory: Groceries",
-              //         style: TextStyle(fontSize: 12, color: Colors.black54),
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         );
