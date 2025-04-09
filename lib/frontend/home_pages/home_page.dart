@@ -1628,20 +1628,30 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ],
                   ),
                   SizedBox(height: 8),
+                  // Uncomment the below if you want to show scheduled date too inside popup.
                   Row(
-                      // children: [
-                      //   Text("Scheduled Date: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                      //   Expanded(
-                      //     child: Text("${payment.scheduledDate.toLocal()}".split(' ')[0]),
-                      //   ),
-                      // ],
+                    children: [
+                      Text("Scheduled Date: ",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: Text("${DateFormat('dd-MM-yyyy').format(payment.date.toLocal())}"),
                       ),
+                    ],
+                  ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text("Close"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // Replace the following with your "mark as paid" action
+                    log("Marking ${payment.merchantName} as paid.");
+                    Navigator.pop(context);
+                  },
+                  child: Text("Mark as Paid"),
                 ),
               ],
             );
@@ -1671,13 +1681,25 @@ class _HomePageState extends ConsumerState<HomePage> {
                 style: TextStyle(fontSize: 14, color: Colors.black87),
               ),
             ),
-            Text(
-              "₹${payment.amount.toStringAsFixed(0)}",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
-              ),
+            // Display due date above amount using a Column.
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  "Due: ${DateFormat('dd-MM-yyyy').format(payment.date.toLocal())}",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                Text(
+                  "₹${payment.amount.toStringAsFixed(0)}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: payment.paid
+                        ? Colors.green
+                        : Colors.red, // Change color based on payment status
+                  ),
+                ),
+              ],
             ),
           ],
         ),
