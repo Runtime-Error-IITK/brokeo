@@ -46,14 +46,14 @@ class _ChooseTransactionPageState extends ConsumerState<ChooseTransactionPage> {
       return;
     }
 
-    // Navigator.of(context).push(
-    //   MaterialPageRoute(
-    //     builder: (context) => SplitBetweenPage(
-    //       amount: amount,
-    //       description: description,
-    //     ),
-    //   ),
-    // );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SplitBetweenPage(
+          amount: amount,
+          description: description,
+        ),
+      ),
+    );
 
     // If both validations pass, process the input accordingly
     // Add further transaction handling logic as needed.

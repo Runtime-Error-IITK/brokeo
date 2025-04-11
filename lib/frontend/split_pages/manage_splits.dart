@@ -18,21 +18,6 @@ import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/material.dart';
 
-// class ManageSplitsPage extends StatelessWidget {
-//   const ManageSplitsPage({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Normal Stateless Widget'),
-//       ),
-//       body: const Center(
-//         child: Text('Hello, Flutter!'),
-//       ),
-//     );
-//   }
-// }
 
 class ManageSplitsPage extends ConsumerStatefulWidget {
   const ManageSplitsPage({super.key});
@@ -43,34 +28,6 @@ class ManageSplitsPage extends ConsumerStatefulWidget {
 
 class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
   int _currentIndex = 3; // Set the initial index to 3 for the Split tab
-
-  // Future<void> _loadSplits() async {
-  //   // Simulated data - replace with your actual data fetching logic
-  //   final mockData = [
-  //     {"name": "Darshan", "amount": 510.0, "isSettled": false},
-  //     {"name": "Chetan Singh", "amount": 50.0, "isSettled": false},
-  //     {"name": "Chinmay Jain", "amount": 75.0, "isSettled": false},
-  //     {"name": "Anjali Patra", "amount": 1200.0, "isSettled": false},
-  //     {"name": "Suryansh Verma", "amount": 160.0, "isSettled": false},
-  //     {"name": "Aryan Kumar", "amount": 25.0, "isSettled": false},
-  //     {"name": "Rudransh Verma", "amount": 0.0, "isSettled": true},
-  //     {"name": "Moni Sinha", "amount": 50.0, "isSettled": false},
-  //     {"name": "Sanjina S", "amount": 1.0, "isSettled": false},
-  //     {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-  //     {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-  //     {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-  //     {"name": "Prem Bhardwaj", "amount": 3180.0, "isSettled": false},
-  //     {"name": "Prem afeafa", "amount": 3180.0, "isSettled": false},
-  //   ];
-
-  //   // Convert raw data to Split objects
-
-  //   setState(() {
-  //     splits =
-  //         mockData.map((item) => brokeo_split.Split.fromMap(item)).toList();
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     // log("hehe");
@@ -211,7 +168,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                           return Container(
                             margin: const EdgeInsets.all(16.0),
                             decoration: BoxDecoration(
-                              color: const Color.fromARGB(255, 245, 210, 245),
+                              color: const Color.fromARGB(255, 251, 202, 251),
                               borderRadius: BorderRadius.circular(16.0),
                               boxShadow: [
                                 BoxShadow(
