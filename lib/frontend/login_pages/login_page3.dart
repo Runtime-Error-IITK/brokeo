@@ -1,3 +1,7 @@
+import 'package:brokeo/backend/models/category.dart'
+    show Category, CloudCategory;
+import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart';
+import 'package:brokeo/backend/services/providers/write_providers/category_service.dart';
 import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
 import 'package:brokeo/frontend/home_pages/main_page.dart';
@@ -24,7 +28,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
   bool _isPhoneValid = true;
   bool _isBudgetValid = true;
 
-  void _validateAndProceed() {
+  void _validateAndProceed() async {
     setState(() {
       _isNameValid = _nameController.text.isNotEmpty;
       _isPhoneValid =
@@ -36,7 +40,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       Map<String, dynamic> metadata = {
         'name': _nameController.text,
         'phone': phoneNumber!.completeNumber,
-        'budget': int.parse(_budgetController.text),
+        'budget': double.parse(_budgetController.text),
       };
       ref
           .read(userMetadataServiceProvider)
@@ -47,6 +51,22 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
           builder: (context) => MainScreen(),
         ),
       );
+
+      final categoryFilter = CategoryFilter(categoryName: "Others");
+      final category =
+          await ref.read(categoryStreamProvider(categoryFilter).future);
+      if (category.isNotEmpty) {
+        final oldCategory = category[0];
+        final newCategory = Category(
+          name: oldCategory.name,
+          budget: double.parse(_budgetController.text),
+          categoryId: oldCategory.categoryId,
+          userId: oldCategory.userId,
+        );
+        ref
+            .read(categoryServiceProvider)!
+            .updateCloudCategory(CloudCategory.fromCategory(newCategory));
+      }
     }
   }
 

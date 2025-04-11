@@ -85,7 +85,10 @@ class ProfilePage extends ConsumerWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => EditProfilePage()),
+                          builder: (context) => EditProfilePage(
+                                name: metadata['name'] ?? "Unknown User",
+                                phone: metadata['phone'] ?? "Unknown Phone",
+                              )),
                     );
                   },
                 ),
