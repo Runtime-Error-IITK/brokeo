@@ -52,21 +52,21 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
         ),
       );
 
-      final categoryFilter = CategoryFilter(categoryName: "Others");
-      final category =
-          await ref.read(categoryStreamProvider(categoryFilter).future);
-      if (category.isNotEmpty) {
-        final oldCategory = category[0];
-        final newCategory = Category(
-          name: oldCategory.name,
-          budget: double.parse(_budgetController.text),
-          categoryId: oldCategory.categoryId,
-          userId: oldCategory.userId,
-        );
-        ref
-            .read(categoryServiceProvider)!
-            .updateCloudCategory(CloudCategory.fromCategory(newCategory));
-      }
+      // final categoryFilter = CategoryFilter(categoryName: "Others");
+      // final category =
+      //     await ref.read(categoryStreamProvider(categoryFilter).future);
+      // if (category.isNotEmpty) {
+      //   final oldCategory = category[0];
+      //   final newCategory = Category(
+      //     name: oldCategory.name,
+      //     budget: double.parse(_budgetController.text),
+      //     categoryId: oldCategory.categoryId,
+      //     userId: oldCategory.userId,
+      //   );
+      //   ref
+      //       .read(categoryServiceProvider)!
+      //       .updateCloudCategory(CloudCategory.fromCategory(newCategory));
+      // }
     }
   }
 
