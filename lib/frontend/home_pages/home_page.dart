@@ -790,19 +790,21 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _showAddTransactionDialog(BuildContext context) {
-    String? amount;
-    String? merchant;
-    Category? selectedCategory;
-    String transactionType =
-        "Credit"; // Default transaction type set to "Credit"
+  String? amount;
+  String? merchant;
+  Category? selectedCategory;
+  String transactionType = "Credit"; // Default transaction type
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Consumer(builder: (context, ref, child) {
+  // Declare the processing flag before calling the StatefulBuilder so it doesn't reset on rebuild.
+  bool isProcessing = false;
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Consumer(
+        builder: (context, ref, child) {
           final asyncCategories =
               ref.watch(categoryStreamProvider(emptyCategoryFilter));
-          // log(asyncCategories.toString());
           return asyncCategories.when(
             loading: () => AlertDialog(
               title: Center(child: Text("Add transaction")),
@@ -820,16 +822,15 @@ class _HomePageState extends ConsumerState<HomePage> {
               return SizedBox.shrink();
             },
             data: (categories) {
-              // Wrap the entire AlertDialog in a StatefulBuilder so that
-              // any changes update both the content and the actions.
-              // log(categories.length.toString());
               return StatefulBuilder(
                 builder: (context, setState) {
+                  // Check if form is valid.
                   bool isFormValid = amount != null &&
                       amount!.trim().isNotEmpty &&
                       merchant != null &&
                       merchant!.trim().isNotEmpty &&
                       selectedCategory != null;
+
                   return AlertDialog(
                     title: Center(child: Text("Add transaction")),
                     content: SizedBox(
@@ -838,7 +839,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Radio buttons for transaction type
+                            // Transaction type radio buttons
                             Center(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -902,7 +903,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                               },
                             ),
                             SizedBox(height: 16),
-                            // Dropdown for selecting a category
+                            // Category dropdown
                             DropdownButtonFormField<Category>(
                               value: selectedCategory,
                               decoration: InputDecoration(
@@ -930,62 +931,59 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: Text("Cancel"),
                       ),
                       TextButton(
-                        onPressed: isFormValid
+                        onPressed: isFormValid && !isProcessing
                             ? () async {
-                                // Create a filter for the merchant using the merchant name from input.
-                                final filter =
-                                    MerchantFilter(merchantName: merchant);
+                                // Set the processing flag.
+                                setState(() {
+                                  isProcessing = true;
+                                });
+                                final filter = MerchantFilter(merchantName: merchant);
                                 try {
-                                  // Await the first snapshot from the merchant stream.
-                                  final merchants = await ref.read(
-                                      merchantStreamProvider(filter).future);
+                                  // Check if the merchant exists.
+                                  final merchants = await ref
+                                      .read(merchantStreamProvider(filter).future);
                                   String merchantId;
-
                                   if (merchants.isNotEmpty) {
-                                    // Merchant exists, so use the merchantId from the first one.
                                     merchantId = merchants.first.merchantId;
                                   } else {
-                                    // Merchant not found. Insert a new merchant first.
-                                    final merchantService =
-                                        ref.read(merchantServiceProvider);
+                                    // If not found, add a new merchant.
+                                    final merchantService = ref.read(merchantServiceProvider);
                                     if (merchantService == null) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(
-                                              content:
-                                                  Text("User not logged in")),
+                                              content: Text("User not logged in")),
                                         );
                                       }
+                                      setState(() {
+                                        isProcessing = false;
+                                      });
                                       return;
                                     }
-                                    // Create a new CloudMerchant using the merchant name and the selected category.
                                     final newCloudMerchant = CloudMerchant(
-                                      merchantId:
-                                          "", // Will be auto-generated by Firestore.
+                                      merchantId: "", // Auto-generated by Firestore.
                                       name: merchant!,
                                       userId: ref.read(userIdProvider) ?? "",
                                       categoryId: selectedCategory!.categoryId,
-                                      // Add any additional fields if needed.
                                     );
                                     final insertedMerchant =
-                                        await merchantService
-                                            .insertMerchant(newCloudMerchant);
+                                        await merchantService.insertMerchant(newCloudMerchant);
                                     if (insertedMerchant == null) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                        ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(
-                                              content: Text(
-                                                  "Failed to add merchant.")),
+                                              content: Text("Failed to add merchant.")),
                                         );
                                       }
+                                      setState(() {
+                                        isProcessing = false;
+                                      });
                                       return;
                                     }
                                     merchantId = insertedMerchant.merchantId;
                                   }
 
-                                  // Now, create the transaction using the obtained merchantId.
+                                  // Create the transaction.
                                   final newTransaction = Transaction(
                                     transactionId: "",
                                     amount: transactionType == "Credit"
@@ -998,42 +996,40 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     sms: "Manually added transaction",
                                   );
                                   final cloudTransaction =
-                                      CloudTransaction.fromTransaction(
-                                          newTransaction);
-                                  final transactionService =
-                                      ref.read(transactionServiceProvider);
+                                      CloudTransaction.fromTransaction(newTransaction);
+                                  final transactionService = ref.read(transactionServiceProvider);
                                   if (transactionService == null) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
-                                            content:
-                                                Text("User not logged in")),
+                                            content: Text("User not logged in")),
                                       );
                                     }
+                                    setState(() {
+                                      isProcessing = false;
+                                    });
                                     return;
                                   }
                                   final result = await transactionService
                                       .insertTransaction(cloudTransaction);
                                   if (result != null) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
-                                            content: Text(
-                                                "Transaction added successfully!")),
+                                            content: Text("Transaction added successfully!")),
                                       );
                                       Navigator.pop(context);
                                     }
                                   } else {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
-                                            content: Text(
-                                                "Failed to add transaction.")),
+                                            content: Text("Failed to add transaction.")),
                                       );
                                     }
+                                    setState(() {
+                                      isProcessing = false;
+                                    });
                                   }
                                 } catch (error) {
                                   if (context.mounted) {
@@ -1043,10 +1039,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                                               "Error loading merchant data: $error")),
                                     );
                                   }
+                                  setState(() {
+                                    isProcessing = false;
+                                  });
                                 }
                               }
                             : null,
-                        child: Text("Confirm"),
+                        child: isProcessing
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text("Confirm"),
                       ),
                     ],
                   );
@@ -1054,10 +1059,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               );
             },
           );
-        });
-      },
-    );
-  }
+        },
+      );
+    },
+  );
+}
 
   Widget _transactionTile(Transaction transaction, int index) {
     final String merchantId = transaction.merchantId;
