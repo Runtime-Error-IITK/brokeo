@@ -439,14 +439,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 Text(
                                   "₹${totalSpent.toStringAsFixed(0)}",
                                   style: TextStyle(
-                                      fontSize: 25,
+                                      fontSize: 30,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 5),
                                 Text(
                                   "${percentageSpent.toStringAsFixed(1)}%",
                                   style: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.normal,
                                       color: Colors.black87),
                                 ),
