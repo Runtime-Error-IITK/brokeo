@@ -173,6 +173,9 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                 final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
                 final daysRemaining = lastDayOfMonth.day - now.day;
                 double dailySafeToSpend = (budget - totalSpent) / daysRemaining;
+                dailySafeToSpend = dailySafeToSpend < 0
+                    ? 0
+                    : dailySafeToSpend; // Ensure it's not negative
                 final currentMonth =
                     DateFormat.MMMM().format(now); // e.g., "January"
 
