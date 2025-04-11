@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
@@ -7,51 +9,56 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart';
 
-
 // Ensure that the ChooseTransactionsPage class is defined in the imported file
 // or define it below if it is missing.
 class SplitBetweenPage extends ConsumerStatefulWidget {
-  final Map<String, dynamic> transaction;
-
-  const SplitBetweenPage({Key? key, required this.transaction}) : super(key: key);
+  final double amount;
+  final String description;
+  const SplitBetweenPage(
+      {super.key, required this.amount, required this.description});
 
   @override
   _SplitBetweenPageState createState() => _SplitBetweenPageState();
 }
 
-
-
 class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
   int _currentIndex = 3;
 
   Future<void> _fetchContacts(BuildContext context) async {
-    print("Requesting permission to access contacts...");
+    log("Requesting permission to access contacts...");
     final status = await Permission.contacts.request();
     if (status.isGranted) {
-      print("Permission granted. Fetching contacts...");
+      log("Permission granted. Fetching contacts...");
       try {
         const platform = MethodChannel('com.example.contacts/fetch');
-        final List<dynamic> contactDetails = await platform.invokeMethod('getContacts');
-        print("Contacts fetched successfully: ${contactDetails.length} contacts found.");
+        final List<dynamic> contactDetails =
+            await platform.invokeMethod('getContacts');
+        log("Contacts fetched successfully: ${contactDetails.length} contacts found.");
 
         // Extract only the names from the contact details, handling null or missing names
         setState(() {
           contacts = contactDetails
               // .where((contact) => contact is Map && contact.containsKey('name') && contact['name'] != null) // Ensure 'name' exists and is not null
-              .map((contact) => contact['name'] as String? ?? "Unknown") // Default to "Unknown" if name is null
+              .map((contact) =>
+                  contact['name'] as String? ??
+                  "Unknown") // Default to "Unknown" if name is null
               .toList();
         });
       } on PlatformException catch (e) {
-        print("Failed to fetch contacts: ${e.message}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to fetch contacts: ${e.message}")),
-        );
+        log("Failed to fetch contacts: ${e.message}");
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to fetch contacts: ${e.message}")),
+          );
+        }
       }
     } else {
-      print("Permission denied.");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Contacts permission denied")),
-      );
+      log("Permission denied.");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Contacts permission denied")),
+        );
+      }
     }
   }
 
@@ -78,8 +85,11 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
     // Add filtering logic based on search text
     final filteredContacts = _searchController.text.isEmpty
         ? contacts
-        : contacts.where((contact) =>
-            contact.toLowerCase().contains(_searchController.text.toLowerCase())).toList();
+        : contacts
+            .where((contact) => contact
+                .toLowerCase()
+                .contains(_searchController.text.toLowerCase()))
+            .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -107,15 +117,16 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Text(
+                      //   widget.transaction[
+                      //       "transactionId"], // Provide a default value if name is null
+                      //   style: TextStyle(
+                      //     fontSize: 16,
+                      //     fontWeight: FontWeight.w500,
+                      //   ),
+                      // ),
                       Text(
-                        widget.transaction["transactionId"], // Provide a default value if name is null
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        '₹${widget.transaction["amount"]}',
+                        '₹${widget.amount}',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -226,7 +237,6 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
           ),
         ],
       ),
-
       floatingActionButton: hasSelectedContacts
           ? ScaleTransition(
               scale: CurvedAnimation(
@@ -237,20 +247,19 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                 onPressed: () {
                   //redirect to choosesplitype page
                   // Navigator.push(
-                    // context,
-                    // MaterialPageRoute(
-                      // builder: (context) => ChooseSplitTypePage(
-                      //   transaction: widget.transaction,
-                      //   selectedContacts: selectedContacts.entries
-                      //       .where((entry) => entry.value)
-                      //       .map((entry) => entry.key)
-                      //       .toList(),
-                      // ),
-                    // ),
+                  // context,
+                  // MaterialPageRoute(
+                  // builder: (context) => ChooseSplitTypePage(
+                  //   transaction: widget.transaction,
+                  //   selectedContacts: selectedContacts.entries
+                  //       .where((entry) => entry.value)
+                  //       .map((entry) => entry.key)
+                  //       .toList(),
+                  // ),
+                  // ),
                   // );
                 },
-                backgroundColor: const Color.fromARGB(
-                  255, 97, 53, 186),
+                backgroundColor: const Color.fromARGB(255, 97, 53, 186),
                 elevation: 4,
                 child: const Icon(
                   Icons.arrow_forward,
@@ -259,54 +268,6 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
               ),
             )
           : null,
-
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          if (index != _currentIndex) {
-            setState(() {
-              _currentIndex = index;
-            });
-          }
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    brokeo_home.HomePage(),
-              ),
-            );
-          } else if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CategoriesPage(),
-              ),
-            );
-          } else if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AnalyticsPage(),
-              ),
-            );
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.purple,
-        unselectedItemColor: Colors.grey,
-        iconSize: 24,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.list), label: "Transactions"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.analytics), label: "Analytics"),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-        ],
-      ),
     );
   }
 

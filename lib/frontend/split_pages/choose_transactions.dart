@@ -1,3 +1,5 @@
+import 'package:brokeo/frontend/split_pages/split_between.dart'
+    show SplitBetweenPage;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -43,6 +45,15 @@ class _ChooseTransactionPageState extends ConsumerState<ChooseTransactionPage> {
       );
       return;
     }
+
+    // Navigator.of(context).push(
+    //   MaterialPageRoute(
+    //     builder: (context) => SplitBetweenPage(
+    //       amount: amount,
+    //       description: description,
+    //     ),
+    //   ),
+    // );
 
     // If both validations pass, process the input accordingly
     // Add further transaction handling logic as needed.
