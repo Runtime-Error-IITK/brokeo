@@ -14,9 +14,9 @@ final splitUserStreamProvider = StreamProvider.autoDispose
 
   // Build the base Firestore query.
   Query query = FirebaseFirestore.instance
-      .collection('split_users')
+      .collection('splitUsers')
       .doc(userId)
-      .collection('userSplit');
+      .collection('userSplitUsers');
 
   // Apply filter for phoneNumber if provided.
   if (filter.phoneNumber != null && filter.phoneNumber!.isNotEmpty) {

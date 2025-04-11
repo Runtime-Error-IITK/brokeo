@@ -25,7 +25,7 @@ class SplitTransaction {
       date: cloudSplitTransaction.date,
       description: cloudSplitTransaction.description,
       isPayment: cloudSplitTransaction.isPayment,
-      userPhone: cloudSplitTransaction.userId,
+      userPhone: cloudSplitTransaction.userPhone,
       splitAmounts: cloudSplitTransaction.splitAmounts,
     );
   }
@@ -55,7 +55,7 @@ class CloudSplitTransaction {
   final DateTime date;
   final String description;
   final bool isPayment;
-  final String userId;
+  final String userPhone;
   final Map<String, double> splitAmounts;
 
   CloudSplitTransaction({
@@ -63,7 +63,7 @@ class CloudSplitTransaction {
     required this.date,
     required this.description,
     required this.isPayment,
-    required this.userId,
+    required this.userPhone,
     required this.splitAmounts,
   });
 
@@ -73,17 +73,17 @@ class CloudSplitTransaction {
 
     return other is CloudSplitTransaction &&
         other.splitTransactionId == splitTransactionId &&
-        other.userId == userId;
+        other.userPhone == userPhone;
   }
 
   @override
   int get hashCode {
-    return splitTransactionId.hashCode ^ userId.hashCode;
+    return splitTransactionId.hashCode ^ userPhone.hashCode;
   }
 
   @override
   String toString() {
-    return "CloudSplitTransaction{splitTransactionId: $splitTransactionId, date: $date, description: $description, isPayment: $isPayment, userId: $userId, splitAmounts: ${splitAmounts.toString()}}";
+    return "CloudSplitTransaction{splitTransactionId: $splitTransactionId, date: $date, description: $description, isPayment: $isPayment, userPhone: $userPhone, splitAmounts: ${splitAmounts.toString()}}";
   }
 
   factory CloudSplitTransaction.fromSplitTransaction(
@@ -93,7 +93,7 @@ class CloudSplitTransaction {
       date: splitTransaction.date,
       description: splitTransaction.description,
       isPayment: splitTransaction.isPayment,
-      userId: splitTransaction.userPhone,
+      userPhone: splitTransaction.userPhone,
       splitAmounts: splitTransaction.splitAmounts,
     );
   }
@@ -105,9 +105,9 @@ class CloudSplitTransaction {
       date: (data['date'] as Timestamp).toDate(),
       description: data['description'] as String,
       isPayment: data['isPayment'] as bool,
-      userId: data['userId'] as String,
-      splitAmounts: Map<String, double>.from(
-        data['splitAmounts'] as Map<String, double>,
+      userPhone: data['userPhone'] as String,
+      splitAmounts: (data['splitAmounts'] as Map<String, dynamic>).map(
+        (key, value) => MapEntry(key, (value as num).toDouble()),
       ),
     );
   }
@@ -118,7 +118,7 @@ class CloudSplitTransaction {
       dateColumn: date,
       descriptionColumn: description,
       isPaymentColumn: isPayment,
-      userPhoneColumn: userId,
+      userPhoneColumn: userPhone,
       splitAmountsColumn: splitAmounts,
     };
   }

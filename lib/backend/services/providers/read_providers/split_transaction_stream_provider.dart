@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/models/split_transaction.dart';
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
@@ -20,6 +22,7 @@ final splitTransactionStreamProvider = StreamProvider.autoDispose
         if (phoneNumber == null) {
           return const Stream.empty();
         }
+        // log("Hello ");
 
         // If otherUserId is provided, assume it now represents the other user's phone number.
         if (filter.otherPhone != null) {
@@ -71,14 +74,17 @@ final splitTransactionStreamProvider = StreamProvider.autoDispose
             },
           );
         } else {
+          // log("why god");
           // Fallback: if otherUserId is not provided, use a query filtering only on phoneNumber.
           Query query = FirebaseFirestore.instance
               .collection('splitTransactions')
               .where('splitAmounts.$phoneNumber', isNotEqualTo: null)
               .orderBy('date', descending: true);
+          // log('works till here');
 
           return query.snapshots().map(
                 (snapshot) => snapshot.docs.map((doc) {
+                  log(doc.data().toString());
                   final cloudSplitTransaction =
                       CloudSplitTransaction.fromSnapshot(doc);
                   return SplitTransaction.fromCloudSplitTransaction(

@@ -89,7 +89,7 @@ class CloudSchedule {
 
   factory CloudSchedule.fromSnapshot(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    log("Entered this place");
+    // log("Entered this place");
     final cloudSchedule = CloudSchedule(
       scheduleId: doc.id,
       amount: (data[amountColumn] as num).toDouble(),

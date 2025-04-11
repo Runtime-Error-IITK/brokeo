@@ -1,9 +1,13 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/models/split_transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
 import 'package:brokeo/backend/services/providers/read_providers/split_transaction_stream_provider.dart'
     show SplitTransactionFilter, splitTransactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/split_user_stream_provider'
     show SplitUserFilter, splitUserStreamProvider;
+import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
+import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:flutter/material.dart';
@@ -69,146 +73,221 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // log("hehe");
     final filter = SplitTransactionFilter();
     final asyncSplitTransactions =
         ref.watch(splitTransactionStreamProvider(filter));
     final splitUserFilter = SplitUserFilter();
     final asyncSplitUsers = ref.watch(splitUserStreamProvider(splitUserFilter));
+    final asyncMetaData =
+        ref.watch(userMetadataStreamProvider); // Get user metadata
+    return asyncMetaData.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Manage Splits: Metadata Error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (userMetadata) {
+          return asyncSplitTransactions.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content:
+                          Text("Manage Splits: Transactions Error: $error")),
+                );
+              });
+              return SizedBox.shrink();
+            },
+            data: (transactions) {
+              // log("Transactions are here");
+              return asyncSplitUsers.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content:
+                              Text("Manage Splits: Split User Error: $error")),
+                    );
+                  });
+                  return SizedBox.shrink();
+                },
+                data: (splitUserList) {
+                  // log("Split Users are here");
 
-    return asyncSplitTransactions.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Category error: $error")),
+                  double borrowed = 0, lent = 0;
+
+                  for (var transaction in transactions) {
+                    for (var entry in transaction.splitAmounts.entries) {
+                      if (entry.key == userMetadata["phone"]) {
+                        continue;
+                      }
+                      final amount = entry.value;
+                      if (transaction.isPayment) {
+                        if (transaction.userPhone == userMetadata["phone"]) {
+                          borrowed -= amount;
+                          if (borrowed < 0) {
+                            lent -= borrowed;
+                            borrowed = 0;
+                          }
+                        } else {
+                          lent -= amount;
+                          if (lent < 0) {
+                            borrowed -= lent;
+                            lent = 0;
+                          }
+                        }
+                      } else if (transaction.userPhone ==
+                          userMetadata["phone"]) {
+                        lent += amount;
+                      } else {
+                        borrowed += amount;
+                      }
+                    }
+                  }
+
+                  var splitUsers = {};
+                  var splitUsersNames = {};
+                  for (var transaction in transactions) {
+                    for (var entry in transaction.splitAmounts.entries) {
+                      if (entry.key == userMetadata["phone"]) {
+                        continue;
+                      }
+                      final user = entry.key;
+                      final amount = entry.value;
+                      log("User: $user, Amount: $amount");
+                      if (!splitUsers.containsKey(user)) {
+                        splitUsers[user] = 0.0;
+                        // name from splitUsers
+                        splitUsersNames[user] = splitUserList
+                            .where((splitUser) => splitUser.phoneNumber == user)
+                            .first
+                            .name;
+                      }
+                      if (transaction.isPayment) {
+                        if (transaction.userPhone == userMetadata["phone"]) {
+                          splitUsers[user] = splitUsers[user] + amount;
+                        } else {
+                          splitUsers[user] = splitUsers[user] - amount;
+                        }
+                      } else {
+                        if (transaction.userPhone == userMetadata["phone"]) {
+                          splitUsers[user] = splitUsers[user] + amount;
+                        } else {
+                          splitUsers[user] = splitUsers[user] - amount;
+                        }
+                      }
+                    }
+                  }
+
+                  final splitUsersList = splitUsers.entries.map(
+                    (entry) {
+                      return {
+                        "name": splitUsersNames[entry.key],
+                        "amount": entry.value
+                      };
+                    },
+                  ).toList();
+
+                  return Scaffold(
+                    //backgroundColor: Color.fromARGB(255, 255, 247, 254),
+                    body: ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0), // Added horizontal padding
+                      itemCount: splitUsers.length +
+                          2, // increased count: spacer + summary card + splits
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          return const SizedBox(
+                              height: 20); // Spacer to lower the summary card
+                        } else if (index == 1) {
+                          // Summary Card moved to be scrollable
+                          return Container(
+                            margin: const EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 245, 210, 245),
+                              borderRadius: BorderRadius.circular(16.0),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      const Color.fromARGB(255, 237, 155, 219)
+                                          .withOpacity(0.2),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                _buildBalanceRow(
+                                  label: "Total Balance",
+                                  amount: (borrowed - lent) > 0
+                                      ? borrowed - lent
+                                      : lent - borrowed,
+                                  amountColor: borrowed < lent
+                                      ? Colors.green[800]!
+                                      : Colors.red[800]!,
+                                ),
+                                const Divider(
+                                  height: 24,
+                                  color: Colors.black54,
+                                  thickness: 0.75,
+                                ),
+                                _buildBalanceRow(
+                                  label: "You Owe",
+                                  amount: borrowed,
+                                  amountColor: Colors.red[800]!,
+                                ),
+                                const SizedBox(height: 12),
+                                _buildBalanceRow(
+                                  label: "You Are Owed",
+                                  amount: lent,
+                                  amountColor: Colors.green[800]!,
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          final split = splitUsersList[index - 2];
+                          // ...existing code for split tile...
+                          return _buildSplitTile(split);
+                        }
+                      },
+                      separatorBuilder: (context, index) => Divider(
+                        color: Colors.grey[300],
+                      ),
+                    ),
+                    floatingActionButton: _currentIndex == 3
+                        ? FloatingActionButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    // builder: (context) => HomePage()),
+                                    builder: (context) =>
+                                        ChooseTransactionPage()),
+                              );
+                            },
+                            backgroundColor: const Color.fromARGB(
+                                255, 97, 53, 186), // Your exact purple color
+                            shape: const CircleBorder(),
+                            child: const Icon(Icons.add, color: Colors.white),
+                          )
+                        : null,
+                  );
+                },
+              );
+            },
           );
         });
-        return SizedBox.shrink();
-      },
-      data: (transactions) {
-        return asyncSplitUsers.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Category error: $error")),
-              );
-            });
-            return SizedBox.shrink();
-          },
-          data: (splitUserList) {
-            var splitUsers = {};
-            var splitUsersNames = {};
-            for (var transaction in transactions) {
-              for (var entry in transaction.splitAmounts.entries) {
-                final user = entry.key;
-                final amount = entry.value;
-                if (!splitUsers.containsKey(user)) {
-                  splitUsers[user] = 0.0;
-                  // name from splitUsers
-                  splitUsersNames[user] = splitUserList
-                      .where((splitUser) => splitUser.phoneNumber == user)
-                      .first
-                      .name;
-                }
-                splitUsers[user] += amount;
-              }
-            }
-
-            final splitUsersList = splitUsers.entries.map(
-              (entry) {
-                return {
-                  "name": splitUsersNames[entry.key],
-                  "amount": entry.value
-                };
-              },
-            ).toList();
-
-            return Scaffold(
-              //backgroundColor: Color.fromARGB(255, 255, 247, 254),
-              body: ListView.separated(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0), // Added horizontal padding
-                itemCount: splitUsers.length +
-                    2, // increased count: spacer + summary card + splits
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return const SizedBox(
-                        height: 20); // Spacer to lower the summary card
-                  } else if (index == 1) {
-                    // Summary Card moved to be scrollable
-                    return Container(
-                      margin: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 245, 210, 245),
-                        borderRadius: BorderRadius.circular(16.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color.fromARGB(255, 237, 155, 219)
-                                .withOpacity(0.2),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          _buildBalanceRow(
-                            label: "Total Balance",
-                            amount: 1441,
-                            amountColor: Colors.green[800]!,
-                          ),
-                          const Divider(
-                            height: 24,
-                            color: Colors.black54,
-                            thickness: 0.75,
-                          ),
-                          _buildBalanceRow(
-                            label: "You Owe",
-                            amount: 200,
-                            amountColor: Colors.red[800]!,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildBalanceRow(
-                            label: "You Are Owed",
-                            amount: 1641,
-                            amountColor: Colors.green[800]!,
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    final split = splitUsersList[index - 2];
-                    // ...existing code for split tile...
-                    return _buildSplitTile(split);
-                  }
-                },
-                separatorBuilder: (context, index) => Divider(
-                  color: Colors.grey[300],
-                ),
-              ),
-              floatingActionButton: _currentIndex == 3
-                  ? FloatingActionButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomePage()),
-                          // builder: (context) => ChooseTransactionPage()),
-                        );
-                      },
-                      backgroundColor: const Color.fromARGB(
-                          255, 97, 53, 186), // Your exact purple color
-                      shape: const CircleBorder(),
-                      child: const Icon(Icons.add, color: Colors.white),
-                    )
-                  : null,
-            );
-          },
-        );
-      },
-    );
   }
 
   Widget _buildBalanceRow({
@@ -259,7 +338,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                 CircleAvatar(
                   backgroundColor: Colors.purple[100],
                   child: Text(
-                    split["name"],
+                    split["name"][0].toUpperCase(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.purple,
