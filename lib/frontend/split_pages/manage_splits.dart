@@ -396,7 +396,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                       ),
                     ),
                     Text(
-                      "₹${split["amount"].abs()}",
+                      "₹${split["amount"].abs().toStringAsFixed(2)}",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
