@@ -42,7 +42,7 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
               .where((name) => name.isNotEmpty)
               .toSet() // Remove duplicates
               .toList()
-                ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+            ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
           // Initialize selectedContacts with all current contacts
           for (var contact in contacts) {
@@ -152,9 +152,8 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
               itemCount: filteredContacts.length,
               itemBuilder: (context, index) {
                 final contact = filteredContacts[index];
-                final firstLetter = contact.isNotEmpty
-                    ? contact[0].toUpperCase()
-                    : '';
+                final firstLetter =
+                    contact.isNotEmpty ? contact[0].toUpperCase() : '';
                 bool showHeader = index == 0;
                 if (!showHeader) {
                   final previousContact = filteredContacts[index - 1];
@@ -205,7 +204,8 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                         activeColor: Colors.purple,
                       ),
                       onTap: () => setState(() {
-                        selectedContacts[contact] = !(selectedContacts[contact] ?? false);
+                        selectedContacts[contact] =
+                            !(selectedContacts[contact] ?? false);
                       }),
                     ),
                   ],
@@ -234,6 +234,7 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                 // );
               },
               backgroundColor: Color.fromARGB(255, 97, 53, 186),
+              heroTag: 'split_between_next',
               child: Icon(Icons.arrow_forward, color: Colors.white),
             )
           : null,

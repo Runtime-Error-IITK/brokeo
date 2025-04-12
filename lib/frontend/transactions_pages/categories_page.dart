@@ -96,9 +96,10 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
               onPressed: () {
                 _showAddTransactionDialog(context);
               },
-              child: Icon(Icons.add, color: Colors.white),
               backgroundColor: Color.fromARGB(255, 97, 53, 186),
               shape: CircleBorder(),
+              heroTag: "add_transaction_fab",
+              child: Icon(Icons.add, color: Colors.white),
             )
           : null,
       // bottomNavigationBar: buildBottomNavigationBar(),

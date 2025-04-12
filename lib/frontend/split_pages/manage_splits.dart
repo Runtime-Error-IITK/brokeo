@@ -18,7 +18,6 @@ import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/material.dart';
 
-
 class ManageSplitsPage extends ConsumerStatefulWidget {
   const ManageSplitsPage({super.key});
 
@@ -236,6 +235,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                             backgroundColor: const Color.fromARGB(
                                 255, 97, 53, 186), // Your exact purple color
                             shape: const CircleBorder(),
+                            heroTag: "manage_splits_fab",
                             child: const Icon(Icons.add, color: Colors.white),
                           )
                         : null,
