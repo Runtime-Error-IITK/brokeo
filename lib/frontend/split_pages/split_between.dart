@@ -1,5 +1,5 @@
 import 'dart:developer' show log;
-
+import 'package:brokeo/frontend/split_pages/choose_split_type.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -20,9 +20,12 @@ class SplitBetweenPage extends ConsumerStatefulWidget {
 
 class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
   int _currentIndex = 3;
-  List<String> contacts = [];
+  // List of contacts; each contact is represented as a Map with keys "name" and "phone".
+  List<Map<String, String>> contacts = [];
   TextEditingController _searchController = TextEditingController();
-  Map<String, bool> selectedContacts = {};
+  // Instead of a Map<String, bool>, we now keep a Map where the key is the phone number
+  // and the value is the full contact (which includes both name and phone).
+  Map<String, Map<String, String>> selectedContacts = {};
 
   Future<void> _fetchContacts(BuildContext context) async {
     log("Requesting permission to access contacts...");
@@ -30,24 +33,33 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
     if (status.isGranted) {
       log("Permission granted. Fetching contacts...");
       try {
+        // This calls your platform method to fetch contacts.
         const platform = MethodChannel('com.example.contacts/fetch');
         final List<dynamic> contactDetails =
             await platform.invokeMethod('getContacts');
         log("Contacts fetched successfully: ${contactDetails.length} contacts found.");
 
-        setState(() {
-          // Process contacts: remove duplicates, empty names, and sort
-          contacts = contactDetails
-              .map((contact) => contact['name'] as String? ?? "Unknown")
-              .where((name) => name.isNotEmpty)
-              .toSet() // Remove duplicates
-              .toList()
-            ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+        // Use a temporary map to remove duplicates (keyed by a unique field, e.g. phone number).
+        final Map<String, Map<String, String>> tempMap = {};
 
-          // Initialize selectedContacts with all current contacts
-          for (var contact in contacts) {
-            selectedContacts.putIfAbsent(contact, () => false);
+        for (var contact in contactDetails) {
+          // Extract the name and phone number from each contact.
+          final String name = (contact['name'] as String?)?.trim() ?? "Unknown";
+          final String phone = (contact['phone'] as String?)?.trim() ?? "";
+          if (name.isNotEmpty && phone.isNotEmpty) {
+            tempMap[phone] = {"name": name, "phone": phone};
           }
+        }
+
+        // Convert the deduplicated map values to a list and sort it by name.
+        List<Map<String, String>> contactList = tempMap.values.toList();
+        contactList.sort((a, b) =>
+            a["name"]!.toLowerCase().compareTo(b["name"]!.toLowerCase()));
+
+        setState(() {
+          contacts = contactList;
+          // Initialize selectedContacts as empty.
+          selectedContacts = {};
         });
       } on PlatformException catch (e) {
         log("Failed to fetch contacts: ${e.message}");
@@ -75,28 +87,29 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool hasSelectedContacts =
-        selectedContacts.values.any((isSelected) => isSelected);
+    // Filter contacts based on search query.
     final filteredContacts = _searchController.text.isEmpty
         ? contacts
-        : contacts
-            .where((contact) => contact
-                .toLowerCase()
-                .contains(_searchController.text.toLowerCase()))
-            .toList();
+        : contacts.where((contact) {
+            return (contact["name"]?.toLowerCase() ?? "")
+                .contains(_searchController.text.toLowerCase());
+          }).toList();
+
+    // Check if at least one contact is selected.
+    bool hasSelectedContacts = selectedContacts.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Split Between')),
+      appBar: AppBar(title: const Text('Split Between')),
       body: Column(
         children: [
           Card(
-            margin: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Splitting Transaction',
                     style: TextStyle(
                       fontSize: 18,
@@ -104,13 +117,13 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                       color: Colors.purple,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         '₹${widget.amount}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.purple,
@@ -118,14 +131,14 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
-                  Divider(),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  const Text(
                     'Select contacts to split with:',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: Colors.grey,
                     ),
                   ),
                 ],
@@ -138,11 +151,11 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search Contact',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                contentPadding: EdgeInsets.symmetric(vertical: 12.0),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
               ),
               onChanged: (value) => setState(() {}),
             ),
@@ -152,16 +165,22 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
               itemCount: filteredContacts.length,
               itemBuilder: (context, index) {
                 final contact = filteredContacts[index];
+                final name = contact["name"]!;
+                final phone = contact["phone"]!;
                 final firstLetter =
-                    contact.isNotEmpty ? contact[0].toUpperCase() : '';
+                    name.isNotEmpty ? name[0].toUpperCase() : '';
+                // Decide whether to display an alphabetical header.
                 bool showHeader = index == 0;
                 if (!showHeader) {
                   final previousContact = filteredContacts[index - 1];
-                  final previousFirstLetter = previousContact.isNotEmpty
-                      ? previousContact[0].toUpperCase()
-                      : '';
+                  final previousFirstLetter =
+                      (previousContact["name"] ?? "").isNotEmpty
+                          ? previousContact["name"]![0].toUpperCase()
+                          : '';
                   showHeader = firstLetter != previousFirstLetter;
                 }
+                // Check if this contact is selected by looking it up by phone.
+                bool isSelected = selectedContacts.containsKey(phone);
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,29 +202,43 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                         backgroundColor: Colors.purple[100],
                         child: Text(
                           firstLetter,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.purple,
                           ),
                         ),
                       ),
                       title: Text(
-                        contact,
-                        style: TextStyle(
+                        name,
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.black87,
                         ),
                       ),
+                      subtitle: Text(
+                        phone,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
                       trailing: Checkbox(
-                        value: selectedContacts[contact] ?? false,
+                        value: isSelected,
                         onChanged: (bool? value) => setState(() {
-                          selectedContacts[contact] = value ?? false;
+                          if (value == true) {
+                            selectedContacts[phone] = contact;
+                          } else {
+                            selectedContacts.remove(phone);
+                          }
                         }),
                         activeColor: Colors.purple,
                       ),
                       onTap: () => setState(() {
-                        selectedContacts[contact] =
-                            !(selectedContacts[contact] ?? false);
+                        if (isSelected) {
+                          selectedContacts.remove(phone);
+                        } else {
+                          selectedContacts[phone] = contact;
+                        }
                       }),
                     ),
                   ],
@@ -218,24 +251,29 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
       floatingActionButton: hasSelectedContacts
           ? FloatingActionButton(
               onPressed: () {
-                // Navigate to ChooseSplitTypePage
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => ChooseSplitTypePage(
-                //       amount: widget.amount,
-                //       description: widget.description,
-                //       selectedContacts: selectedContacts.entries
-                //           .where((entry) => entry.value)
-                //           .map((entry) => entry.key)
-                //           .toList(),
-                //     ),
-                //   ),
-                // );
+                // Here you can pass the list of selected contacts (with both name and phone)
+                // Example:
+                final List<Map<String, String>> selected =
+                    selectedContacts.values.toList();
+
+                for (var contact in selected) {
+                  contact['phone'] = contact['phone']!.replaceAll(' ', '');
+                }
+
+                // log("Selected contacts: $selected");
+                // Navigation logic...
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ChooseSplitTypePage(
+                              amount: widget.amount,
+                              description: widget.description,
+                              selectedContacts: selected,
+                            )));
               },
-              backgroundColor: Color.fromARGB(255, 97, 53, 186),
+              backgroundColor: const Color.fromARGB(255, 97, 53, 186),
               heroTag: 'split_between_next',
-              child: Icon(Icons.arrow_forward, color: Colors.white),
+              child: const Icon(Icons.arrow_forward, color: Colors.white),
             )
           : null,
     );
