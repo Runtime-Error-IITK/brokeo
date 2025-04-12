@@ -119,11 +119,22 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween, // Removed this line
+                    crossAxisAlignment: CrossAxisAlignment
+                        .start, // Optional: Aligns text to the start
                     children: [
                       Text(
                         '₹${widget.amount}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.description,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

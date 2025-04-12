@@ -32,11 +32,19 @@ class ChooseSplitTypePage extends ConsumerStatefulWidget {
 class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
   String _splitType = 'Equal'; // 'Equal' or 'Custom'
   final Map<String, double> _customAmounts = {};
-  final TextEditingController _amountController = TextEditingController();
+
+  // Store controllers in a map so they persist across rebuilds.
+  final Map<String, TextEditingController> _amountControllers = {};
 
   @override
   void initState() {
     super.initState();
+    // Initialize controllers for each contact and for "You".
+    for (var contact in widget.selectedContacts) {
+      _amountControllers[contact["phone"]!] = TextEditingController();
+    }
+    _amountControllers['You'] = TextEditingController();
+
     _initializeEqualSplit();
   }
 
@@ -48,15 +56,24 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
 
     _customAmounts.clear();
 
+    // Update amounts for each contact.
     for (var contact in widget.selectedContacts) {
-      _customAmounts[contact["phone"]!] = equalAmount;
+      final key = contact["phone"]!;
+      _customAmounts[key] = equalAmount;
+      // Also update the corresponding controller.
+      _amountControllers[key]?.text = equalAmount.toStringAsFixed(2);
     }
+    // Update amount for "You".
     _customAmounts['You'] = equalAmount;
+    _amountControllers['You']?.text = equalAmount.toStringAsFixed(2);
   }
 
   @override
   void dispose() {
-    _amountController.dispose();
+    // Dispose all controllers.
+    for (final controller in _amountControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -136,7 +153,7 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                             _initializeEqualSplit();
                           });
                         },
-                        selectedColor: Colors.purple,
+                        selectedColor: const Color.fromARGB(255, 226, 158, 243),
                         labelStyle: TextStyle(
                           color: _splitType == 'Equal'
                               ? Colors.white
@@ -154,7 +171,7 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                             _splitType = 'Custom';
                           });
                         },
-                        selectedColor: Colors.purple,
+                        selectedColor: const Color.fromARGB(255, 226, 158, 243),
                         labelStyle: TextStyle(
                           color: _splitType == 'Custom'
                               ? Colors.white
@@ -174,33 +191,14 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
               children: [
                 // Your allocation
                 _buildAmountTile(
+                  keyId: 'You',
                   name: 'You',
-                  amount: _customAmounts['You'] ?? 0.0,
-                  onChanged: (value) {
-                    setState(() {
-                      _customAmounts['You'] = value;
-                      if (_splitType == 'Equal') {
-                        // When in Equal mode, changing one amount should switch to Custom
-                        _splitType = 'Custom';
-                      }
-                    });
-                  },
                 ),
-
                 // Contacts allocation
                 ...widget.selectedContacts.map((contact) {
                   return _buildAmountTile(
+                    keyId: contact["phone"]!,
                     name: contact["name"]!,
-                    amount: _customAmounts[contact["phone"]!] ?? 0.0,
-                    onChanged: (value) {
-                      setState(() {
-                        _customAmounts[contact["phone"]!] = value;
-                        if (_splitType == 'Equal') {
-                          // When in Equal mode, changing one amount should switch to Custom
-                          _splitType = 'Custom';
-                        }
-                      });
-                    },
                   );
                 }).toList(),
               ],
@@ -212,25 +210,6 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: Colors.purple),
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: Colors.purple,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: remainingAmount == 0
@@ -311,8 +290,9 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                           }
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: const Color.fromARGB(255, 226, 158, 243),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 16, horizontal: 32),
                     ),
                     child: Text(
                       'Confirm',
@@ -332,9 +312,8 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
   }
 
   Widget _buildAmountTile({
+    required String keyId, // Unique identifier (e.g., 'You' or contact phone)
     required String name,
-    required double amount,
-    required Function(double) onChanged,
   }) {
     return ListTile(
       leading: CircleAvatar(
@@ -351,7 +330,8 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
       trailing: SizedBox(
         width: 100,
         child: TextField(
-          controller: TextEditingController(text: amount.toStringAsFixed(2)),
+          // Use the stored controller.
+          controller: _amountControllers[keyId],
           keyboardType: TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             prefixText: '₹',
@@ -360,7 +340,13 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
           ),
           onChanged: (value) {
             final newAmount = double.tryParse(value) ?? 0.0;
-            onChanged(newAmount);
+            setState(() {
+              _customAmounts[keyId] = newAmount;
+              // If you're in Equal mode and a user edits a field, switch to Custom.
+              if (_splitType == 'Equal') {
+                _splitType = 'Custom';
+              }
+            });
           },
         ),
       ),

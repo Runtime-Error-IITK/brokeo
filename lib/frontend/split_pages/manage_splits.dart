@@ -274,60 +274,74 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
   }
 
   Widget _buildSplitTile(Map<dynamic, dynamic> split) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomePage(),
-            // builder: (context) => SplitHistoryPage(),
-          ),
-        );
-      },
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.purple[100],
-                  child: Text(
-                    split["name"][0].toUpperCase(),
+  return InkWell(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+          // builder: (context) => SplitHistoryPage(),
+        ),
+      );
+    },
+    child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.purple[100],
+                child: Text(
+                  split["name"][0].toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      split["name"],
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Wrap the lending/borrowing information in a column.
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    split["amount"] < 0 ? "You borrowed" : "You lent",
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.purple,
+                      fontSize: 12,
+                      color: split["amount"] < 0 ? Colors.red : Colors.green,
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        split["name"],
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    "₹${split["amount"].abs()}",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: split["amount"] < 0 ? Colors.red : Colors.green,
+                    ),
                   ),
-                ),
-                Text(
-                  "₹${split["amount"].abs()}",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: split["amount"] < 0 ? Colors.red : Colors.green,
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 }
