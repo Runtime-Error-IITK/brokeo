@@ -95,7 +95,7 @@ class _ChooseTransactionPageState extends ConsumerState<ChooseTransactionPage> {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: 'Enter Amount',
-                  prefixIcon: Icon(Icons.attach_money, color: Colors.black54),
+                  prefixIcon: Icon(Icons.currency_rupee, color: Colors.black54),
                   border: UnderlineInputBorder(),
                 ),
               ),
