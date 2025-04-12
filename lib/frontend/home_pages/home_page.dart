@@ -1436,141 +1436,171 @@ class _HomePageState extends ConsumerState<HomePage> {
         });
   }
 
-  void showAddScheduledPaymentDialog(BuildContext context) {
-    final _nameController = TextEditingController();
-    final _amountController = TextEditingController();
-    final _descriptionController = TextEditingController();
-    DateTime? selectedDate;
+void showAddScheduledPaymentDialog(BuildContext context) {
+  final _nameController = TextEditingController();
+  final _amountController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  DateTime? selectedDate;
+  bool isProcessing = false;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: Text('Add Scheduled Payment'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: _nameController,
-                      decoration: InputDecoration(labelText: 'Name'),
-                    ),
-                    SizedBox(height: 8),
-                    TextField(
-                      controller: _amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Amount (₹)'),
-                    ),
-                    SizedBox(height: 8),
-                    TextField(
-                      controller: _descriptionController,
-                      decoration: InputDecoration(labelText: 'Description'),
-                    ),
-                    SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            selectedDate == null
-                                ? 'No Date Chosen'
-                                : '${selectedDate!.toLocal()}'.split(' ')[0],
-                            style: TextStyle(fontSize: 12),
-                          ),
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text('Add Scheduled Payment'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(labelText: 'Name'),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Amount (₹)'),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: _descriptionController,
+                    decoration: InputDecoration(labelText: 'Description'),
+                  ),
+                  SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          selectedDate == null
+                              ? 'No Date Chosen'
+                              : '${selectedDate!.toLocal()}'.split(' ')[0],
+                          style: TextStyle(fontSize: 12),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.calendar_today),
-                          onPressed: () async {
-                            final pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate:
-                                  DateTime.now().add(Duration(days: 1)),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2100),
-                            );
-                            if (pickedDate != null) {
-                              setState(() {
-                                selectedDate = pickedDate;
-                              });
-                            }
-                          },
-                        )
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.calendar_today),
+                        onPressed: () async {
+                          final pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now().add(Duration(days: 1)),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2100),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              selectedDate = pickedDate;
+                            });
+                          }
+                        },
+                      )
+                    ],
+                  ),
+                ],
               ),
-              actions: [
-                TextButton(
-                  child: Text('Cancel'),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                ElevatedButton(
-                  child: Text('Add'),
-                  onPressed: () {
-                    final name = _nameController.text.trim();
-                    final amount = _amountController.text.trim();
-                    final description = _descriptionController.text.trim();
+            ),
+            actions: [
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              ElevatedButton(
+                child: isProcessing
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text('Add'),
+                onPressed: isProcessing
+                    ? null
+                    : () async {
+                        final name = _nameController.text.trim();
+                        final amount = _amountController.text.trim();
+                        final description = _descriptionController.text.trim();
 
-                    if (name.isEmpty ||
-                        amount.isEmpty ||
-                        description.isEmpty ||
-                        selectedDate == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Please fill all fields")),
-                      );
-                      return;
-                    }
+                        if (name.isEmpty ||
+                            amount.isEmpty ||
+                            description.isEmpty ||
+                            selectedDate == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Please fill all fields")),
+                          );
+                          return;
+                        }
 
-                    final now = DateTime.now();
-                    if (selectedDate!
-                        .isBefore(DateTime(now.year, now.month, now.day))) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Please select a future date")),
-                      );
-                      return;
-                    }
-                    final userId = ref.read(userIdProvider);
-                    if (userId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("User not logged in")),
-                      );
-                      return;
-                    }
-                    final schedule = Schedule(
-                        merchantName: name,
-                        amount: double.parse(amount),
-                        description: description,
-                        date: selectedDate!,
-                        userId: userId,
-                        scheduleId: "",
-                        paid: false);
+                        final now = DateTime.now();
+                        if (selectedDate!
+                            .isBefore(DateTime(now.year, now.month, now.day))) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Please select a future date")),
+                          );
+                          return;
+                        }
 
-                    final scheduleService = ref.read(scheduleServiceProvider);
+                        final userId = ref.read(userIdProvider);
+                        if (userId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("User not logged in")),
+                          );
+                          return;
+                        }
 
-                    if (scheduleService == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("User not logged in")),
-                      );
-                      return;
-                    } else {
-                      scheduleService
-                          .insertSchedule(CloudSchedule.fromSchedule(schedule));
-                    }
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+                        setState(() {
+                          isProcessing = true;
+                        });
+
+                        final schedule = Schedule(
+                          merchantName: name,
+                          amount: double.parse(amount),
+                          description: description,
+                          date: selectedDate!,
+                          userId: userId,
+                          scheduleId: "",
+                          paid: false,
+                        );
+
+                        final scheduleService = ref.read(scheduleServiceProvider);
+                        if (scheduleService == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("User not logged in")),
+                          );
+                          setState(() => isProcessing = false);
+                          return;
+                        }
+
+                        try {
+                          await scheduleService.insertSchedule(
+                            CloudSchedule.fromSchedule(schedule),
+                          );
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Scheduled payment added.")),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Error: $e")),
+                            );
+                          }
+                          setState(() => isProcessing = false);
+                        }
+                      },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
 
 // Single Scheduled Payment tile
   Widget _buildScheduledPaymentTile(Schedule payment) {
