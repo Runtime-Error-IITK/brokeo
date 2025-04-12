@@ -112,13 +112,11 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                   var splitUsersNames = {};
                   for (var transaction in transactions) {
                     for (var entry in transaction.splitAmounts.entries) {
-                      if (entry.key == userMetadata["phone"]) {
-                        continue;
-                      }
                       final user = entry.key;
                       final amount = entry.value;
                       log("User: $user, Amount: $amount");
                       if (!splitUsers.containsKey(user)) {
+                        if (entry.key == userMetadata["phone"]) continue;
                         splitUsers[user] = 0.0;
                         // name from splitUsers
                         splitUsersNames[user] = splitUserList

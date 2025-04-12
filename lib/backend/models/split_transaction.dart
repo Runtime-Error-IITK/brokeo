@@ -114,7 +114,6 @@ class CloudSplitTransaction {
 
   Map<String, dynamic> toFirestore() {
     return {
-      splitTransactionIdColumn: splitTransactionId,
       dateColumn: date,
       descriptionColumn: description,
       isPaymentColumn: isPayment,
