@@ -157,13 +157,14 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
             var splitUsers = {};
             var splitUsersNames = {};
             for (var transaction in transactions) {
+              log(transaction.toString());
               for (var entry in transaction.splitAmounts.entries) {
                 final user = entry.key;
                 final amount = entry.value;
-
+                if (user == userMetadata["phone"]) continue;
                 if (transaction.isPayment) {
+                  log('sad');
                   if (!splitUsers.containsKey(user)) {
-                    if (entry.key == userMetadata["phone"]) continue;
                     splitUsers[user] = 0.0;
                     splitUsersNames[user] = contacts.firstWhere(
                         (contact) => contact["phone"] == user, orElse: () {
@@ -171,6 +172,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                     })["name"];
                   }
                   if (transaction.userPhone == userMetadata["phone"]) {
+                    log("wowpw");
                     splitUsers[user] = splitUsers[user] + amount;
                   } else {
                     splitUsers[user] = splitUsers[user] - amount;
@@ -348,8 +350,8 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePage(),
-            // builder: (context) => SplitHistoryPage(split["phone"]),
+            // builder: (context) => HomePage(),
+            builder: (context) => SplitHistoryPage(split: split),
           ),
         );
       },
