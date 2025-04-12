@@ -45,7 +45,8 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
         for (var contact in contactDetails) {
           // Extract the name and phone number from each contact.
           final String name = (contact['name'] as String?)?.trim() ?? "Unknown";
-          final String phone = (contact['phone'] as String?)?.trim() ?? "";
+          final String phone =
+              (contact['phone'] as String?)?.trim().replaceAll(' ', '') ?? "";
           if (name.isNotEmpty && phone.isNotEmpty) {
             tempMap[phone] = {"name": name, "phone": phone};
           }
@@ -118,11 +119,22 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween, // Removed this line
+                    crossAxisAlignment: CrossAxisAlignment
+                        .start, // Optional: Aligns text to the start
                     children: [
                       Text(
                         '₹${widget.amount}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.description,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -256,9 +268,9 @@ class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
                 final List<Map<String, String>> selected =
                     selectedContacts.values.toList();
 
-                for (var contact in selected) {
-                  contact['phone'] = contact['phone']!.replaceAll(' ', '');
-                }
+                // for (var contact in selected) {
+                //   contact['phone'] = contact['phone']!.replaceAll(' ', '');
+                // }
 
                 // log("Selected contacts: $selected");
                 // Navigation logic...

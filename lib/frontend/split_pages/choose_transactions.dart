@@ -71,7 +71,7 @@ class _ChooseTransactionPageState extends ConsumerState<ChooseTransactionPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Choose Transaction',
+          'Add Expense',
           style: TextStyle(color: Colors.black),
         ),
       ),
