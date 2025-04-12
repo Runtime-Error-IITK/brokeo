@@ -220,72 +220,68 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                             final asyncMetadata =
                                 ref.read(userMetadataStreamProvider);
                             final splitUserFilter = SplitUserFilter();
-                            final asyncSplitUsers = ref
-                                .read(splitUserStreamProvider(splitUserFilter));
-                            asyncSplitUsers.whenData(
-                              (splitUsers) {
-                                asyncMetadata.whenData(
-                                  (metadata) {
-                                    final myNumber = metadata["phone"];
 
-                                    if (_customAmounts.containsKey("You")) {
-                                      final value = _customAmounts["You"];
-                                      _customAmounts.remove("You");
-                                      _customAmounts[myNumber] = value!;
-                                    }
-                                    final currentDate = DateTime.now();
-                                    final splitTransaction = SplitTransaction(
-                                      splitTransactionId: "",
-                                      date: currentDate,
-                                      description: widget.description,
-                                      isPayment: false,
-                                      userPhone: myNumber,
-                                      splitAmounts: _customAmounts,
-                                    );
+                            asyncMetadata.whenData(
+                              (metadata) async {
+                                final myNumber = metadata["phone"];
 
-                                    ref
-                                        .read(splitTransactionServiceProvider)!
-                                        .insertSplitTransaction(
-                                            CloudSplitTransaction
-                                                .fromSplitTransaction(
-                                                    splitTransaction));
-
-                                    // for (var currNumber
-                                    //     in _customAmounts.keys) {
-                                    //   if (splitUsers.any((user) =>
-                                    //       user.phoneNumber == currNumber)) {
-                                    //     continue;
-                                    //   }
-                                    //   final newSplituser = SplitUser(
-                                    //     userId: "",
-                                    //     name: widget.selectedContacts
-                                    //         .firstWhere((contact) =>
-                                    //             contact["phone"] ==
-                                    //             currNumber)["name"]!,
-                                    //     phoneNumber: currNumber,
-                                    //   );
-                                    //   ref
-                                    //       .read(splitUserServiceProvider)!
-                                    //       .insertSplitUser(
-                                    //           CloudSplitUser.fromSplitUser(
-                                    //               newSplituser));
-                                    // }
-                                  },
+                                if (_customAmounts.containsKey("You")) {
+                                  final value = _customAmounts["You"];
+                                  _customAmounts.remove("You");
+                                  _customAmounts[myNumber] = value!;
+                                }
+                                final currentDate = DateTime.now();
+                                final splitTransaction = SplitTransaction(
+                                  splitTransactionId: "",
+                                  date: currentDate,
+                                  description: widget.description,
+                                  isPayment: false,
+                                  userPhone: myNumber,
+                                  splitAmounts: _customAmounts,
                                 );
+
+                                ref
+                                    .read(splitTransactionServiceProvider)!
+                                    .insertSplitTransaction(
+                                        CloudSplitTransaction
+                                            .fromSplitTransaction(
+                                                splitTransaction));
+
+                                // for (var currNumber
+                                //     in _customAmounts.keys) {
+                                //   if (splitUsers.any((user) =>
+                                //       user.phoneNumber == currNumber)) {
+                                //     continue;
+                                //   }
+                                //   final newSplituser = SplitUser(
+                                //     userId: "",
+                                //     name: widget.selectedContacts
+                                //         .firstWhere((contact) =>
+                                //             contact["phone"] ==
+                                //             currNumber)["name"]!,
+                                //     phoneNumber: currNumber,
+                                //   );
+                                //   ref
+                                //       .read(splitUserServiceProvider)!
+                                //       .insertSplitUser(
+                                //           CloudSplitUser.fromSplitUser(
+                                //               newSplituser));
+                                // }
+
+                                //navigator to ManageSplitsPage
+                                int count = 0;
+                                if (context.mounted) {
+                                  Navigator.popUntil(
+                                      context, (_) => count++ == 3);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'Transaction split successfully!'),
+                                    ),
+                                  );
+                                }
                               },
-                            );
-                            //navigator to ManageSplitsPage
-                            Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ManageSplitsPage(),
-                                ),
-                                (route) => false);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Transaction split successfully!'),
-                              ),
                             );
                           }
                         : null,

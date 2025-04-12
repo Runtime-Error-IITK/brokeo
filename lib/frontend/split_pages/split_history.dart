@@ -12,8 +12,8 @@
 // class SplitHistoryPage extends ConsumerStatefulWidget {
 //   //final Map<String, dynamic> person;
 
-//   final String userId;
-//   const SplitHistoryPage({Key? key, required this.userId}) : super(key: key);
+//   final String phoneNumber;
+//   const SplitHistoryPage({Key? key, required this.phoneNumber}) : super(key: key);
 
 //   // const SplitHistoryPage({Key? key, required this.split}) : super(key: key);
 

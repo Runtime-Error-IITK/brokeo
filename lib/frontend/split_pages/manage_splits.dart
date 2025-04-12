@@ -127,33 +127,32 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
 
             double borrowed = 0, lent = 0;
 
-            for (var transaction in transactions) {
-              for (var entry in transaction.splitAmounts.entries) {
-                if (entry.key == userMetadata["phone"]) {
-                  continue;
-                }
-                final amount = entry.value;
-                if (transaction.isPayment) {
-                  if (transaction.userPhone == userMetadata["phone"]) {
-                    borrowed -= amount;
-                    if (borrowed < 0) {
-                      lent -= borrowed;
-                      borrowed = 0;
-                    }
-                  } else {
-                    lent -= amount;
-                    if (lent < 0) {
-                      borrowed -= lent;
-                      lent = 0;
-                    }
-                  }
-                } else if (transaction.userPhone == userMetadata["phone"]) {
-                  lent += amount;
-                } else {
-                  borrowed += amount;
-                }
-              }
-            }
+            // for (var transaction in transactions) {
+            //   for (var entry in transaction.splitAmounts.entries) {
+            //     final amount = entry.value;
+            //     if (transaction.isPayment) {
+            //       if (transaction.userPhone == userMetadata["phone"]) {
+            //         borrowed -= amount;
+            //         if (borrowed < 0) {
+            //           lent -= borrowed;
+            //           borrowed = 0;
+            //         }
+            //       } else {
+            //         lent -= amount;
+            //         if (lent < 0) {
+            //           borrowed -= lent;
+            //           lent = 0;
+            //         }
+            //       }
+            //     } else if (transaction.userPhone == userMetadata["phone"] &&
+            //         entry.key != userMetadata["phone"]) {
+            //       lent += amount;
+            //     } else if (transaction.userPhone != userMetadata["phone"] &&
+            //         entry.key == userMetadata["phone"]) {
+            //       borrowed += amount;
+            //     }
+            //   }
+            // }
 
             var splitUsers = {};
             var splitUsersNames = {};
@@ -161,17 +160,16 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
               for (var entry in transaction.splitAmounts.entries) {
                 final user = entry.key;
                 final amount = entry.value;
-                log("User: $user, Amount: $amount");
-                if (!splitUsers.containsKey(user)) {
-                  if (entry.key == userMetadata["phone"]) continue;
-                  splitUsers[user] = 0.0;
-                  // name from splitUsers
-                  splitUsersNames[user] = contacts.firstWhere(
-                      (contact) => contact["phone"] == user, orElse: () {
-                    return {"name": user};
-                  })["name"];
-                }
+
                 if (transaction.isPayment) {
+                  if (!splitUsers.containsKey(user)) {
+                    if (entry.key == userMetadata["phone"]) continue;
+                    splitUsers[user] = 0.0;
+                    splitUsersNames[user] = contacts.firstWhere(
+                        (contact) => contact["phone"] == user, orElse: () {
+                      return {"name": user};
+                    })["name"];
+                  }
                   if (transaction.userPhone == userMetadata["phone"]) {
                     splitUsers[user] = splitUsers[user] + amount;
                   } else {
@@ -179,11 +177,37 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                   }
                 } else {
                   if (transaction.userPhone == userMetadata["phone"]) {
+                    if (!splitUsers.containsKey(user)) {
+                      if (entry.key == userMetadata["phone"]) continue;
+                      splitUsers[user] = 0.0;
+                      splitUsersNames[user] = contacts.firstWhere(
+                          (contact) => contact["phone"] == user, orElse: () {
+                        return {"name": user};
+                      })["name"];
+                    }
                     splitUsers[user] = splitUsers[user] + amount;
-                  } else {
+                  } else if (transaction.userPhone == user) {
+                    if (!splitUsers.containsKey(user)) {
+                      if (entry.key == userMetadata["phone"]) continue;
+                      splitUsers[user] = 0.0;
+                      splitUsersNames[user] = contacts.firstWhere(
+                          (contact) => contact["phone"] == user, orElse: () {
+                        return {"name": user};
+                      })["name"];
+                    }
                     splitUsers[user] = splitUsers[user] - amount;
                   }
                 }
+              }
+            }
+
+            // Calculate the total borrowed and lent amounts
+            for (var entry in splitUsers.entries) {
+              final amount = entry.value;
+              if (amount < 0) {
+                borrowed += amount.abs();
+              } else {
+                lent += amount;
               }
             }
 
@@ -191,6 +215,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
               (entry) {
                 return {
                   "name": splitUsersNames[entry.key],
+                  "phone": entry.key,
                   "amount": entry.value
                 };
               },
@@ -324,7 +349,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
           context,
           MaterialPageRoute(
             builder: (context) => HomePage(),
-            // builder: (context) => SplitHistoryPage(),
+            // builder: (context) => SplitHistoryPage(split["phone"]),
           ),
         );
       },
