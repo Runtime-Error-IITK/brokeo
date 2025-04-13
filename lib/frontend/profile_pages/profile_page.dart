@@ -45,12 +45,12 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "Aujasvit Datta",
+                    "Rudransh",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 5),
                   Text(
-                    "aujasvit@dhichik.com | +91 9870131789",
+                    "rudranshv22@iitk.ac.in | +91 9369199533",
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
