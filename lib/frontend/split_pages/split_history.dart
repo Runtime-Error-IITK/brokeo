@@ -15,14 +15,8 @@ import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 class SplitHistoryPage extends ConsumerStatefulWidget {
-  //final Map<String, dynamic> person;
-
   final Map<dynamic, dynamic> split;
   const SplitHistoryPage({Key? key, required this.split}) : super(key: key);
-
-  // const SplitHistoryPage({Key? key, required this.split}) : super(key: key);
-
-  //const SplitHistoryPage({Key? key, required this.person}) : super(key: key);
 
   @override
   _SplitHistoryPageState createState() => _SplitHistoryPageState();
@@ -31,37 +25,6 @@ class SplitHistoryPage extends ConsumerStatefulWidget {
 class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
   int _currentIndex = 3;
   bool _isLoading = false;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _loadTransactions();
-  // }
-
-  // Future<void> _loadTransactions() async {
-  //   // Sample data - two example transactions
-  //   final mockTransactions = [
-  //     {
-  //       'name': widget.split['name'],
-  //       'amount': 200.0,
-  //       'date': '31 Jan\'25, 19:00',
-  //       'avatarText': widget.split['name'][0]
-  //     },
-  //     {
-  //       'name': widget.split['name'],
-  //       'amount': -150.0,
-  //       'date': '30 Jan\'25, 12:30',
-  //       'avatarText': widget.split['name'][0]
-  //     },
-  //   ];
-
-  //   await Future.delayed(Duration(seconds: 1)); // Simulate network delay
-
-  //   setState(() {
-  //     transactions = mockTransactions;
-  //     _isLoading = false;
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +108,12 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                       centerTitle: true,
                     ),
                     body: _isLoading
-                        ? Center(child: CircularProgressIndicator())
+                        ? Scaffold(
+                            backgroundColor: Colors.white,
+                            body: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
                         : Column(
                             children: [
                               // "You owe", "owes you", or "Settled" message below app bar
@@ -209,8 +177,6 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                                     final transaction =
                                         transactions[reversedIndex];
 
-                                    // final isPositive =
-                                    //     transaction.userPhone == widget.userId;
                                     String message = "";
                                     if (transaction.isPayment) {
                                       if (transaction.userPhone ==
@@ -229,107 +195,127 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                                       }
                                     }
                                     return InkWell(
-                                      onTap: () {},
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 5, horizontal: 12),
-                                        child: Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 20,
-                                              backgroundColor:
-                                                  Colors.purple[100],
-                                              child: Text(
-                                                widget.split['name'][0],
-                                                style: TextStyle(
-                                                  color: Colors.purple,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                            SizedBox(width: 16),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween, // Aligns name & amount like _buildBalanceRow
-                                                    children: [
-                                                      Text(
-                                                        widget.split['name'],
-                                                        style: TextStyle(
-                                                          // Matches label style
-                                                          fontSize: 16,
-                                                          color: Colors
-                                                              .black, // Black text for name
-                                                        ),
-                                                      ),
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .end,
-                                                        children: [
-                                                          Text(
-                                                            message,
-                                                            style: TextStyle(
-                                                              fontSize: 12,
-                                                              color: (transaction
-                                                                          .userPhone ==
-                                                                      widget.split[
-                                                                          'phone'])
-                                                                  ? Colors.red
-                                                                  : Colors
-                                                                      .green,
-                                                            ),
-                                                          ),
-                                                          Text(
-                                                            (transaction.userPhone ==
-                                                                    user[
-                                                                        'phone'])
-                                                                ? '₹${transaction.splitAmounts[widget.split['phone']]!.abs().toStringAsFixed(2)}'
-                                                                : '₹${transaction.splitAmounts[user['phone']]!.abs().toStringAsFixed(2)}',
-                                                            style: TextStyle(
-                                                              color: (transaction
-                                                                          .userPhone ==
-                                                                      widget.split[
-                                                                          'phone'])
-                                                                  ? Colors.red
-                                                                  : Colors
-                                                                      .green,
-                                                              fontSize:
-                                                                  17, // Matches amount style
-                                                              fontWeight: FontWeight
-                                                                  .w600, // Bold like _buildBalanceRow
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                      height:
-                                                          4), // Small spacing between name and date
-                                                  Text(
-                                                    DateFormat(
-                                                            "MMM dd, yyyy, hh:mm ")
-                                                        .format(
-                                                            transaction.date),
-                                                    style: TextStyle(
-                                                      color:
-                                                          Colors.grey.shade600,
-                                                      fontSize: 14,
-                                                    ),
+                                        onTap: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title:
+                                                    const Text('Description'),
+                                                content: Text(
+                                                    '${transaction.description}'),
+                                                actions: <Widget>[
+                                                  TextButton(
+                                                    child: const Text('Close'),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
                                                   ),
                                                 ],
+                                              );
+                                            },
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 5, horizontal: 12),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 20,
+                                                backgroundColor:
+                                                    Colors.purple[100],
+                                                child: Text(
+                                                  widget.split['name'][0],
+                                                  style: TextStyle(
+                                                    color: Colors.purple,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    // First row: name and message on the same level.
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          widget.split['name'],
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 16,
+                                                            color: Colors.black,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          message,
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: (transaction
+                                                                        .userPhone ==
+                                                                    widget.split[
+                                                                        'phone'])
+                                                                ? Colors.red
+                                                                : Colors.green,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    const SizedBox(
+                                                        height:
+                                                            4), // Adjust spacing as needed
+                                                    // Second row: date and amount on the same level.
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          DateFormat(
+                                                                  "MMM dd, yyyy, hh:mm")
+                                                              .format(
+                                                                  transaction
+                                                                      .date),
+                                                          style: TextStyle(
+                                                            color: Colors
+                                                                .grey.shade600,
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          (transaction.userPhone ==
+                                                                  user['phone'])
+                                                              ? '₹${transaction.splitAmounts[widget.split['phone']]!.abs().toStringAsFixed(2)}'
+                                                              : '₹${transaction.splitAmounts[user['phone']]!.abs().toStringAsFixed(2)}',
+                                                          style: TextStyle(
+                                                            color: (transaction
+                                                                        .userPhone ==
+                                                                    widget.split[
+                                                                        'phone'])
+                                                                ? Colors.red
+                                                                : Colors.green,
+                                                            fontSize: 15,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ));
                                   },
                                   separatorBuilder: (context, index) => Divider(
                                     height: 1,
