@@ -1,9 +1,11 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/models/split_transaction.dart';
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
     show userMetadataStreamProvider;
 import 'package:cloud_firestore/cloud_firestore.dart'
-    show FirebaseFirestore, Query, Timestamp, QuerySnapshot;
+    show FieldPath, FirebaseFirestore, Query, QuerySnapshot, Timestamp;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -20,71 +22,58 @@ final splitTransactionStreamProvider = StreamProvider.autoDispose
         if (phoneNumber == null) {
           return const Stream.empty();
         }
+        // log("Hello ");
 
         // If otherUserId is provided, assume it now represents the other user's phone number.
-        if (filter.otherPhone != null) {
+        if (filter.first != null && filter.second != null) {
+          log("sad: ${filter.first}, ${filter.second}");
           // Condition 1:
           // - transaction.phoneNumber equals the current phone number
           // - splitAmounts.<otherPhone> is not null
-          final query1 = FirebaseFirestore.instance
+          final query = FirebaseFirestore.instance
               .collection('splitTransactions')
-              .where('phoneNumber', isEqualTo: phoneNumber)
-              .where('splitAmounts.${filter.otherPhone}', isNotEqualTo: null);
+              .where('userPhone', isEqualTo: filter.first)
+              .orderBy('date', descending: true);
 
           // Condition 2:
           // - transaction.phoneNumber equals the other user's phone number
           // - splitAmounts.<currentPhone> is not null
-          final query2 = FirebaseFirestore.instance
-              .collection('splitTransactions')
-              .where('phoneNumber', isEqualTo: filter.otherPhone)
-              .where('splitAmounts.$phoneNumber', isNotEqualTo: null);
-
-          // Listen to both query snapshots.
-          final stream1 = query1.snapshots();
-          final stream2 = query2.snapshots();
-
-          // Combine both streams into one.
-          return Rx.combineLatest2<QuerySnapshot, QuerySnapshot,
-              List<SplitTransaction>>(
-            stream1,
-            stream2,
-            (snap1, snap2) {
-              // Merge the document lists.
-              final allDocs = [...snap1.docs, ...snap2.docs];
-
-              // Optionally sort by 'date' in descending order.
-              allDocs.sort((a, b) {
-                final dateA =
-                    (a.data() as Map<String, dynamic>)['date'] as Timestamp;
-                final dateB =
-                    (b.data() as Map<String, dynamic>)['date'] as Timestamp;
-                return dateB.compareTo(dateA);
-              });
-
-              // Map documents to SplitTransaction objects.
-              return allDocs.map((doc) {
-                final cloudSplitTransaction =
-                    CloudSplitTransaction.fromSnapshot(doc);
-                return SplitTransaction.fromCloudSplitTransaction(
-                    cloudSplitTransaction);
-              }).toList();
-            },
-          );
-        } else {
-          // Fallback: if otherUserId is not provided, use a query filtering only on phoneNumber.
-          Query query = FirebaseFirestore.instance
-              .collection('splitTransactions')
-              .where('splitAmounts.$phoneNumber', isNotEqualTo: null)
-              .orderBy('date', descending: true);
 
           return query.snapshots().map(
                 (snapshot) => snapshot.docs.map((doc) {
+                  // log(doc.data().toString());
                   final cloudSplitTransaction =
                       CloudSplitTransaction.fromSnapshot(doc);
                   return SplitTransaction.fromCloudSplitTransaction(
                       cloudSplitTransaction);
                 }).toList(),
               );
+        } else {
+          log("entered else");
+          // Fallback: if otherUserId is not provided, use a query filtering only on phoneNumber.
+          Query query = FirebaseFirestore.instance
+              .collection('splitTransactions')
+              // .where('splitAmounts.$phoneNumber', isNotEqualTo: null)
+              // .orderBy('splitAmounts.$phoneNumber')
+              .orderBy('date', descending: true);
+          // log('works till here');
+
+          return query.snapshots().map((snapshot) {
+            // Filter out documents where 'splitAmounts' doesn't have the key or its value is null.
+            final filteredDocs = snapshot.docs.where((doc) {
+              final data = doc.data();
+              // Optionally check that 'splitAmounts' exists to avoid potential null errors.
+
+              return (data! as Map)['splitAmounts'][phoneNumber] != null;
+            }).toList();
+
+            return filteredDocs.map((doc) {
+              final cloudSplitTransaction =
+                  CloudSplitTransaction.fromSnapshot(doc);
+              return SplitTransaction.fromCloudSplitTransaction(
+                  cloudSplitTransaction);
+            }).toList();
+          });
         }
       },
       loading: () => const Stream.empty(),
@@ -94,15 +83,17 @@ final splitTransactionStreamProvider = StreamProvider.autoDispose
 );
 
 class SplitTransactionFilter {
-  final String? otherPhone;
+  final String? first, second;
 
-  SplitTransactionFilter({this.otherPhone});
+  SplitTransactionFilter({this.first, this.second});
 
   @override
   bool operator ==(Object other) {
-    return other is SplitTransactionFilter && other.otherPhone == otherPhone;
+    return other is SplitTransactionFilter &&
+        other.first == first &&
+        other.second == second;
   }
 
   @override
-  int get hashCode => otherPhone.hashCode;
+  int get hashCode => first.hashCode ^ second.hashCode;
 }

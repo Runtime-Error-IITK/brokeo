@@ -1,329 +1,351 @@
-// import 'package:brokeo/frontend/split_pages/manage_splits.dart';
-// import 'package:flutter/material.dart';
-// import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
-// import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
-// import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
-// import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'dart:developer' show log;
 
-// class ChooseSplitTypePage extends ConsumerStatefulWidget {
-//   final Map<String, dynamic> transaction;
-//   final List<String> selectedContacts;
+import 'package:brokeo/backend/models/split_transaction.dart';
+import 'package:brokeo/backend/models/split_user.dart';
+import 'package:brokeo/backend/services/providers/read_providers/split_user_stream_provider';
+import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
+import 'package:brokeo/backend/services/providers/write_providers/split_transaction_service.dart';
+import 'package:brokeo/backend/services/providers/write_providers/split_user_service_provider.dart';
+import 'package:brokeo/frontend/split_pages/manage_splits.dart';
+import 'package:flutter/material.dart';
+import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
+import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
+import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-//   const ChooseSplitTypePage({
-//     Key? key,
-//     required this.transaction,
-//     required this.selectedContacts,
-//   }) : super(key: key);
+class ChooseSplitTypePage extends ConsumerStatefulWidget {
+  final double amount;
+  final String description;
+  final List<Map<String, String>> selectedContacts;
 
-//   @override
-//   _ChooseSplitTypePageState createState() => _ChooseSplitTypePageState();
-// }
+  const ChooseSplitTypePage({
+    super.key,
+    required this.amount,
+    required this.description,
+    required this.selectedContacts,
+  });
 
-// class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
-//   String _splitType = 'Equal'; // 'Equal' or 'Custom'
-//   final Map<String, double> _customAmounts = {};
-//   final TextEditingController _amountController = TextEditingController();
+  @override
+  _ChooseSplitTypePageState createState() => _ChooseSplitTypePageState();
+}
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     _initializeEqualSplit();
-//   }
+class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
+  String _splitType = 'Equal'; // 'Equal' or 'Custom'
+  final Map<String, double> _customAmounts = {};
 
-//   void _initializeEqualSplit() {
-//     final totalAmount = widget.transaction['amount'].toDouble();
-//     final participantCount = widget.selectedContacts.length + 1; // +1 for yourself
-//     final equalAmount = totalAmount / participantCount;
-    
-//     _customAmounts.clear();
-    
-//     for (var contact in widget.selectedContacts) {
-//       _customAmounts[contact] = equalAmount;
-//     }
-//     _customAmounts['You'] = equalAmount;
-//   }
+  // Store controllers in a map so they persist across rebuilds.
+  final Map<String, TextEditingController> _amountControllers = {};
 
-//   @override
-//   void dispose() {
-//     _amountController.dispose();
-//     super.dispose();
-//   }
+  @override
+  void initState() {
+    super.initState();
+    // Initialize controllers for each contact and for "You".
+    for (var contact in widget.selectedContacts) {
+      _amountControllers[contact["phone"]!] = TextEditingController();
+    }
+    _amountControllers['You'] = TextEditingController();
 
-//   double get _remainingAmount {
-//     final total = widget.transaction['amount'].toDouble();
-//     final allocated = _customAmounts.values.fold(0.0, (sum, amount) => sum + amount);
-//     return total - allocated;
-//   }
+    _initializeEqualSplit();
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final totalAmount = widget.transaction['amount'].toDouble();
-//     final remainingAmount = _remainingAmount;
+  void _initializeEqualSplit() {
+    final totalAmount = widget.amount;
+    final participantCount =
+        widget.selectedContacts.length + 1; // +1 for yourself
+    final equalAmount = totalAmount / participantCount;
 
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Choose Split Type'),
-//       ),
-//       body: Column(
-//         children: [
-//           // Transaction Info
-//           Padding(
-//             padding: const EdgeInsets.all(16.0),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   widget.transaction['name'],
-//                   style: TextStyle(
-//                     fontSize: 20,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 SizedBox(height: 8),
-//                 LinearProgressIndicator(
-//                   value: remainingAmount / totalAmount,
-//                   backgroundColor: Colors.grey[200],
-//                   valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
-//                 ),
-//                 SizedBox(height: 8),
-//                 Text(
-//                   'Left ${remainingAmount.toStringAsFixed(2)}/${totalAmount.toStringAsFixed(2)}',
-//                   style: TextStyle(
-//                     fontSize: 14,
-//                     color: Colors.grey[600],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
+    _customAmounts.clear();
 
-//           // Split Type Selection
-//           Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   'Split Type',
-//                   style: TextStyle(
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 SizedBox(height: 8),
-//                 Row(
-//                   children: [
-//                     Expanded(
-//                       child: ChoiceChip(
-//                         label: Text('Equal'),
-//                         selected: _splitType == 'Equal',
-//                         onSelected: (selected) {
-//                           setState(() {
-//                             _splitType = 'Equal';
-//                             _initializeEqualSplit();
-//                           });
-//                         },
-//                         selectedColor: Colors.purple,
-//                         labelStyle: TextStyle(
-//                           color: _splitType == 'Equal' ? Colors.white : Colors.black,
-//                         ),
-//                       ),
-//                     ),
-//                     SizedBox(width: 16),
-//                     Expanded(
-//                       child: ChoiceChip(
-//                         label: Text('Custom'),
-//                         selected: _splitType == 'Custom',
-//                         onSelected: (selected) {
-//                           setState(() {
-//                             _splitType = 'Custom';
-//                           });
-//                         },
-//                         selectedColor: Colors.purple,
-//                         labelStyle: TextStyle(
-//                           color: _splitType == 'Custom' ? Colors.white : Colors.black,
-//                         ),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ],
-//             ),
-//           ),
+    // Update amounts for each contact.
+    for (var contact in widget.selectedContacts) {
+      final key = contact["phone"]!;
+      _customAmounts[key] = equalAmount;
+      // Also update the corresponding controller.
+      _amountControllers[key]?.text = equalAmount.toStringAsFixed(2);
+    }
+    // Update amount for "You".
+    _customAmounts['You'] = equalAmount;
+    _amountControllers['You']?.text = equalAmount.toStringAsFixed(2);
+  }
 
-//           // Amount Allocation List
-//           Expanded(
-//             child: ListView(
-//               children: [
-//                 // Your allocation
-//                 _buildAmountTile(
-//                   name: 'You',
-//                   amount: _customAmounts['You'] ?? 0.0,
-//                   onChanged: (value) {
-//                     setState(() {
-//                       _customAmounts['You'] = value;
-//                       if (_splitType == 'Equal') {
-//                         // When in Equal mode, changing one amount should switch to Custom
-//                         _splitType = 'Custom';
-//                       }
-//                     });
-//                   },
-//                 ),
-                
-//                 // Contacts allocation
-//                 ...widget.selectedContacts.map((contact) {
-//                   return _buildAmountTile(
-//                     name: contact,
-//                     amount: _customAmounts[contact] ?? 0.0,
-//                     onChanged: (value) {
-//                       setState(() {
-//                         _customAmounts[contact] = value;
-//                         if (_splitType == 'Equal') {
-//                           // When in Equal mode, changing one amount should switch to Custom
-//                           _splitType = 'Custom';
-//                         }
-//                       });
-//                     },
-//                   );
-//                 }).toList(),
-//               ],
-//             ),
-//           ),
+  @override
+  void dispose() {
+    // Dispose all controllers.
+    for (final controller in _amountControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
-//           // Action Buttons
-//           Padding(
-//             padding: const EdgeInsets.all(16.0),
-//             child: Row(
-//               children: [
-//                 Expanded(
-//                   child: OutlinedButton(
-//                     onPressed: () {
-//                       Navigator.pop(context);
-//                     },
-//                     style: OutlinedButton.styleFrom(
-//                       padding: EdgeInsets.symmetric(vertical: 16),
-//                       side: BorderSide(color: Colors.purple),
-//                     ),
-//                     child: Text(
-//                       'Cancel',
-//                       style: TextStyle(
-//                         color: Colors.purple,
-//                         fontSize: 16,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 SizedBox(width: 16),
-//                 Expanded(
-//                   child: ElevatedButton(
-//                     onPressed: remainingAmount == 0
-//                         ? () {
-//                             // TODO: Save the split transaction
+  double get _remainingAmount {
+    final total = widget.amount;
+    final allocated =
+        _customAmounts.values.fold(0.0, (sum, amount) => sum + amount);
+    return total - allocated;
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    log(widget.selectedContacts.toString());
+    final totalAmount = widget.amount;
+    final remainingAmount = _remainingAmount;
 
-//                             //navigator to ManageSplitsPage
-//                             Navigator.pushReplacement(
-//                               context,
-//                               MaterialPageRoute(
-//                                 builder: (context) => ManageSplitsPage(),
-//                               ),
-//                             );
-//                             ScaffoldMessenger.of(context).showSnackBar(
-//                               SnackBar(
-//                                 content: Text('Transaction split successfully!'),
-//                               ),
-//                             );
-//                           }
-//                         : null,
-//                     style: ElevatedButton.styleFrom(
-//                       backgroundColor: Colors.purple,
-//                       padding: EdgeInsets.symmetric(vertical: 16),
-//                     ),
-//                     child: Text(
-//                       'Confirm',
-//                       style: TextStyle(
-//                         fontSize: 16,
-//                         color: Colors.white,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//       bottomNavigationBar: BottomNavigationBar(
-//         currentIndex: 3, // Split tab is active
-//         onTap: (index) {
-//           if (index != 3) {
-//             Navigator.pushReplacement(
-//               context,
-//               MaterialPageRoute(
-//                 builder: (context) => _getPageForIndex(index),
-//               ),
-//             );
-//           }
-//         },
-//         type: BottomNavigationBarType.fixed,
-//         selectedItemColor: Colors.purple,
-//         unselectedItemColor: Colors.grey,
-//         items: [
-//           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-//           BottomNavigationBarItem(icon: Icon(Icons.list), label: "Transactions"),
-//           BottomNavigationBarItem(icon: Icon(Icons.analytics), label: "Analytics"),
-//           BottomNavigationBarItem(icon: Icon(Icons.people), label: "Split"),
-//         ],
-//       ),
-//     );
-//   }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Choose Split Type'),
+      ),
+      body: Column(
+        children: [
+          // Transaction Info
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.description,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: remainingAmount / totalAmount,
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Left ${remainingAmount.toStringAsFixed(2)}/${totalAmount.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-//   Widget _buildAmountTile({
-//     required String name,
-//     required double amount,
-//     required Function(double) onChanged,
-//   }) {
-//     return ListTile(
-//       leading: CircleAvatar(
-//         backgroundColor: Colors.purple[100],
-//         child: Text(
-//           name[0],
-//           style: TextStyle(
-//             fontWeight: FontWeight.bold,
-//             color: Colors.purple,
-//           ),
-//         ),
-//       ),
-//       title: Text(name),
-//       trailing: SizedBox(
-//         width: 100,
-//         child: TextField(
-//           controller: TextEditingController(text: amount.toStringAsFixed(2)),
-//           keyboardType: TextInputType.numberWithOptions(decimal: true),
-//           decoration: InputDecoration(
-//             prefixText: '₹',
-//             border: OutlineInputBorder(),
-//             contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-//           ),
-//           onChanged: (value) {
-//             final newAmount = double.tryParse(value) ?? 0.0;
-//             onChanged(newAmount);
-//           },
-//         ),
-//       ),
-//     );
-//   }
+          // Split Type Selection
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Split Type',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ChoiceChip(
+                        label: Text('Equal'),
+                        selected: _splitType == 'Equal',
+                        onSelected: (selected) {
+                          setState(() {
+                            _splitType = 'Equal';
+                            _initializeEqualSplit();
+                          });
+                        },
+                        selectedColor: const Color.fromARGB(255, 226, 158, 243),
+                        labelStyle: TextStyle(
+                          color: _splitType == 'Equal'
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: ChoiceChip(
+                        label: Text('Custom'),
+                        selected: _splitType == 'Custom',
+                        onSelected: (selected) {
+                          setState(() {
+                            _splitType = 'Custom';
+                          });
+                        },
+                        selectedColor: const Color.fromARGB(255, 226, 158, 243),
+                        labelStyle: TextStyle(
+                          color: _splitType == 'Custom'
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
 
-//   Widget _getPageForIndex(int index) {
-//     switch (index) {
-//       case 0:
-//         return brokeo_home.HomePage(name: "Darshan", budget: 5000);
-//       case 1:
-//         return CategoriesPage();
-//       case 2:
-//         return AnalyticsPage();
-//       default:
-//         return ManageSplitsPage();
-//     }
-//   }
-// }
+          // Amount Allocation List
+          Expanded(
+            child: ListView(
+              children: [
+                // Your allocation
+                _buildAmountTile(
+                  keyId: 'You',
+                  name: 'You',
+                ),
+                // Contacts allocation
+                ...widget.selectedContacts.map((contact) {
+                  return _buildAmountTile(
+                    keyId: contact["phone"]!,
+                    name: contact["name"]!,
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+
+          // Action Buttons
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: remainingAmount == 0
+                        ? () {
+                            // TODO: Save the split transaction
+                            log(_customAmounts.toString());
+
+                            final asyncMetadata =
+                                ref.read(userMetadataStreamProvider);
+                            final splitUserFilter = SplitUserFilter();
+
+                            asyncMetadata.whenData(
+                              (metadata) async {
+                                final myNumber = metadata["phone"];
+
+                                if (_customAmounts.containsKey("You")) {
+                                  final value = _customAmounts["You"];
+                                  _customAmounts.remove("You");
+                                  _customAmounts[myNumber] = value!;
+                                }
+                                final currentDate = DateTime.now();
+                                final splitTransaction = SplitTransaction(
+                                  splitTransactionId: "",
+                                  date: currentDate,
+                                  description: widget.description,
+                                  isPayment: false,
+                                  userPhone: myNumber,
+                                  splitAmounts: _customAmounts,
+                                );
+
+                                ref
+                                    .read(splitTransactionServiceProvider)!
+                                    .insertSplitTransaction(
+                                        CloudSplitTransaction
+                                            .fromSplitTransaction(
+                                                splitTransaction));
+
+                                // for (var currNumber
+                                //     in _customAmounts.keys) {
+                                //   if (splitUsers.any((user) =>
+                                //       user.phoneNumber == currNumber)) {
+                                //     continue;
+                                //   }
+                                //   final newSplituser = SplitUser(
+                                //     userId: "",
+                                //     name: widget.selectedContacts
+                                //         .firstWhere((contact) =>
+                                //             contact["phone"] ==
+                                //             currNumber)["name"]!,
+                                //     phoneNumber: currNumber,
+                                //   );
+                                //   ref
+                                //       .read(splitUserServiceProvider)!
+                                //       .insertSplitUser(
+                                //           CloudSplitUser.fromSplitUser(
+                                //               newSplituser));
+                                // }
+
+                                //navigator to ManageSplitsPage
+                                int count = 0;
+                                if (context.mounted) {
+                                  Navigator.popUntil(
+                                      context, (_) => count++ == 3);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'Transaction split successfully!'),
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 226, 158, 243),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                    ),
+                    child: Text(
+                      'Confirm',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmountTile({
+    required String keyId, // Unique identifier (e.g., 'You' or contact phone)
+    required String name,
+  }) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Colors.purple[100],
+        child: Text(
+          name[0],
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.purple,
+          ),
+        ),
+      ),
+      title: Text(name),
+      trailing: SizedBox(
+        width: 100,
+        child: TextField(
+          // Use the stored controller.
+          controller: _amountControllers[keyId],
+          keyboardType: TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            prefixText: '₹',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          ),
+          onChanged: (value) {
+            final newAmount = double.tryParse(value) ?? 0.0;
+            setState(() {
+              _customAmounts[keyId] = newAmount;
+              // If you're in Equal mode and a user edits a field, switch to Custom.
+              if (_splitType == 'Equal') {
+                _splitType = 'Custom';
+              }
+            });
+          },
+        ),
+      ),
+    );
+  }
+}

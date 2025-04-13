@@ -40,19 +40,19 @@ final userMetadataStreamProvider =
       return <String, dynamic>{};
     }
 
-    final data = snapshot.data()! as Map<String, dynamic>;
+    final data = snapshot.data()!;
 
     // Element-wise casting
     final budgetNum =
         data['budget'] as num?; // Firestore can return int or double
     final budgetDouble = budgetNum?.toDouble() ?? 0.0;
 
-    final emailStr = data['email'] as String? ?? "";
     final nameStr = data['name'] as String? ?? "";
-
+    final phone = data['phone'] as String? ?? "";
     return {
       'budget': budgetDouble,
       'name': nameStr,
+      'phone': phone,
     };
   });
 });

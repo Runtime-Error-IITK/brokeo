@@ -1,3 +1,7 @@
+import 'package:brokeo/backend/models/category.dart'
+    show Category, CloudCategory;
+import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart';
+import 'package:brokeo/backend/services/providers/write_providers/category_service.dart';
 import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
 import 'package:brokeo/frontend/home_pages/main_page.dart';
@@ -24,7 +28,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
   bool _isPhoneValid = true;
   bool _isBudgetValid = true;
 
-  void _validateAndProceed() {
+  void _validateAndProceed() async {
     setState(() {
       _isNameValid = _nameController.text.isNotEmpty;
       _isPhoneValid =
@@ -36,7 +40,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       Map<String, dynamic> metadata = {
         'name': _nameController.text,
         'phone': phoneNumber!.completeNumber,
-        'budget': int.parse(_budgetController.text),
+        'budget': double.parse(_budgetController.text),
       };
       ref
           .read(userMetadataServiceProvider)
@@ -47,6 +51,22 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
           builder: (context) => MainScreen(),
         ),
       );
+
+      // final categoryFilter = CategoryFilter(categoryName: "Others");
+      // final category =
+      //     await ref.read(categoryStreamProvider(categoryFilter).future);
+      // if (category.isNotEmpty) {
+      //   final oldCategory = category[0];
+      //   final newCategory = Category(
+      //     name: oldCategory.name,
+      //     budget: double.parse(_budgetController.text),
+      //     categoryId: oldCategory.categoryId,
+      //     userId: oldCategory.userId,
+      //   );
+      //   ref
+      //       .read(categoryServiceProvider)!
+      //       .updateCloudCategory(CloudCategory.fromCategory(newCategory));
+      // }
     }
   }
 
@@ -117,80 +137,104 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 50),
+              // Name Input
               // Name Input
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: _inputDecoration("Name", _isNameValid),
-                ),
-              ),
-              const SizedBox(height: 15),
-              // Phone Number Input with default country code +91
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: IntlPhoneField(
-                  showCountryFlag: false,
-                  initialCountryCode: 'IN',
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 20, horizontal: 16),
-                    hintText: 'Enter Phone Number',
-                    hintStyle: TextStyle(
-                      color: Colors.black.withOpacity(0.6),
+                child: Container(
+                  width: double.infinity,
+                  height: 60, // fixed height for consistency
+                  child: TextFormField(
+                    controller: _nameController,
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
+                      color: Colors.black.withOpacity(0.6),
                     ),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: _isPhoneValid ? Colors.grey : Colors.red,
-                          width: 2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: _isPhoneValid ? Colors.grey : Colors.red,
-                          width: 2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: _isPhoneValid ? Colors.blue : Colors.red,
-                          width: 2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                    decoration: _inputDecoration("Name", _isNameValid),
                   ),
-                  textAlignVertical: TextAlignVertical(
-                      y: 0.4), // Ensures text is vertically centered
-                  textInputAction: TextInputAction.done,
-                  style: TextStyle(
-                    fontSize: 18, // Ensuring same size for prefix & number
-                    fontWeight: FontWeight.w500,
-                  ),
-                  dropdownTextStyle: TextStyle(
-                    fontSize: 18, // Same size for prefix
-                    fontWeight: FontWeight.w500,
-                  ),
-                  onChanged: (PhoneNumber number) {
-                    setState(() {
-                      phoneNumber = number;
-                    });
-                  },
                 ),
               ),
-              const SizedBox(height: 15),
-              // Budget Input
+              const SizedBox(height: 25),
+// Phone Number Input with default country code +91
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: TextFormField(
-                  controller: _budgetController,
-                  keyboardType: TextInputType.number,
-                  decoration: _inputDecoration("Budget", _isBudgetValid),
+                child: Container(
+                  width: double.infinity,
+                  height: 90, // same fixed height as the name field
+                  child: IntlPhoneField(
+                    showCountryFlag: false,
+                    initialCountryCode: 'IN',
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 16), // adjusted to match others
+                      hintText: 'Enter Phone Number',
+                      hintStyle: TextStyle(
+                        color: Colors.black.withOpacity(0.6),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: _isPhoneValid ? Colors.grey : Colors.red,
+                            width: 2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: _isPhoneValid ? Colors.grey : Colors.red,
+                            width: 2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: _isPhoneValid ? Colors.blue : Colors.red,
+                            width: 2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    textAlignVertical: TextAlignVertical(
+                        y: 0.4), // Ensures text is vertically centered
+                    textInputAction: TextInputAction.done,
+                    style: TextStyle(
+                      fontSize: 18, // Ensuring same size for prefix & number
+                      fontWeight: FontWeight.w500,
+                    ),
+                    dropdownTextStyle: TextStyle(
+                      fontSize: 18, // Same size for prefix
+                      fontWeight: FontWeight.w500,
+                    ),
+                    onChanged: (PhoneNumber number) {
+                      setState(() {
+                        phoneNumber = number;
+                      });
+                    },
+                  ),
                 ),
               ),
+// Budget Input
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Container(
+                  width: double.infinity,
+                  height: 60, // same fixed height as the other fields
+                  child: TextFormField(
+                    controller: _budgetController,
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black.withOpacity(0.6),
+                    ),
+                    decoration: _inputDecoration("Budget", _isBudgetValid),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 20),
               // Buttons
               Row(

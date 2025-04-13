@@ -96,9 +96,10 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
               onPressed: () {
                 _showAddTransactionDialog(context);
               },
-              child: Icon(Icons.add, color: Colors.white),
               backgroundColor: Color.fromARGB(255, 97, 53, 186),
               shape: CircleBorder(),
+              heroTag: "add_transaction_fab",
+              child: Icon(Icons.add, color: Colors.white),
             )
           : null,
       // bottomNavigationBar: buildBottomNavigationBar(),
@@ -173,6 +174,9 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                 final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
                 final daysRemaining = lastDayOfMonth.day - now.day;
                 double dailySafeToSpend = (budget - totalSpent) / daysRemaining;
+                dailySafeToSpend = dailySafeToSpend < 0
+                    ? 0
+                    : dailySafeToSpend; // Ensure it's not negative
                 final currentMonth =
                     DateFormat.MMMM().format(now); // e.g., "January"
 
@@ -321,7 +325,7 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
               if (totalSpent == 0) {
                 return Center(
                   child: Text(
-                    "No transactions this month",
+                    "No spends this month",
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 );

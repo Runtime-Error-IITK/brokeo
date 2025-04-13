@@ -1,0 +1,58 @@
+import 'package:brokeo/backend/models/split_user.dart'; // Contains SplitUser and CloudSplitUser models.
+import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart' show userIdProvider;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+// splitUserStreamProvider returns a stream of List<SplitUser> filtered using a SplitUserFilter.
+final splitUserStreamProvider = StreamProvider.autoDispose
+    .family<List<SplitUser>, SplitUserFilter>((ref, filter) {
+  // Read the current user's ID.
+  final userId = ref.watch(userIdProvider);
+  if (userId == null) {
+    return const Stream.empty();
+  }
+
+  // Build the base Firestore query.
+  Query query = FirebaseFirestore.instance
+      .collection('splitUsers')
+      .doc(userId)
+      .collection('userSplitUsers');
+
+  // Apply filter for phoneNumber if provided.
+  if (filter.phoneNumber != null && filter.phoneNumber!.isNotEmpty) {
+    query = query.where(phoneNumberColumn, isEqualTo: filter.phoneNumber);
+  }
+
+  // Apply filter for name if provided.
+  if (filter.name != null && filter.name!.isNotEmpty) {
+    query = query.where(nameColumn, isEqualTo: filter.name);
+  }
+
+  // Listen for snapshots and map them to a List<SplitUser>.
+  final snapshots = query.snapshots();
+  return snapshots.map((querySnapshot) {
+    return querySnapshot.docs.map((doc) {
+      final cloudSplitUser = CloudSplitUser.fromSnapshot(doc);
+      return SplitUser.fromCloudSplitUser(cloudSplitUser);
+    }).toList();
+  });
+});
+
+// Filter class for split users.
+// Allows optional filtering by phone number and name.
+class SplitUserFilter {
+  final String? phoneNumber;
+  final String? name;
+
+  const SplitUserFilter({this.phoneNumber, this.name});
+
+  @override
+  bool operator ==(Object other) {
+    return other is SplitUserFilter &&
+           other.phoneNumber == phoneNumber &&
+           other.name == name;
+  }
+
+  @override
+  int get hashCode => (phoneNumber ?? '').hashCode ^ (name ?? '').hashCode;
+}
