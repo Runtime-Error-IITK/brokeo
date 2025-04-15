@@ -174,27 +174,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     SizedBox(height: 16),
                     // Phone number input using IntlPhoneField.
                     SizedBox(height: 8),
-                    IntlPhoneField(
-                      enabled: false,
-                      showCountryFlag: false,
-                      initialCountryCode: displayCountryCode,
-                      initialValue: displayPhoneNumber,
+                    TextFormField(
+                      readOnly: true,
+                      initialValue: _completePhoneNumber,
                       decoration: InputDecoration(
                         labelText: "Phone Number",
                         border: OutlineInputBorder(),
+                        fillColor: Colors.grey[200],
+                        filled: false,
                       ),
                       keyboardType: TextInputType.phone,
-                      // Update our complete phone number state variable.
-                      onChanged: (value) {
-                        setState(() {
-                          _completePhoneNumber = value.completeNumber.trim();
-                        });
-                      },
-                      onSaved: (value) {
-                        _completePhoneNumber =
-                            value?.completeNumber.trim() ?? "";
-                      },
-                      controller: null,
+                      enabled: false,
                     ),
                     SizedBox(height: 16),
                     // Save button.
