@@ -77,8 +77,7 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
             error: (error, stack) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text("Error loading categories: $error")),
+                  SnackBar(content: Text("Error loading categories: $error")),
                 );
               });
               return const SizedBox.shrink();
@@ -155,8 +154,7 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                             const SizedBox(width: 8.0),
                             Expanded(
                               child: TextFormField(
-                                initialValue:
-                                    formatter.format(category.budget),
+                                initialValue: formatter.format(category.budget),
                                 decoration: const InputDecoration(
                                   labelText: "Budget",
                                   prefixText: "₹",
@@ -164,9 +162,9 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                                 ),
                                 keyboardType: TextInputType.number,
                                 onChanged: (value) async {
-                                  final updatedBudget =
-                                      double.tryParse(value.replaceAll(',', '')) ??
-                                          category.budget;
+                                  final updatedBudget = double.tryParse(
+                                          value.replaceAll(',', '')) ??
+                                      category.budget;
                                   setState(() {
                                     _updatedBudgets[category.categoryId] =
                                         updatedBudget;
@@ -174,7 +172,8 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                                       0.0,
                                       (sum, category) =>
                                           sum +
-                                          (_updatedBudgets[category.categoryId] ??
+                                          (_updatedBudgets[
+                                                  category.categoryId] ??
                                               category.budget),
                                     );
                                   });
@@ -191,7 +190,7 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                                       ),
                                     );
                                   }
-                                  log(metadata.toString());
+                                  // log(metadata.toString());
                                   final metadataService =
                                       ref.read(userMetadataServiceProvider);
                                   if (metadataService != null) {

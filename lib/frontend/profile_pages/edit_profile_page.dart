@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
     show firebaseAuthProvider, userMetadataStreamProvider;
 import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
@@ -95,6 +97,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         if (phoneFromMetadata.isNotEmpty &&
             phoneFromMetadata.startsWith('+') &&
             phoneFromMetadata.length > 3) {
+          log(phoneFromMetadata);
           String dialCode = phoneFromMetadata.substring(0, 3); // e.g., "+91"
           if (dialCode == "+91") {
             displayCountryCode = "IN";
@@ -104,11 +107,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           }
           displayPhoneNumber = phoneFromMetadata.substring(3).trim();
         }
+        // displayPhoneNumber = "9278949220";
 
         // Combine the country code and phone for the complete phone number.
         _completePhoneNumber = displayCountryCode == "IN"
             ? "+91" + displayPhoneNumber
             : displayCountryCode + displayPhoneNumber;
+
+        log(displayCountryCode);
+        log(displayPhoneNumber);
 
         return Scaffold(
           appBar: AppBar(

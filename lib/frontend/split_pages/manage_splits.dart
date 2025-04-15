@@ -157,13 +157,13 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
             var splitUsers = {};
             var splitUsersNames = {};
             for (var transaction in transactions) {
-              log(transaction.toString());
+              // log(transaction.toString());
               for (var entry in transaction.splitAmounts.entries) {
                 final user = entry.key;
                 final amount = entry.value;
                 if (user == userMetadata["phone"]) continue;
                 if (transaction.isPayment) {
-                  log('sad');
+                  // log('sad');
                   if (!splitUsers.containsKey(user)) {
                     splitUsers[user] = 0.0;
                     splitUsersNames[user] = contacts.firstWhere(
@@ -172,7 +172,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                     })["name"];
                   }
                   if (transaction.userPhone == userMetadata["phone"]) {
-                    log("wowpw");
+                    // log("wowpw");
                     splitUsers[user] = splitUsers[user] + amount;
                   } else {
                     splitUsers[user] = splitUsers[user] - amount;

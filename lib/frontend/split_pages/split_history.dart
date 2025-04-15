@@ -41,7 +41,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
         return SizedBox.shrink();
       },
       data: (user) {
-        log('woah');
+        // log('woah');
         final splitFilter1 = SplitTransactionFilter(
           first: widget.split['phone'],
           second: user['phone'],
@@ -68,7 +68,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
               return SizedBox.shrink();
             },
             data: (transactions1) {
-              log("woah2");
+              // log("woah2");
 
               transactions1.removeWhere((transaction) =>
                   transaction.splitAmounts[splitFilter1.second] == null);

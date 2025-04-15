@@ -86,7 +86,7 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
 
   @override
   Widget build(BuildContext context) {
-    log(widget.selectedContacts.toString());
+    // log(widget.selectedContacts.toString());
     final totalAmount = widget.amount;
     final remainingAmount = _remainingAmount;
 
@@ -215,7 +215,7 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                     onPressed: remainingAmount == 0
                         ? () {
                             // TODO: Save the split transaction
-                            log(_customAmounts.toString());
+                            // log(_customAmounts.toString());
 
                             final asyncMetadata =
                                 ref.read(userMetadataStreamProvider);

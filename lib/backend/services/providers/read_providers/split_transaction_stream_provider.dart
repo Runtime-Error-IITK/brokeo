@@ -26,7 +26,7 @@ final splitTransactionStreamProvider = StreamProvider.autoDispose
 
         // If otherUserId is provided, assume it now represents the other user's phone number.
         if (filter.first != null && filter.second != null) {
-          log("sad: ${filter.first}, ${filter.second}");
+          // log("sad: ${filter.first}, ${filter.second}");
           // Condition 1:
           // - transaction.phoneNumber equals the current phone number
           // - splitAmounts.<otherPhone> is not null
@@ -49,7 +49,7 @@ final splitTransactionStreamProvider = StreamProvider.autoDispose
                 }).toList(),
               );
         } else {
-          log("entered else");
+          // log("entered else");
           // Fallback: if otherUserId is not provided, use a query filtering only on phoneNumber.
           Query query = FirebaseFirestore.instance
               .collection('splitTransactions')

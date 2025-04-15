@@ -237,7 +237,7 @@ class CategoryPageState extends ConsumerState<CategoryPage> {
                               }
                               return;
                             }
-                            log(updatedBudget.toString());
+                            // log(updatedBudget.toString());
                             final updatedCloudCategory = CloudCategory(
                               name: category.name,
                               categoryId: category.categoryId,

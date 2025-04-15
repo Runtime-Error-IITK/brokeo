@@ -325,7 +325,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         return SizedBox.shrink();
       },
       data: (userMetadata) {
-        log(userMetadata.toString());
+        // log(userMetadata.toString());
         return transactionsAsync.when(
           loading: () => const CircularProgressIndicator(),
           error: (error, stack) {
@@ -354,7 +354,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ref.watch(categoryStreamProvider(emptyCategoryFilter));
             final categories = categoriesAsync.value ?? [];
             double budget = userMetadata['budget'] ?? 0.0;
-            log(budget.toString());
+            // log(budget.toString());
             double percentageSpent = (totalSpent / budget) * 100;
             String currentMonth = DateFormat.MMMM().format(DateTime.now());
             String name = userMetadata[nameId] ?? 'User';
@@ -790,280 +790,299 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _showAddTransactionDialog(BuildContext context) {
-  String? amount;
-  String? merchant;
-  Category? selectedCategory;
-  String transactionType = "Credit"; // Default transaction type
+    String? amount;
+    String? merchant;
+    Category? selectedCategory;
+    String transactionType = "Credit"; // Default transaction type
 
-  // Declare the processing flag before calling the StatefulBuilder so it doesn't reset on rebuild.
-  bool isProcessing = false;
+    // Declare the processing flag before calling the StatefulBuilder so it doesn't reset on rebuild.
+    bool isProcessing = false;
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Consumer(
-        builder: (context, ref, child) {
-          final asyncCategories =
-              ref.watch(categoryStreamProvider(emptyCategoryFilter));
-          return asyncCategories.when(
-            loading: () => AlertDialog(
-              title: Center(child: Text("Add transaction")),
-              content: SizedBox(
-                height: 80,
-                child: Center(child: CircularProgressIndicator()),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final asyncCategories =
+                ref.watch(categoryStreamProvider(emptyCategoryFilter));
+            return asyncCategories.when(
+              loading: () => AlertDialog(
+                title: Center(child: Text("Add transaction")),
+                content: SizedBox(
+                  height: 80,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
               ),
-            ),
-            error: (error, stack) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Category error: $error")),
-                );
-              });
-              return SizedBox.shrink();
-            },
-            data: (categories) {
-              return StatefulBuilder(
-                builder: (context, setState) {
-                  // Check if form is valid.
-                  bool isFormValid = amount != null &&
-                      amount!.trim().isNotEmpty &&
-                      merchant != null &&
-                      merchant!.trim().isNotEmpty &&
-                      selectedCategory != null;
+              error: (error, stack) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Category error: $error")),
+                  );
+                });
+                return SizedBox.shrink();
+              },
+              data: (categories) {
+                return StatefulBuilder(
+                  builder: (context, setState) {
+                    // Check if form is valid.
+                    bool isFormValid = amount != null &&
+                        amount!.trim().isNotEmpty &&
+                        merchant != null &&
+                        merchant!.trim().isNotEmpty &&
+                        selectedCategory != null;
 
-                  return AlertDialog(
-                    title: Center(child: Text("Add transaction")),
-                    content: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Transaction type radio buttons
-                            Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Radio<String>(
-                                        value: "Credit",
-                                        groupValue: transactionType,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            transactionType = value!;
-                                          });
-                                        },
-                                      ),
-                                      Text("Credit"),
-                                    ],
-                                  ),
-                                  SizedBox(width: 40),
-                                  Row(
-                                    children: [
-                                      Radio<String>(
-                                        value: "Debit",
-                                        groupValue: transactionType,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            transactionType = value!;
-                                          });
-                                        },
-                                      ),
-                                      Text("Debit"),
-                                    ],
-                                  ),
-                                ],
+                    return AlertDialog(
+                      title: Center(child: Text("Add transaction")),
+                      content: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Transaction type radio buttons
+                              Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Radio<String>(
+                                          value: "Credit",
+                                          groupValue: transactionType,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              transactionType = value!;
+                                            });
+                                          },
+                                        ),
+                                        Text("Credit"),
+                                      ],
+                                    ),
+                                    SizedBox(width: 40),
+                                    Row(
+                                      children: [
+                                        Radio<String>(
+                                          value: "Debit",
+                                          groupValue: transactionType,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              transactionType = value!;
+                                            });
+                                          },
+                                        ),
+                                        Text("Debit"),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 16),
-                            // Amount input field
-                            TextFormField(
-                              decoration: InputDecoration(
-                                labelText: "Amount",
-                                prefixText: "₹",
+                              SizedBox(height: 16),
+                              // Amount input field
+                              TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: "Amount",
+                                  prefixText: "₹",
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  setState(() {
+                                    amount = value;
+                                  });
+                                },
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                setState(() {
-                                  amount = value;
-                                });
-                              },
-                            ),
-                            SizedBox(height: 16),
-                            // Merchant input field
-                            TextFormField(
-                              decoration: InputDecoration(
-                                labelText: "Merchant",
+                              SizedBox(height: 16),
+                              // Merchant input field
+                              TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: "Merchant",
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    merchant = value;
+                                  });
+                                },
                               ),
-                              onChanged: (value) {
-                                setState(() {
-                                  merchant = value;
-                                });
-                              },
-                            ),
-                            SizedBox(height: 16),
-                            // Category dropdown
-                            DropdownButtonFormField<Category>(
-                              value: selectedCategory,
-                              decoration: InputDecoration(
-                                labelText: "Category",
+                              SizedBox(height: 16),
+                              // Category dropdown
+                              DropdownButtonFormField<Category>(
+                                value: selectedCategory,
+                                decoration: InputDecoration(
+                                  labelText: "Category",
+                                ),
+                                items: categories.map((cat) {
+                                  return DropdownMenuItem<Category>(
+                                    value: cat,
+                                    child: Text(cat.name),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedCategory = value;
+                                  });
+                                },
                               ),
-                              items: categories.map((cat) {
-                                return DropdownMenuItem<Category>(
-                                  value: cat,
-                                  child: Text(cat.name),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedCategory = value;
-                                });
-                              },
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text("Cancel"),
-                      ),
-                      TextButton(
-                        onPressed: isFormValid && !isProcessing
-                            ? () async {
-                                // Set the processing flag.
-                                setState(() {
-                                  isProcessing = true;
-                                });
-                                final filter = MerchantFilter(merchantName: merchant);
-                                try {
-                                  // Check if the merchant exists.
-                                  final merchants = await ref
-                                      .read(merchantStreamProvider(filter).future);
-                                  String merchantId;
-                                  if (merchants.isNotEmpty) {
-                                    merchantId = merchants.first.merchantId;
-                                  } else {
-                                    // If not found, add a new merchant.
-                                    final merchantService = ref.read(merchantServiceProvider);
-                                    if (merchantService == null) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                              content: Text("User not logged in")),
-                                        );
-                                      }
-                                      setState(() {
-                                        isProcessing = false;
-                                      });
-                                      return;
-                                    }
-                                    final newCloudMerchant = CloudMerchant(
-                                      merchantId: "", // Auto-generated by Firestore.
-                                      name: merchant!,
-                                      userId: ref.read(userIdProvider) ?? "",
-                                      categoryId: selectedCategory!.categoryId,
-                                    );
-                                    final insertedMerchant =
-                                        await merchantService.insertMerchant(newCloudMerchant);
-                                    if (insertedMerchant == null) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                              content: Text("Failed to add merchant.")),
-                                        );
-                                      }
-                                      setState(() {
-                                        isProcessing = false;
-                                      });
-                                      return;
-                                    }
-                                    merchantId = insertedMerchant.merchantId;
-                                  }
-
-                                  // Create the transaction.
-                                  final newTransaction = Transaction(
-                                    transactionId: "",
-                                    amount: transactionType == "Credit"
-                                        ? double.parse(amount!)
-                                        : -1 * double.parse(amount!),
-                                    date: DateTime.now(),
-                                    merchantId: merchantId,
-                                    categoryId: selectedCategory!.categoryId,
-                                    userId: ref.read(userIdProvider) ?? "",
-                                    sms: "Manually added transaction",
-                                  );
-                                  final cloudTransaction =
-                                      CloudTransaction.fromTransaction(newTransaction);
-                                  final transactionService = ref.read(transactionServiceProvider);
-                                  if (transactionService == null) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text("User not logged in")),
-                                      );
-                                    }
-                                    setState(() {
-                                      isProcessing = false;
-                                    });
-                                    return;
-                                  }
-                                  final result = await transactionService
-                                      .insertTransaction(cloudTransaction);
-                                  if (result != null) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text("Transaction added successfully!")),
-                                      );
-                                      Navigator.pop(context);
-                                    }
-                                  } else {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text("Failed to add transaction.")),
-                                      );
-                                    }
-                                    setState(() {
-                                      isProcessing = false;
-                                    });
-                                  }
-                                } catch (error) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(
-                                              "Error loading merchant data: $error")),
-                                    );
-                                  }
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text("Cancel"),
+                        ),
+                        TextButton(
+                          onPressed: isFormValid && !isProcessing
+                              ? () async {
+                                  // Set the processing flag.
                                   setState(() {
-                                    isProcessing = false;
+                                    isProcessing = true;
                                   });
+                                  final filter =
+                                      MerchantFilter(merchantName: merchant);
+                                  try {
+                                    // Check if the merchant exists.
+                                    final merchants = await ref.read(
+                                        merchantStreamProvider(filter).future);
+                                    String merchantId;
+                                    if (merchants.isNotEmpty) {
+                                      merchantId = merchants.first.merchantId;
+                                    } else {
+                                      // If not found, add a new merchant.
+                                      final merchantService =
+                                          ref.read(merchantServiceProvider);
+                                      if (merchantService == null) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content:
+                                                    Text("User not logged in")),
+                                          );
+                                        }
+                                        setState(() {
+                                          isProcessing = false;
+                                        });
+                                        return;
+                                      }
+                                      final newCloudMerchant = CloudMerchant(
+                                        merchantId:
+                                            "", // Auto-generated by Firestore.
+                                        name: merchant!,
+                                        userId: ref.read(userIdProvider) ?? "",
+                                        categoryId:
+                                            selectedCategory!.categoryId,
+                                      );
+                                      final insertedMerchant =
+                                          await merchantService
+                                              .insertMerchant(newCloudMerchant);
+                                      if (insertedMerchant == null) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    "Failed to add merchant.")),
+                                          );
+                                        }
+                                        setState(() {
+                                          isProcessing = false;
+                                        });
+                                        return;
+                                      }
+                                      merchantId = insertedMerchant.merchantId;
+                                    }
+
+                                    // Create the transaction.
+                                    final newTransaction = Transaction(
+                                      transactionId: "",
+                                      amount: transactionType == "Credit"
+                                          ? double.parse(amount!)
+                                          : -1 * double.parse(amount!),
+                                      date: DateTime.now(),
+                                      merchantId: merchantId,
+                                      categoryId: selectedCategory!.categoryId,
+                                      userId: ref.read(userIdProvider) ?? "",
+                                      sms: "Manually added transaction",
+                                    );
+                                    final cloudTransaction =
+                                        CloudTransaction.fromTransaction(
+                                            newTransaction);
+                                    final transactionService =
+                                        ref.read(transactionServiceProvider);
+                                    if (transactionService == null) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content:
+                                                  Text("User not logged in")),
+                                        );
+                                      }
+                                      setState(() {
+                                        isProcessing = false;
+                                      });
+                                      return;
+                                    }
+                                    final result = await transactionService
+                                        .insertTransaction(cloudTransaction);
+                                    if (result != null) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "Transaction added successfully!")),
+                                        );
+                                        Navigator.pop(context);
+                                      }
+                                    } else {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "Failed to add transaction.")),
+                                        );
+                                      }
+                                      setState(() {
+                                        isProcessing = false;
+                                      });
+                                    }
+                                  } catch (error) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                "Error loading merchant data: $error")),
+                                      );
+                                    }
+                                    setState(() {
+                                      isProcessing = false;
+                                    });
+                                  }
                                 }
-                              }
-                            : null,
-                        child: isProcessing
-                            ? SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text("Confirm"),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          );
-        },
-      );
-    },
-  );
-}
+                              : null,
+                          child: isProcessing
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text("Confirm"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
 
   Widget _transactionTile(Transaction transaction, int index) {
     final String merchantId = transaction.merchantId;
@@ -1436,171 +1455,176 @@ class _HomePageState extends ConsumerState<HomePage> {
         });
   }
 
-void showAddScheduledPaymentDialog(BuildContext context) {
-  final _nameController = TextEditingController();
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  DateTime? selectedDate;
-  bool isProcessing = false;
+  void showAddScheduledPaymentDialog(BuildContext context) {
+    final _nameController = TextEditingController();
+    final _amountController = TextEditingController();
+    final _descriptionController = TextEditingController();
+    DateTime? selectedDate;
+    bool isProcessing = false;
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text('Add Scheduled Payment'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(labelText: 'Name'),
-                  ),
-                  SizedBox(height: 8),
-                  TextField(
-                    controller: _amountController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'Amount (₹)'),
-                  ),
-                  SizedBox(height: 8),
-                  TextField(
-                    controller: _descriptionController,
-                    decoration: InputDecoration(labelText: 'Description'),
-                  ),
-                  SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          selectedDate == null
-                              ? 'No Date Chosen'
-                              : '${selectedDate!.toLocal()}'.split(' ')[0],
-                          style: TextStyle(fontSize: 12),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text('Add Scheduled Payment'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(labelText: 'Name'),
+                    ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'Amount (₹)'),
+                    ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(labelText: 'Description'),
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            selectedDate == null
+                                ? 'No Date Chosen'
+                                : '${selectedDate!.toLocal()}'.split(' ')[0],
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.calendar_today),
-                        onPressed: () async {
-                          final pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now().add(Duration(days: 1)),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime(2100),
+                        IconButton(
+                          icon: Icon(Icons.calendar_today),
+                          onPressed: () async {
+                            final pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  DateTime.now().add(Duration(days: 1)),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2100),
+                            );
+                            if (pickedDate != null) {
+                              setState(() {
+                                selectedDate = pickedDate;
+                              });
+                            }
+                          },
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                ElevatedButton(
+                  child: isProcessing
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text('Add'),
+                  onPressed: isProcessing
+                      ? null
+                      : () async {
+                          final name = _nameController.text.trim();
+                          final amount = _amountController.text.trim();
+                          final description =
+                              _descriptionController.text.trim();
+
+                          if (name.isEmpty ||
+                              amount.isEmpty ||
+                              description.isEmpty ||
+                              selectedDate == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Please fill all fields")),
+                            );
+                            return;
+                          }
+
+                          final now = DateTime.now();
+                          if (selectedDate!.isBefore(
+                              DateTime(now.year, now.month, now.day))) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text("Please select a future date")),
+                            );
+                            return;
+                          }
+
+                          final userId = ref.read(userIdProvider);
+                          if (userId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("User not logged in")),
+                            );
+                            return;
+                          }
+
+                          setState(() {
+                            isProcessing = true;
+                          });
+
+                          final schedule = Schedule(
+                            merchantName: name,
+                            amount: double.parse(amount),
+                            description: description,
+                            date: selectedDate!,
+                            userId: userId,
+                            scheduleId: "",
+                            paid: false,
                           );
-                          if (pickedDate != null) {
-                            setState(() {
-                              selectedDate = pickedDate;
-                            });
+
+                          final scheduleService =
+                              ref.read(scheduleServiceProvider);
+                          if (scheduleService == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("User not logged in")),
+                            );
+                            setState(() => isProcessing = false);
+                            return;
+                          }
+
+                          try {
+                            await scheduleService.insertSchedule(
+                              CloudSchedule.fromSchedule(schedule),
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text("Scheduled payment added.")),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Error: $e")),
+                              );
+                            }
+                            setState(() => isProcessing = false);
                           }
                         },
-                      )
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                child: Text('Cancel'),
-                onPressed: () => Navigator.pop(context),
-              ),
-              ElevatedButton(
-                child: isProcessing
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text('Add'),
-                onPressed: isProcessing
-                    ? null
-                    : () async {
-                        final name = _nameController.text.trim();
-                        final amount = _amountController.text.trim();
-                        final description = _descriptionController.text.trim();
-
-                        if (name.isEmpty ||
-                            amount.isEmpty ||
-                            description.isEmpty ||
-                            selectedDate == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Please fill all fields")),
-                          );
-                          return;
-                        }
-
-                        final now = DateTime.now();
-                        if (selectedDate!
-                            .isBefore(DateTime(now.year, now.month, now.day))) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Please select a future date")),
-                          );
-                          return;
-                        }
-
-                        final userId = ref.read(userIdProvider);
-                        if (userId == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("User not logged in")),
-                          );
-                          return;
-                        }
-
-                        setState(() {
-                          isProcessing = true;
-                        });
-
-                        final schedule = Schedule(
-                          merchantName: name,
-                          amount: double.parse(amount),
-                          description: description,
-                          date: selectedDate!,
-                          userId: userId,
-                          scheduleId: "",
-                          paid: false,
-                        );
-
-                        final scheduleService = ref.read(scheduleServiceProvider);
-                        if (scheduleService == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("User not logged in")),
-                          );
-                          setState(() => isProcessing = false);
-                          return;
-                        }
-
-                        try {
-                          await scheduleService.insertSchedule(
-                            CloudSchedule.fromSchedule(schedule),
-                          );
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Scheduled payment added.")),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Error: $e")),
-                            );
-                          }
-                          setState(() => isProcessing = false);
-                        }
-                      },
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
 // Single Scheduled Payment tile
   Widget _buildScheduledPaymentTile(Schedule payment) {
@@ -1800,5 +1824,3 @@ class ArcPainter extends CustomPainter {
 
 const String budgetId = "budget";
 const String nameId = "name";
-
-
