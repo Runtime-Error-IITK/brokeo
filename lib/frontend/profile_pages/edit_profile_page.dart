@@ -168,6 +168,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     // Phone number input using IntlPhoneField.
                     SizedBox(height: 8),
                     IntlPhoneField(
+                      enabled: false,
                       showCountryFlag: false,
                       initialCountryCode: displayCountryCode,
                       initialValue: displayPhoneNumber,
