@@ -228,7 +228,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
               body: ListView.separated(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0), // Added horizontal padding
-                itemCount: splitUsers.length +
+                itemCount: (splitUsers.isNotEmpty ? splitUsers.length : 1) +
                     2, // increased count: spacer + summary card + splits
                 itemBuilder: (context, index) {
                   if (index == 0) {
@@ -283,6 +283,17 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                       ),
                     );
                   } else {
+                    if (splitUsersList.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          "No split transactions.",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      );
+                    }
                     final split = splitUsersList[index - 2];
                     // ...existing code for split tile...
                     return _buildSplitTile(split);
