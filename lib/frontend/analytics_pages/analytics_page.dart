@@ -41,30 +41,33 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         final data = aggregateTransactionData(transactions);
         final currentData = data[_selectedFilter]!;
         final dates = currentData['dates'] as List<DateTime>;
+        final spendsNum = currentData['spends'] as List<num>;
+        final receivedNum = currentData['received'] as List<num>;
+        final spends = spendsNum.map((e) => e.toDouble()).toList();
+        final received = receivedNum.map((e) => e.toDouble()).toList();
         final labels = _generateLabels(dates);
 
-        final spends = (currentData['spends'] as List)
-            .map((e) => (e as num).toDouble())
-            .toList();
-        final received = (currentData['received'] as List)
-            .map((e) => (e as num).toDouble())
-            .toList();
+        // log(currentData.toString());
+        bool allZero = true;
+        for (var curr in currentData["spends"]) {
+          if (curr > 0) allZero = false;
+        }
 
         return Scaffold(
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                automaticallyImplyLeading: false, // This removes the back button
+                automaticallyImplyLeading: false,
                 title: Container(
-                  width: 100, // Adjust width as needed
+                  width: 100,
                   decoration: BoxDecoration(
-                    color: Colors.purple.shade50, // Light purple background
+                    color: Colors.purple.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedFilter,
-                    underline: SizedBox(), // Removes the default underline
+                    underline: SizedBox(),
                     dropdownColor: Theme.of(context).scaffoldBackgroundColor,
                     items: _filters.map((String value) {
                       return DropdownMenuItem<String>(
@@ -86,7 +89,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                 actions: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.purple.shade50, // Light purple background
+                      color: Colors.purple.shade50,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
@@ -94,11 +97,9 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                       onPressed: () => _exportToCSV(currentData, dates),
                     ),
                   ),
-                  // If you want some padding on the right, wrap it in Padding:
                   Padding(
                     padding: const EdgeInsets.only(right: 12),
-                    child:
-                        SizedBox(), // You can leave it empty or add another widget here if needed
+                    child: SizedBox(),
                   ),
                 ],
               ),
@@ -113,11 +114,19 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                             width: double.infinity,
                             height: 300,
                             padding: EdgeInsets.only(bottom: 20),
-                            child: BarChart(
-                              spends: spends,
-                              labels: labels,
-                              maxValue: spends.reduce((a, b) => a > b ? a : b),
-                            ),
+                            child: allZero
+                                ? Center(
+                                    child: Text(
+                                      'No transactions available',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  )
+                                : BarChart(
+                                    spends: spends,
+                                    labels: labels,
+                                    maxValue:
+                                        spends.reduce((a, b) => a > b ? a : b),
+                                  ),
                           ),
                         ),
                         _buildChartSection(
@@ -125,13 +134,20 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                           child: Container(
                             height: 300,
                             padding: EdgeInsets.only(bottom: 20),
-                            child: LineChart(
-                              spends: spends,
-                              received: received,
-                              labels: labels,
-                              maxValue: [...spends, ...received]
-                                  .reduce((a, b) => a > b ? a : b),
-                            ),
+                            child: allZero
+                                ? Center(
+                                    child: Text(
+                                      'No transactions available',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  )
+                                : LineChart(
+                                    spends: spends,
+                                    received: received,
+                                    labels: labels,
+                                    maxValue: [...spends, ...received]
+                                        .reduce((a, b) => a > b ? a : b),
+                                  ),
                           ),
                           legend: _buildLegend(),
                         ),
@@ -143,7 +159,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
               ),
             ],
           ),
-          // bottomNavigationBar: _buildBottomNavigationBar(),
         );
       },
     );
@@ -173,8 +188,11 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
     }
   }
 
-  Widget _buildChartSection(
-      {required String title, required Widget child, Widget? legend}) {
+  Widget _buildChartSection({
+    required String title,
+    required Widget child,
+    Widget? legend,
+  }) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Card(
