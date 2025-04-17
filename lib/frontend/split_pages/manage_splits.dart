@@ -270,9 +270,11 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                             amount: (borrowed - lent) > 0
                                 ? borrowed - lent
                                 : lent - borrowed,
-                            amountColor: borrowed < lent
-                                ? Colors.green[800]!
-                                : Colors.red[800]!,
+                            amountColor: borrowed == lent
+                                ? Colors.black
+                                : borrowed < lent
+                                    ? Colors.green[800]!
+                                    : Colors.red[800]!,
                           ),
                           const Divider(
                             height: 24,

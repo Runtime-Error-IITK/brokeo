@@ -708,7 +708,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         }).toList();
         // log(transactions.length.toString());
         List<Transaction> transactionsToShow = showAllTransactions
-            ? filteredTransactions
+            ? filteredTransactions.take(10).toList()
             : filteredTransactions.take(3).toList();
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
@@ -2016,9 +2016,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                             (borrowed - lent) > 0
                                 ? borrowed - lent
                                 : lent - borrowed,
-                            borrowed < lent
-                                ? Colors.green[800]!
-                                : Colors.red[800]!,
+                            borrowed == lent
+                                ? Colors.black
+                                : borrowed < lent
+                                    ? Colors.green[800]!
+                                    : Colors.red[800]!,
                           ),
                           _buildSplitSummaryTile(
                               "You owe", borrowed, Colors.red[800]!),
