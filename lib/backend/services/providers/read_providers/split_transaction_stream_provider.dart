@@ -1,13 +1,9 @@
-import 'dart:developer' show log;
-
 import 'package:brokeo/backend/models/split_transaction.dart';
-import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
     show userMetadataStreamProvider;
 import 'package:cloud_firestore/cloud_firestore.dart'
     show FieldPath, FirebaseFirestore, Query, QuerySnapshot, Timestamp;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:rxdart/rxdart.dart';
 
 final splitTransactionStreamProvider = StreamProvider.autoDispose
     .family<List<SplitTransaction>, SplitTransactionFilter>(

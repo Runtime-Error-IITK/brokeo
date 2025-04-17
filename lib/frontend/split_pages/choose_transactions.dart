@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChooseTransactionPage extends ConsumerStatefulWidget {
-  const ChooseTransactionPage({Key? key}) : super(key: key);
+  const ChooseTransactionPage({super.key});
 
   @override
   _ChooseTransactionPageState createState() => _ChooseTransactionPageState();

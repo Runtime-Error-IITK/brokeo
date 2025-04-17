@@ -1,7 +1,4 @@
-import 'dart:developer' show log;
-
 import 'package:brokeo/backend/models/split_transaction.dart';
-import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/split_transaction_stream_provider.dart'
     show SplitTransactionFilter, splitTransactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
@@ -10,21 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
-import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
-import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
-import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 
 class SplitHistoryPage extends ConsumerStatefulWidget {
   final Map<dynamic, dynamic> split;
-  const SplitHistoryPage({Key? key, required this.split}) : super(key: key);
+  const SplitHistoryPage({super.key, required this.split});
 
   @override
   _SplitHistoryPageState createState() => _SplitHistoryPageState();
 }
 
 class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
-  int _currentIndex = 3;
-  bool _isLoading = false;
+  final int _currentIndex = 3;
+  final bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +197,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                                                 title:
                                                     const Text('Description'),
                                                 content: Text(
-                                                    '${transaction.description}'),
+                                                    transaction.description),
                                                 actions: <Widget>[
                                                   TextButton(
                                                     child: const Text('Close'),
@@ -336,15 +330,14 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
   // Shows a dialog/popup to add a new transaction
   void _showAddTransactionDialog(BuildContext context) {
     // Create variables to store the form data:
-    final _formKey =
-        GlobalKey<FormState>(); // Key to identify and validate form
+    final formKey = GlobalKey<FormState>(); // Key to identify and validate form
     String amount = ''; // Will store the transaction amount
     DateTime? selectedDate; // Will store selected date
     TimeOfDay? selectedTime; // Will store selected time
     String type = 'You Owe'; // Default transaction type
 
     // Helper function to show date picker dialog
-    Future<void> _selectDate(BuildContext context) async {
+    Future<void> selectDate(BuildContext context) async {
       final DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime.now(), // Default to current date
@@ -357,7 +350,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
     }
 
     // Helper function to show time picker dialog
-    Future<void> _selectTime(BuildContext context) async {
+    Future<void> selectTime(BuildContext context) async {
       final TimeOfDay? picked = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(), // Default to current time
@@ -379,7 +372,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               content: Form(
-                key: _formKey,
+                key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min, // Keep dialog compact
                   children: [
@@ -420,7 +413,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                         // Date picker field
                         Expanded(
                           child: InkWell(
-                            onTap: () => _selectDate(context)
+                            onTap: () => selectDate(context)
                                 .then((_) => setState(() {})),
                             child: InputDecorator(
                               decoration: InputDecoration(
@@ -440,7 +433,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                         // Time picker field
                         Expanded(
                           child: InkWell(
-                            onTap: () => _selectTime(context)
+                            onTap: () => selectTime(context)
                                 .then((_) => setState(() {})),
                             child: InputDecorator(
                               decoration: InputDecoration(
@@ -501,7 +494,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                 ElevatedButton(
                   onPressed: () {
                     // Validate all form fields
-                    if (_formKey.currentState!.validate()) {
+                    if (formKey.currentState!.validate()) {
                       // Check date/time were selected
                       if (selectedDate == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -545,7 +538,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
   // Shows confirmation dialog when settling up
   void _showSettleUpConfirmation(
       BuildContext context, double totalOwed, Map userMetadata) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     String settleAmount = totalOwed.abs().toStringAsFixed(2);
 
     showDialog(
@@ -557,7 +550,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           content: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -602,7 +595,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (_formKey.currentState!.validate()) {
+                if (formKey.currentState!.validate()) {
                   final enteredAmount = double.parse(settleAmount);
 
                   final newTransaction = SplitTransaction(

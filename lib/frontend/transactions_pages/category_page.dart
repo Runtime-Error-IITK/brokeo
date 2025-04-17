@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/transaction.dart' show Transaction;
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
@@ -8,7 +7,6 @@ import 'package:brokeo/backend/services/providers/read_providers/category_stream
     show CategoryFilter, categoryStreamProvider;
 import 'package:brokeo/backend/services/providers/write_providers/category_service.dart'
     show categoryServiceProvider;
-import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart'
     show TransactionDetailPage;
 import 'package:flutter/material.dart';
@@ -18,14 +16,14 @@ import 'package:intl/intl.dart' show DateFormat;
 
 class CategoryPage extends ConsumerStatefulWidget {
   final String categoryId;
-  const CategoryPage({Key? key, required this.categoryId}) : super(key: key);
+  const CategoryPage({super.key, required this.categoryId});
 
   @override
   CategoryPageState createState() => CategoryPageState();
 }
 
 class CategoryPageState extends ConsumerState<CategoryPage> {
-  int _currentIndex = 1;
+  final int _currentIndex = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -451,10 +449,10 @@ class BarChartWidget extends StatelessWidget {
   final Color barColor;
 
   const BarChartWidget({
-    Key? key,
+    super.key,
     required this.data,
     this.barColor = Colors.deepPurple,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -465,7 +463,7 @@ class BarChartWidget extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Chart area with Y-axis and bars
-        Container(
+        SizedBox(
           height: 200,
           width: double.infinity,
           child: CustomPaint(

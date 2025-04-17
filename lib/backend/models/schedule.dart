@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:developer' show log;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Schedule {

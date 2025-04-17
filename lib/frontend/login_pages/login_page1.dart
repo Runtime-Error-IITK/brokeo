@@ -1,11 +1,9 @@
-import 'dart:developer' show log;
-
 import 'package:brokeo/backend/default_categories.dart'
     show ensureDefaultCategories;
-import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:brokeo/frontend/login_pages/login_page2.dart';
-import 'package:brokeo/frontend/login_pages/verify.dart' show EmailVerificationPage;
+import 'package:brokeo/frontend/login_pages/verify.dart'
+    show EmailVerificationPage;
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, UserCredential;
 import 'package:flutter/material.dart';
@@ -56,8 +54,7 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
           await user.sendEmailVerification();
           if (mounted) {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                  builder: (context) => EmailVerificationPage()),
+              MaterialPageRoute(builder: (context) => EmailVerificationPage()),
               (route) => false,
             );
           }
@@ -79,8 +76,7 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
           errorMessage = 'Wrong password provided.';
           break;
         default:
-          errorMessage =
-              'Wrong email or password. (${e.code})';
+          errorMessage = 'Wrong email or password. (${e.code})';
       }
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -89,8 +85,8 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('An error occurred: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('An error occurred: $e')));
         setState(() => _isProcessing = false);
       }
     }
@@ -245,8 +241,7 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
                       ),
                       child: IconButton(
                         iconSize: 35,
-                        icon:
-                            Icon(Icons.arrow_forward, color: Colors.white),
+                        icon: Icon(Icons.arrow_forward, color: Colors.white),
                         onPressed: _verifyEmail,
                       ),
                     ),

@@ -2,14 +2,12 @@ import 'package:brokeo/backend/models/merchant.dart' show Merchant;
 import 'package:brokeo/backend/models/transaction.dart' show Transaction;
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
-import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
@@ -388,10 +386,10 @@ class BarChartWidget extends StatelessWidget {
   final Color barColor;
 
   const BarChartWidget({
-    Key? key,
+    super.key,
     required this.data,
     this.barColor = Colors.deepPurple,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -402,7 +400,7 @@ class BarChartWidget extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Chart area with Y-axis and bars
-        Container(
+        SizedBox(
           height: 200,
           width: double.infinity,
           child: CustomPaint(

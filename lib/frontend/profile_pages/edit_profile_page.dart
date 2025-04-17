@@ -5,8 +5,6 @@ import 'package:brokeo/backend/services/providers/read_providers/user_id_provide
 import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:brokeo/frontend/login_pages/login_page3.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   final String name, phone;
@@ -111,7 +109,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
         // Combine the country code and phone for the complete phone number.
         _completePhoneNumber = displayCountryCode == "IN"
-            ? "+91" + displayPhoneNumber
+            ? "+91$displayPhoneNumber"
             : displayCountryCode + displayPhoneNumber;
 
         log(displayCountryCode);

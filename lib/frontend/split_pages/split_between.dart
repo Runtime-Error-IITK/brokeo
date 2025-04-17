@@ -19,10 +19,10 @@ class SplitBetweenPage extends ConsumerStatefulWidget {
 }
 
 class _SplitBetweenPageState extends ConsumerState<SplitBetweenPage> {
-  int _currentIndex = 3;
+  final int _currentIndex = 3;
   // List of contacts; each contact is represented as a Map with keys "name" and "phone".
   List<Map<String, String>> contacts = [];
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   // Instead of a Map<String, bool>, we now keep a Map where the key is the phone number
   // and the value is the full contact (which includes both name and phone).
   Map<String, Map<String, String>> selectedContacts = {};

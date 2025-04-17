@@ -57,7 +57,6 @@ class CategoryService {
         log('Failed to retrieve created category');
         return null;
       }
-      ;
     } catch (e) {
       log('Error creating category: $e');
       return null;

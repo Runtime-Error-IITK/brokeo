@@ -3,16 +3,18 @@ import 'package:brokeo/frontend/login_pages/login_page1.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/profile_pages/edit_profile_page.dart';
-import 'package:brokeo/frontend/profile_pages/faqs_page.dart'; // Import FAQsPage
-import 'package:brokeo/frontend/profile_pages/privacy_policy_page.dart'; // Import PrivacyPolicyPage
+// Import FAQsPage
+// Import PrivacyPolicyPage
 import 'package:brokeo/frontend/profile_pages/budget_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart'; // Import BudgetPage
 import 'package:permission_handler/permission_handler.dart';
 
 class ProfilePage extends ConsumerWidget {
+  const ProfilePage({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    bool _notificationsEnabled = true; // State variable for notifications
+    bool notificationsEnabled = true; // State variable for notifications
     final asyncUsermetadata = ref.watch(userMetadataStreamProvider);
     return asyncUsermetadata.when(
       loading: () => Center(child: CircularProgressIndicator()),

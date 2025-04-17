@@ -1,5 +1,4 @@
 // import 'package:brokeo/backend/services/providers2/read_providers/category_stream_provider.dart';
-import 'dart:convert' show json;
 
 import 'package:brokeo/backend/models/category.dart' show Category;
 import 'package:brokeo/backend/models/merchant.dart'
@@ -17,7 +16,6 @@ import 'package:brokeo/backend/services/providers/write_providers/merchant_servi
 import 'package:brokeo/backend/services/providers/write_providers/transaction_service.dart'
     show transactionServiceProvider;
 import 'package:brokeo/frontend/home_pages/home_page.dart';
-import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:brokeo/frontend/transactions_pages/color.dart'
     show loadCategoryColors;
@@ -25,14 +23,12 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/frontend/transactions_pages/merchants_page.dart';
-import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 /// Main CategoriesPage
 class CategoriesPage extends ConsumerStatefulWidget {
-  const CategoriesPage({Key? key}) : super(key: key);
+  const CategoriesPage({super.key});
 
   @override
   _CategoriesPageState createState() => _CategoriesPageState();

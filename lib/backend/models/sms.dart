@@ -1,5 +1,4 @@
 // TODO: Make SMS class
-import 'dart:convert';
 
 class Sms {
   int smsId;

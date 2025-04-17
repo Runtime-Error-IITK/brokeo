@@ -1,5 +1,3 @@
-import 'dart:developer' show log;
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +8,8 @@ import 'package:brokeo/backend/services/providers/write_providers/category_servi
 import 'package:brokeo/backend/models/category.dart';
 
 class BudgetPage extends ConsumerStatefulWidget {
+  const BudgetPage({super.key});
+
   @override
   _BudgetPageState createState() => _BudgetPageState();
 }
@@ -209,7 +209,7 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               );

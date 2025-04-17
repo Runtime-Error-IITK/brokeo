@@ -1,23 +1,13 @@
 import 'dart:developer' show log;
 
-import 'package:brokeo/backend/models/split_transaction.dart';
-import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
 import 'package:brokeo/backend/services/providers/read_providers/split_transaction_stream_provider.dart'
     show SplitTransactionFilter, splitTransactionStreamProvider;
-import 'package:brokeo/backend/services/providers/read_providers/split_user_stream_provider'
-    show SplitUserFilter, splitUserStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
-import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
-import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
-import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
-import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_split;
 import 'package:brokeo/frontend/split_pages/split_history.dart';
-import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 import 'package:flutter/services.dart' show MethodChannel, PlatformException;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart'
     show Permission, PermissionActions, PermissionStatusGetters;
 
@@ -29,7 +19,7 @@ class ManageSplitsPage extends ConsumerStatefulWidget {
 }
 
 class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
-  int _currentIndex = 3; // Set the initial index to 3 for the Split tab
+  final int _currentIndex = 3; // Set the initial index to 3 for the Split tab
   List<dynamic> contacts = [];
 
   @override

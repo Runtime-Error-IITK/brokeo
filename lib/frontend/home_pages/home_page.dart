@@ -3,7 +3,6 @@ import 'dart:math' show pi;
 import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/merchant.dart';
 import 'package:brokeo/backend/models/schedule.dart';
-import 'package:brokeo/backend/models/split_transaction.dart';
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart'
     show CategoryFilter, categoryStreamProvider;
@@ -24,7 +23,6 @@ import 'package:brokeo/backend/services/providers/write_providers/transaction_se
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:brokeo/frontend/split_pages/manage_splits.dart';
@@ -1460,9 +1458,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void showAddScheduledPaymentDialog(BuildContext context) {
-    final _nameController = TextEditingController();
-    final _amountController = TextEditingController();
-    final _descriptionController = TextEditingController();
+    final nameController = TextEditingController();
+    final amountController = TextEditingController();
+    final descriptionController = TextEditingController();
     DateTime? selectedDate;
     bool isProcessing = false;
 
@@ -1481,18 +1479,18 @@ class _HomePageState extends ConsumerState<HomePage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
-                      controller: _nameController,
+                      controller: nameController,
                       decoration: InputDecoration(labelText: 'Name'),
                     ),
                     SizedBox(height: 8),
                     TextField(
-                      controller: _amountController,
+                      controller: amountController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(labelText: 'Amount (₹)'),
                     ),
                     SizedBox(height: 8),
                     TextField(
-                      controller: _descriptionController,
+                      controller: descriptionController,
                       decoration: InputDecoration(labelText: 'Description'),
                     ),
                     SizedBox(height: 12),
@@ -1537,10 +1535,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                   onPressed: isProcessing
                       ? null
                       : () async {
-                          final name = _nameController.text.trim();
-                          final amount = _amountController.text.trim();
-                          final description =
-                              _descriptionController.text.trim();
+                          final name = nameController.text.trim();
+                          final amount = amountController.text.trim();
+                          final description = descriptionController.text.trim();
 
                           if (name.isEmpty ||
                               amount.isEmpty ||

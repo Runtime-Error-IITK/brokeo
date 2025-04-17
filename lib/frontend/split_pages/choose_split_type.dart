@@ -1,16 +1,8 @@
-import 'dart:developer' show log;
-
 import 'package:brokeo/backend/models/split_transaction.dart';
-import 'package:brokeo/backend/models/split_user.dart';
 import 'package:brokeo/backend/services/providers/read_providers/split_user_stream_provider';
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/backend/services/providers/write_providers/split_transaction_service.dart';
-import 'package:brokeo/backend/services/providers/write_providers/split_user_service_provider.dart';
-import 'package:brokeo/frontend/split_pages/manage_splits.dart';
 import 'package:flutter/material.dart';
-import 'package:brokeo/frontend/home_pages/home_page.dart' as brokeo_home;
-import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
-import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class ChooseSplitTypePage extends ConsumerStatefulWidget {
@@ -200,7 +192,7 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                     keyId: contact["phone"]!,
                     name: contact["name"]!,
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),
