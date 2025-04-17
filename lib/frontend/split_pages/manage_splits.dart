@@ -204,7 +204,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                         return {"name": user};
                       })["name"];
                     }
-                    splitUsers[user] = splitUsers[user] - amount;
+                    splitUsers[user] = splitUsers[user] - transaction.splitAmounts[userMetadata["phone"]];
                   }
                 }
               }
