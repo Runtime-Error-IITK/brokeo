@@ -19,6 +19,15 @@ class _SignupPageState extends State<LoginPage2> {
   bool _isEmailValid = true;
   bool _isPasswordValid = true;
   bool _isConfirmPasswordValid = true;
+  bool _isProcessing = false; // Prevent multiple taps
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   bool _validEmailFormat(String email) {
     final RegExp emailRegex = RegExp(
@@ -28,14 +37,14 @@ class _SignupPageState extends State<LoginPage2> {
   }
 
   Future<void> _handleSignup() async {
-    String email = _emailController.text.trim();
-    String password = _passwordController.text;
-    String confirmPassword = _confirmPasswordController.text;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
 
     setState(() {
       _isEmailValid = _validEmailFormat(email);
       _isPasswordValid = password.isNotEmpty;
-      _isConfirmPasswordValid = confirmPassword == password;
+      _isConfirmPasswordValid = (confirmPassword == password);
     });
 
     if (!_isEmailValid || !_isPasswordValid || !_isConfirmPasswordValid) {
@@ -45,47 +54,60 @@ class _SignupPageState extends State<LoginPage2> {
       return;
     }
 
-    try {
-      // Create a new user with email and password.
-      final userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    // Start processing and disable the button
+    setState(() {
+      _isProcessing = true;
+    });
 
+    try {
+      // Create new user
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // Send verification email
       await userCredential.user?.sendEmailVerification();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text("Verification Link sent. Please check email inbox.")),
+          content: Text("Verification link sent. Please check your email."),
+        ),
       );
 
-      // Navigate to the LoginPage1 (or any other page) after successful signup.
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LoginPage1()),
-      );
+      // Navigate to LoginPage1
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginPage1()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
       String errorMessage;
       switch (e.code) {
         case 'weak-password':
           errorMessage = 'The password provided is too weak.';
           break;
         case 'email-already-in-use':
-          errorMessage = 'The account already exists for that email.';
+          errorMessage = 'An account already exists for that email.';
           break;
         default:
           errorMessage = e.message ?? 'An error occurred. Please try again.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage)));
+        setState(() {
+          _isProcessing = false; // re-enable on error
+        });
+      }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("An unexpected error occurred.")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("An unexpected error occurred.")),
+        );
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
@@ -93,14 +115,6 @@ class _SignupPageState extends State<LoginPage2> {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const LoginPage1()),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
   }
 
   @override
@@ -133,12 +147,11 @@ class _SignupPageState extends State<LoginPage2> {
                         offset: Offset(0, 4),
                         blurRadius: 4,
                         color: Colors.black.withOpacity(0.25),
-                      )
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 30),
-
                 // Email Field
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -164,7 +177,6 @@ class _SignupPageState extends State<LoginPage2> {
                   ),
                 ),
                 const SizedBox(height: 15),
-
                 // Password Field
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -190,7 +202,6 @@ class _SignupPageState extends State<LoginPage2> {
                   ),
                 ),
                 const SizedBox(height: 15),
-
                 // Confirm Password Field
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -218,21 +229,32 @@ class _SignupPageState extends State<LoginPage2> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Signup Arrow Button
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF65558F),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    iconSize: 35,
-                    icon: const Icon(Icons.arrow_forward, color: Colors.white),
-                    onPressed: _handleSignup,
-                  ),
-                ),
+                // Signup Arrow Button / Loader
+                _isProcessing
+                    ? SizedBox(
+                        height: 50,
+                        width: 50,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF65558F),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          iconSize: 35,
+                          icon: const Icon(Icons.arrow_forward,
+                              color: Colors.white),
+                          onPressed: _handleSignup,
+                        ),
+                      ),
                 const SizedBox(height: 10),
-
                 // Login Instead Text
                 TextButton(
                   onPressed: _goToLogin,
@@ -245,7 +267,8 @@ class _SignupPageState extends State<LoginPage2> {
                       decoration: TextDecoration.underline,
                     ),
                   ),
-                )
+                ),
+                const SizedBox(height: 50),
               ],
             ),
           ),

@@ -1,11 +1,9 @@
 import 'dart:developer' show log;
 
-import 'package:brokeo/backend/models/category.dart'
-    show Category, CloudCategory;
+import 'package:brokeo/backend/models/category.dart' show Category, CloudCategory;
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart';
 import 'package:brokeo/backend/services/providers/write_providers/category_service.dart';
 import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
-import 'package:brokeo/frontend/home_pages/home_page.dart' show HomePage;
 import 'package:brokeo/frontend/home_pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
@@ -23,66 +21,21 @@ class LoginPage3 extends ConsumerStatefulWidget {
 class LoginPage3State extends ConsumerState<LoginPage3> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _budgetController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
   PhoneNumber? phoneNumber;
 
   bool _isNameValid = true;
   bool _isPhoneValid = true;
   bool _isBudgetValid = true;
+  bool _isProcessing = false; // <-- added
 
-  void _validateAndProceed() async {
-    setState(() {
-      _isNameValid = _nameController.text.isNotEmpty;
-      _isPhoneValid =
-          phoneNumber != null && phoneNumber!.number.trim().isNotEmpty;
-      _isBudgetValid = _budgetController.text.isNotEmpty;
-    });
-
-    if (_isNameValid && _isPhoneValid && _isBudgetValid) {
-      Map<String, dynamic> metadata = {
-        'name': _nameController.text,
-        'phone': phoneNumber!.completeNumber,
-        'budget': double.parse(_budgetController.text),
-      };
-      ref
-          .read(userMetadataServiceProvider)
-          ?.insertUserMetadata(metadata: metadata);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MainScreen(),
-        ),
-      );
-
-      final categoryFilter = CategoryFilter(categoryName: "Others");
-      final categoryService = ref.read(categoryServiceProvider);
-      final category =
-          await ref.read(categoryStreamProvider(categoryFilter).future);
-      log("im here");
-      log(category.toString());
-      if (category.isNotEmpty) {
-        final oldCategory = category[0];
-        final newCategory = Category(
-          name: oldCategory.name,
-          budget: double.parse(_budgetController.text),
-          categoryId: oldCategory.categoryId,
-          userId: oldCategory.userId,
-        );
-        categoryService
-            ?.updateCloudCategory(CloudCategory.fromCategory(newCategory));
-      }
-    }
-  }
-
-  void _resetFields() {
-    setState(() {
-      _nameController.clear();
-      _budgetController.clear();
-      phoneNumber = null;
-      _isNameValid = true;
-      _isPhoneValid = true;
-      _isBudgetValid = true;
-    });
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _budgetController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   InputDecoration _inputDecoration(String hintText, bool isValid) {
@@ -93,20 +46,84 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide:
-            BorderSide(color: isValid ? Colors.grey : Colors.red, width: 2),
+        borderSide: BorderSide(color: isValid ? Colors.grey : Colors.red, width: 2),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide:
-            BorderSide(color: isValid ? Colors.grey : Colors.red, width: 2),
+        borderSide: BorderSide(color: isValid ? Colors.grey : Colors.red, width: 2),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide:
-            BorderSide(color: isValid ? Colors.blue : Colors.red, width: 2),
+        borderSide: BorderSide(color: isValid ? Colors.blue : Colors.red, width: 2),
       ),
     );
+  }
+
+  Future<void> _validateAndProceed() async {
+    setState(() {
+      _isNameValid = _nameController.text.isNotEmpty;
+      _isPhoneValid = phoneNumber != null && phoneNumber!.number.trim().isNotEmpty;
+      _isBudgetValid = _budgetController.text.isNotEmpty;
+    });
+
+    if (!(_isNameValid && _isPhoneValid && _isBudgetValid)) return;
+
+    // lock button and show loader
+    setState(() => _isProcessing = true);
+
+    try {
+      // Save metadata
+      Map<String, dynamic> metadata = {
+        'name': _nameController.text,
+        'phone': phoneNumber!.completeNumber,
+        'budget': double.parse(_budgetController.text),
+      };
+      await ref.read(userMetadataServiceProvider)
+           ?.insertUserMetadata(metadata: metadata);
+
+      // Update default "Others" category
+      final filter = CategoryFilter(categoryName: "Others");
+      final categories = await ref.read(categoryStreamProvider(filter).future);
+      if (categories.isNotEmpty) {
+        final oldCat = categories.first;
+        final newCat = Category(
+          name: oldCat.name,
+          budget: double.parse(_budgetController.text),
+          categoryId: oldCat.categoryId,
+          userId: oldCat.userId,
+        );
+        await ref.read(categoryServiceProvider)?.updateCloudCategory(
+            CloudCategory.fromCategory(newCat));
+      }
+
+      // Navigate away
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => MainScreen()),
+        );
+      }
+    } catch (e) {
+      // handle any error and re-enable the button
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+
+  void _resetFields() {
+    setState(() {
+      _nameController.clear();
+      _budgetController.clear();
+      _phoneController.clear();
+      phoneNumber = null;
+      _isNameValid = true;
+      _isPhoneValid = true;
+      _isBudgetValid = true;
+    });
   }
 
   @override
@@ -123,162 +140,152 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
               colors: const [Color(0xFFB443B6), Colors.white],
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Get Started!',
-                style: GoogleFonts.pacifico(
-                  color: const Color(0xFF1C1B14),
-                  fontSize: 40,
-                  fontWeight: FontWeight.w400,
-                  shadows: [
-                    Shadow(
-                      offset: const Offset(0, 4),
-                      blurRadius: 4,
-                      color: Colors.black.withOpacity(0.25),
-                    ),
-                  ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Get Started!',
+                  style: GoogleFonts.pacifico(
+                    color: const Color(0xFF1C1B14),
+                    fontSize: 40,
+                    fontWeight: FontWeight.w400,
+                    shadows: [
+                      Shadow(
+                        offset: const Offset(0, 4),
+                        blurRadius: 4,
+                        color: Colors.black.withOpacity(0.25),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 50),
-              // Name Input
-              // Name Input
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Container(
-                  width: double.infinity,
-                  height: 60, // fixed height for consistency
+                const SizedBox(height: 50),
+
+                // Name
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: TextFormField(
                     controller: _nameController,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black,
                     ),
                     decoration: _inputDecoration("Name", _isNameValid),
                   ),
                 ),
-              ),
-              const SizedBox(height: 25),
-// Phone Number Input with default country code +91
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Container(
-                  width: double.infinity,
-                  height: 90, // same fixed height as the name field
+                const SizedBox(height: 25),
+
+                // Phone
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: IntlPhoneField(
+                    controller: _phoneController,
                     showCountryFlag: false,
                     initialCountryCode: 'IN',
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 16), // adjusted to match others
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                       hintText: 'Enter Phone Number',
-                      hintStyle: TextStyle(
-                        color: Colors.black.withOpacity(0.6),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(
-                            color: _isPhoneValid ? Colors.grey : Colors.red,
-                            width: 2),
+                            color: _isPhoneValid ? Colors.grey : Colors.red, width: 2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(
-                            color: _isPhoneValid ? Colors.grey : Colors.red,
-                            width: 2),
+                            color: _isPhoneValid ? Colors.grey : Colors.red, width: 2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
-                            color: _isPhoneValid ? Colors.blue : Colors.red,
-                            width: 2),
+                            color: _isPhoneValid ? Colors.blue : Colors.red, width: 2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    textAlignVertical: TextAlignVertical(
-                        y: 0.4), // Ensures text is vertically centered
-                    textInputAction: TextInputAction.done,
-                    style: TextStyle(
-                      fontSize: 18, // Ensuring same size for prefix & number
+                    style: const TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.w500,
+                      color: Colors.black,
                     ),
-                    dropdownTextStyle: TextStyle(
-                      fontSize: 18, // Same size for prefix
+                    dropdownTextStyle: const TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.w500,
+                      color: Colors.black,
                     ),
-                    onChanged: (PhoneNumber number) {
-                      setState(() {
-                        phoneNumber = number;
-                      });
-                    },
+                    onChanged: (num) => setState(() => phoneNumber = num),
                   ),
                 ),
-              ),
-// Budget Input
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Container(
-                  width: double.infinity,
-                  height: 60, // same fixed height as the other fields
+                const SizedBox(height: 20),
+
+                // Budget
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: TextFormField(
                     controller: _budgetController,
                     keyboardType: TextInputType.number,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black,
                     ),
                     decoration: _inputDecoration("Budget", _isBudgetValid),
                   ),
                 ),
-              ),
+                const SizedBox(height: 20),
 
-              const SizedBox(height: 20),
-              // Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Cancel Button
-                  SizedBox(
-                    width: 150,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _resetFields,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF65558F),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                // Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Cancel
+                    SizedBox(
+                      width: 150,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _resetFields,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF65558F),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
+                        child: const Text("Cancel", style: TextStyle(color: Colors.white)),
                       ),
-                      child: const Text("Cancel",
-                          style: TextStyle(color: Colors.white)),
                     ),
-                  ),
-                  // Confirm Button
-                  SizedBox(
-                    width: 150,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _validateAndProceed,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF65558F),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Text("Confirm",
-                          style: TextStyle(color: Colors.white)),
+
+                    // Confirm / Loader
+                    SizedBox(
+                      width: 150,
+                      height: 50,
+                      child: _isProcessing
+                          ? Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                                ),
+                              ),
+                            )
+                          : ElevatedButton(
+                              onPressed: _validateAndProceed,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF65558F),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              child: const Text("Confirm", style: TextStyle(color: Colors.white)),
+                            ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 50),
+              ],
+            ),
           ),
         ),
       ),
