@@ -33,7 +33,6 @@ import 'package:brokeo/frontend/transactions_pages/category_page.dart';
 import 'package:brokeo/frontend/transactions_pages/transaction_detail_page.dart';
 import 'package:brokeo/frontend/split_pages/split_history.dart';
 import 'package:brokeo/frontend/split_pages/choose_transactions.dart';
-import 'package:brokeo/models/scheduled_payment_model.dart' as schedModel;
 import 'package:brokeo/frontend/analytics_pages/analytics_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:brokeo/sms_handler.dart';
