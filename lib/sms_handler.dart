@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'dart:developer' show log;
 
 import 'package:brokeo/backend/models/category.dart' show Category;
-import 'package:brokeo/backend/models/merchant.dart' show Merchant;
+import 'package:brokeo/backend/models/merchant.dart'
+    show CloudMerchant, Merchant;
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart';
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart';
+import 'package:brokeo/backend/services/providers/write_providers/merchant_service.dart'
+    show merchantServiceProvider;
 import 'package:brokeo/backend/services/providers/write_providers/transaction_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -95,13 +98,28 @@ class SmsHandler {
       );
 
       final categories = await categoryCompleter.future;
+      final userId = FirebaseAuth.instance.currentUser?.uid;
 
       //  ── INSERT TRANSACTION ───────────────────────────────────────
-      final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId == null) {
         log("No signed‑in user");
         container.dispose();
         return;
+      }
+
+      if (merchants.isEmpty) {
+        final newMerchant = Merchant(
+          merchantId: "",
+          name: toTitleCase(data["Merchant Name"] as String),
+          categoryId: categories[0].categoryId,
+          userId: userId,
+        );
+        final merchantService = container.read(merchantServiceProvider);
+        final insertedMerchant = await merchantService
+            ?.insertMerchant(CloudMerchant.fromMerchant(newMerchant));
+        if (insertedMerchant != null) {
+          merchants.add(Merchant.fromCloudMerchant(insertedMerchant));
+        }
       }
 
       final newTx = Transaction(
