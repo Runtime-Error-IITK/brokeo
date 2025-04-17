@@ -1,6 +1,7 @@
 import 'package:brokeo/firebase_options.dart';
 import 'package:brokeo/frontend/home_pages/home_page.dart';
 import 'package:brokeo/frontend/home_pages/main_page.dart';
+import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:brokeo/frontend/login_pages/login_page1.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -48,7 +49,7 @@ class AuthGate extends StatelessWidget {
         }
         // user is signed in
         if (snapshot.hasData) {
-          return const MainScreen();
+          return const AuthPage();
         }
         // user is not signed in
         return const LoginPage1();
