@@ -3,6 +3,7 @@ import 'dart:math' show pi;
 import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/merchant.dart';
 import 'package:brokeo/backend/models/schedule.dart';
+import 'package:brokeo/backend/models/split_transaction.dart';
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart'
     show CategoryFilter, categoryStreamProvider;
@@ -10,6 +11,8 @@ import 'package:brokeo/backend/services/providers/read_providers/merchant_stream
     show MerchantFilter, merchantStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/schedule_stream_provider.dart'
     show ScheduleFilter, scheduleStreamProvider;
+import 'package:brokeo/backend/services/providers/read_providers/split_transaction_stream_provider.dart'
+    show SplitTransactionFilter, splitTransactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
@@ -52,6 +55,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   bool showAllScheduledPayments = false;
   bool showAllSplits = false;
   bool showAllBudgetCategories = false;
+  List<dynamic> contacts = [];
   final emptyTransactionFilter = const TransactionFilter();
   final emptyCategoryFilter = const CategoryFilter();
 
@@ -66,6 +70,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     _checkAndRequestSmsPermission();
     startListeningForSms();
     SmsHandler.processNewSmsOnAppOpen();
+    _loadContacts();
   }
 
   void _initializeNotifications() {
@@ -247,7 +252,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             _buildTransactions(),
             _buildCategories(), // <-- NEW CATEGORIES SECTION
             _buildScheduledPayments(),
-            // _buildSplits(splits),
+            _buildSplits(),
             _buildBudget(),
           ],
         ),
@@ -1764,6 +1769,400 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _loadContacts() async {
+    final status = await Permission.contacts.request();
+    if (status.isGranted) {
+      log("Permission granted. Fetching contacts...");
+      try {
+        // This calls your platform method to fetch contacts.
+        const platform = MethodChannel('com.example.contacts/fetch');
+        final List<dynamic> contactDetails =
+            await platform.invokeMethod('getContacts');
+        log("Contacts fetched successfully: ${contactDetails.length} contacts found.");
+
+        // Use a temporary map to remove duplicates (keyed by a unique field, e.g. phone number).
+        final Map<String, Map<String, String>> tempMap = {};
+
+        for (var contact in contactDetails) {
+          // Extract the name and phone number from each contact.
+          final String name = (contact['name'] as String?)?.trim() ?? "Unknown";
+          final String phone =
+              (contact['phone'] as String?)?.trim().replaceAll(' ', '') ?? "";
+          if (name.isNotEmpty && phone.isNotEmpty) {
+            tempMap[phone] = {"name": name, "phone": phone};
+          }
+        }
+
+        // Convert the deduplicated map values to a list and sort it by name.
+        List<Map<String, String>> contactList = tempMap.values.toList();
+        contactList.sort((a, b) =>
+            a["name"]!.toLowerCase().compareTo(b["name"]!.toLowerCase()));
+
+        // Use setState to update contacts and ensure the UI rebuilds.
+        if (mounted) {
+          setState(() {
+            contacts = contactList;
+          });
+        }
+      } on PlatformException catch (e) {
+        log("Failed to fetch contacts: ${e.message}");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to fetch contacts: ${e.message}")),
+          );
+        }
+      }
+    } else {
+      log("Permission denied.");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Contacts permission denied")),
+        );
+      }
+    }
+  }
+
+  Widget _buildSplits() {
+    // Fetch the dummy values from MockBackend
+
+    final filter = SplitTransactionFilter();
+    final asyncSplitTransactions =
+        ref.watch(splitTransactionStreamProvider(filter));
+    final asyncMetaData =
+        ref.watch(userMetadataStreamProvider); // Get user metadata
+
+    return asyncMetaData.when(
+        loading: () => const CircularProgressIndicator(),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Split Transaction error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (metadata) {
+          return asyncSplitTransactions.when(
+              loading: () => const CircularProgressIndicator(),
+              error: (error, stack) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Split Transaction error: $error")),
+                  );
+                });
+                return SizedBox.shrink();
+              },
+              data: (splits) {
+                // double totalBalance = ;
+                // double youOwe = ;
+                // double youAreOwed = ;
+                double borrowed = 0, lent = 0;
+                var splitUsers = {};
+                var splitUsersNames = {};
+                for (var transaction in splits) {
+                  // log(transaction.toString());
+                  for (var entry in transaction.splitAmounts.entries) {
+                    final user = entry.key;
+                    final amount = entry.value;
+
+                    if (transaction.isPayment) {
+                      // log('sad');
+                      if (user == metadata["phone"]) {
+                        continue;
+                      }
+                      // log(transaction.toString());
+                      if (!splitUsers.containsKey(user)) {
+                        splitUsers[user] = 0.0;
+                        splitUsersNames[user] = contacts.firstWhere(
+                            (contact) => contact["phone"] == user, orElse: () {
+                          return {"name": user};
+                        })["name"];
+                      }
+                      if (transaction.userPhone == metadata["phone"]) {
+                        // log("wowpw");
+                        splitUsers[user] = splitUsers[user] + amount;
+                      } else {
+                        splitUsers[user] = splitUsers[user] -
+                            transaction.splitAmounts[metadata["phone"]];
+                      }
+                    } else {
+                      // continue;
+                      if (transaction.userPhone == metadata["phone"]) {
+                        if (user == metadata["phone"]) continue;
+                        if (!splitUsers.containsKey(user)) {
+                          if (entry.key == metadata["phone"]) continue;
+                          splitUsers[user] = 0.0;
+                          splitUsersNames[user] = contacts
+                              .firstWhere((contact) => contact["phone"] == user,
+                                  orElse: () {
+                            return {"name": user};
+                          })["name"];
+                        }
+                        splitUsers[user] = splitUsers[user] + amount;
+                      } else if (transaction.userPhone == user) {
+                        if (!splitUsers.containsKey(user)) {
+                          if (entry.key == metadata["phone"]) continue;
+                          splitUsers[user] = 0.0;
+                          splitUsersNames[user] = contacts
+                              .firstWhere((contact) => contact["phone"] == user,
+                                  orElse: () {
+                            return {"name": user};
+                          })["name"];
+                        }
+                        splitUsers[user] = splitUsers[user] -
+                            transaction.splitAmounts[metadata["phone"]];
+                      }
+                    }
+                  }
+                }
+
+                //remove yourself
+                splitUsers.remove(metadata["phone"]);
+
+                for (var entry in splitUsers.entries) {
+                  final amount = entry.value;
+                  if (amount < 0) {
+                    borrowed += amount.abs();
+                  } else {
+                    lent += amount;
+                  }
+                }
+                // Show top 3 splits by default
+                List<SplitTransaction> splitsToShow =
+                    showAllSplits ? splits : splits.take(3).toList();
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+                      stops: [0.0, 0.5, 1.0],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius:
+                        BorderRadius.vertical(bottom: Radius.circular(30)),
+                  ),
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    color: Color(0xFFEDE7F6),
+                    elevation: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// **Header Row** (Title, Add, Expand/Collapse)
+                          Row(
+                            children: [
+                              Text(
+                                "Splits",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              Spacer(),
+                              IconButton(
+                                icon: Icon(Icons.add,
+                                    size: 22, color: Colors.black54),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            ChooseTransactionPage()),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  showAllSplits
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                  size: 22,
+                                  color: Colors.black54,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    showAllSplits = !showAllSplits;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+
+                          /// **Three summary "tiles"** in the same style as transactions
+                          ///
+                          _buildSplitSummaryTile(
+                            "Total Balance",
+                            (borrowed - lent) > 0
+                                ? borrowed - lent
+                                : lent - borrowed,
+                            borrowed < lent
+                                ? Colors.green[800]!
+                                : Colors.red[800]!,
+                          ),
+                          _buildSplitSummaryTile(
+                              "You owe", borrowed, Colors.red[800]!),
+                          _buildSplitSummaryTile(
+                              "You are owed", lent, Colors.green[800]!),
+
+                          // Divider below summaries
+                          Divider(color: Colors.grey[300], height: 20),
+
+                          // If no splits, show message
+                          if (splits.isEmpty)
+                            Center(
+                              child: Text(
+                                "No Splits Yet",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            )
+                          else
+                            // Otherwise, show the split items
+                            Column(
+                              children:
+                                  splitsToShow.asMap().entries.map((entry) {
+                                return Column(
+                                  children: [
+                                    _buildSplitTile(entry.value),
+                                    if (entry.key < splitsToShow.length - 1)
+                                      Divider(color: Colors.grey[300]),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              });
+        });
+  }
+
+  Widget _buildSplitSummaryTile(String label, double amount, Color color) {
+    Color amountColor = color;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          // CircleAvatar(
+          //   backgroundColor: Colors.purple[100],
+          //   child: Text(
+          //     label[0].toUpperCase(), // e.g. 'T' for "Total", 'Y' for "You owe"
+          //     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
+          //   ),
+          // ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+          Text(
+            "₹${amount.abs().toStringAsFixed(0)}", // abs() to remove minus sign
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: amountColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSplitTile(Map<dynamic, dynamic> split) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            // builder: (context) => HomePage(),
+            builder: (context) => SplitHistoryPage(split: split),
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.purple[100],
+                  child: Text(
+                    split["name"][0].toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        split["name"],
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Wrap the lending/borrowing information in a column.
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      split["amount"] < 0
+                          ? "You borrowed"
+                          : split["amount"] == 0
+                              ? "Settled"
+                              : "You lent",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: split["amount"] < 0
+                            ? Colors.red
+                            : split["amount"] == 0
+                                ? Colors.black
+                                : Colors.green,
+                      ),
+                    ),
+                    Text(
+                      "₹${split["amount"].abs().toStringAsFixed(2)}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: split["amount"] < 0
+                            ? Colors.red
+                            : split["amount"] == 0
+                                ? Colors.black
+                                : Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
