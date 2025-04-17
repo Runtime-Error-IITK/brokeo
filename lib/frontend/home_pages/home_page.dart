@@ -1399,8 +1399,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                           icon:
                               Icon(Icons.add, size: 22, color: Colors.black54),
                           onPressed: () {
-                            // TODO: Handle "Add Scheduled Payment"
-                            // log("aaaaa");
                             showAddScheduledPaymentDialog(context);
                           },
                         ),
@@ -1530,13 +1528,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 ElevatedButton(
-                  child: isProcessing
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text('Add'),
                   onPressed: isProcessing
                       ? null
                       : () async {
@@ -1557,7 +1548,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                           final now = DateTime.now();
                           if (selectedDate!.isBefore(
-                              DateTime(now.year, now.month, now.day))) {
+                              DateTime(now.year, now.month, now.day)
+                                  .subtract(Duration(days: 1)))) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                   content: Text("Please select a future date")),
@@ -1617,6 +1609,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                             setState(() => isProcessing = false);
                           }
                         },
+                  child: isProcessing
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text('Add'),
                 ),
               ],
             );

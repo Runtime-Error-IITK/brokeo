@@ -28,7 +28,7 @@ final scheduleStreamProvider = StreamProvider.autoDispose
   }
 
   // Order by date in descending order (latest schedules first).
-  query = query.orderBy(dateColumn, descending: true);
+  query = query.orderBy(dateColumn, descending: false);
 
   final snapshots = query.snapshots();
 
