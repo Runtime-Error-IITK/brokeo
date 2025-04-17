@@ -153,7 +153,7 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                             _initializeEqualSplit();
                           });
                         },
-                        selectedColor: const Color.fromARGB(255, 226, 158, 243),
+                        selectedColor: Colors.purple,
                         labelStyle: TextStyle(
                           color: _splitType == 'Equal'
                               ? Colors.white
@@ -171,7 +171,7 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                             _splitType = 'Custom';
                           });
                         },
-                        selectedColor: const Color.fromARGB(255, 226, 158, 243),
+                        selectedColor: Colors.purple,
                         labelStyle: TextStyle(
                           color: _splitType == 'Custom'
                               ? Colors.white
@@ -286,7 +286,7 @@ class _ChooseSplitTypePageState extends ConsumerState<ChooseSplitTypePage> {
                           }
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 226, 158, 243),
+                      backgroundColor: Colors.purple,
                       padding:
                           EdgeInsets.symmetric(vertical: 16, horizontal: 32),
                     ),
