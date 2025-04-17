@@ -9,7 +9,7 @@ class SmsHandler {
 
   // Function to call the FastAPI endpoint and pass a string (user message)
   static Future<void> fetchTransactionData(String userMessage) async {
-    print("User message: $userMessage"); // Print the user message for debugging
+    log("User message: $userMessage"); // Print the user message for debugging
     final url = Uri.parse(
         "http://172.27.16.252:8002/parse_transaction?user_message=$userMessage");
 
