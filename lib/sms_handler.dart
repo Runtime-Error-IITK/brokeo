@@ -123,13 +123,13 @@ class SmsHandler {
       }
 
       final newTx = Transaction(
-        transactionId: "",
-        amount: amount,
-        date: DateTime.now(),
-        merchantId: merchants.first.merchantId,
-        categoryId: categories.first.categoryId,
-        userId: userId,
-      );
+          transactionId: "",
+          amount: amount,
+          date: DateTime.now(),
+          merchantId: merchants.first.merchantId,
+          categoryId: categories.first.categoryId,
+          userId: userId,
+          sms: userMessage);
 
       final txService = container.read(transactionServiceProvider);
       final inserted = await txService
