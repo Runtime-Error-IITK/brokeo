@@ -1673,7 +1673,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       Expanded(
                         child: Text(
-                          "${DateFormat('dd-MM-yyyy').format(payment.date.toLocal())}",
+                          "${DateFormat("MMM dd, yyyy").format(payment.date.toLocal())}, 23:59",
                         ),
                       ),
                     ],
@@ -1748,7 +1748,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "Due: ${DateFormat('dd-MM-yyyy').format(payment.date.toLocal())}",
+                  "Due: ${DateFormat("MMM dd, yyyy").format(payment.date.toLocal())}, 23:59",
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 Text(

@@ -160,7 +160,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                                         backgroundColor: Colors.purple,
                                         foregroundColor: Colors.white,
                                       ),
-                                      child: Text('Settle Up'),
+                                      child: Text('Record Payment'),
                                     ),
                                   ],
                                 ),
@@ -553,7 +553,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            'Settle Up',
+            'Record Payment',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           content: Form(
@@ -562,7 +562,7 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
-                  initialValue: settleAmount,
+                  // initialValue: settleAmount,
                   decoration: InputDecoration(
                     labelText: "Amount",
                     prefixText: "₹",
@@ -585,10 +585,10 @@ class _SplitHistoryPageState extends ConsumerState<SplitHistoryPage> {
                   onChanged: (value) => settleAmount = value,
                 ),
                 SizedBox(height: 16),
-                Text(
-                  'Current balance: ₹${totalOwed.toStringAsFixed(2)}',
-                  style: TextStyle(color: Colors.grey),
-                ),
+                // Text(
+                //   'Current balance: ₹${totalOwed.toStringAsFixed(2)}',
+                //   style: TextStyle(color: Colors.grey),
+                // ),
               ],
             ),
           ),
