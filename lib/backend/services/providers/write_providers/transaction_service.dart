@@ -61,4 +61,28 @@ class TransactionService {
       return null;
     }
   }
+
+  Future<CloudTransaction?> updateCloudTransaction(
+      CloudTransaction transaction) async {
+    final transactionRef = FirebaseFirestore.instance
+        .collection('transactions')
+        .doc(userId)
+        .collection('userTransactions')
+        .doc(transaction.transactionId);
+
+    try {
+      await transactionRef.update(transaction.toFirestore());
+      final docSnap = await transactionRef.get();
+      if (docSnap.exists) {
+        log("Updated transaction with id: ${transaction.transactionId}");
+        return CloudTransaction.fromSnapshot(docSnap);
+      } else {
+        log("Failed to retrieve updated transaction");
+        return null;
+      }
+    } catch (e) {
+      log("Error updating transaction: $e");
+      return null;
+    }
+  }
 }

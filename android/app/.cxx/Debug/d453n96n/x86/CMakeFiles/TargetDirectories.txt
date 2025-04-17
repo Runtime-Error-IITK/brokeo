@@ -1,0 +1,2 @@
+C:/Users/rverm/Coding/brokeo/android/app/.cxx/Debug/d453n96n/x86/CMakeFiles/edit_cache.dir
+C:/Users/rverm/Coding/brokeo/android/app/.cxx/Debug/d453n96n/x86/CMakeFiles/rebuild_cache.dir

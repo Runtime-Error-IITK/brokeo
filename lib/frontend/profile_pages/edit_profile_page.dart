@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart'
     show firebaseAuthProvider, userMetadataStreamProvider;
 import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
@@ -7,6 +9,13 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:brokeo/frontend/login_pages/login_page3.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
+  final String name, phone;
+  const EditProfilePage({
+    super.key,
+    required this.name,
+    required this.phone,
+  });
+
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
 }
@@ -14,26 +23,64 @@ class EditProfilePage extends ConsumerStatefulWidget {
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  // Controllers for name and email remain
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+
+  // Controller for phone is no longer used with IntlPhoneField;
+  // we use a state variable for the complete phone number.
   final TextEditingController _phoneController = TextEditingController();
+
+  // State variable to hold the complete phone number.
+  String _completePhoneNumber = "";
 
   @override
   void initState() {
     super.initState();
-    _nameController.text = "";
-    // Initialize email controller with the current user's email
+
+    // Set initial values using the widget properties.
+    _nameController.text = widget.name;
     _emailController.text =
         ref.read(firebaseAuthProvider).currentUser?.email ?? "";
-    _phoneController.text = "";
+    _phoneController.text = widget.phone;
+
+    // Call the asynchronous initialization method.
+    _initializeUserMetadata();
+  }
+
+  Future<void> _initializeUserMetadata() async {
+    try {
+      // Reads the first value from the userMetadataStreamProvider.
+      final userMetadata = await ref.read(userMetadataStreamProvider.future);
+
+      // Update controllers with the retrieved metadata if available.
+      _nameController.text = userMetadata['name'] ?? widget.name;
+      _phoneController.text = userMetadata['phone'] ?? widget.phone;
+
+      // Trigger a rebuild, if necessary.
+      if (mounted) setState(() {});
+    } catch (error) {
+      debugPrint('Error loading user metadata: $error');
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the async provider to update the UI as metadata state changes.
     final asyncMetadata = ref.watch(userMetadataStreamProvider);
+
     return asyncMetadata.when(
       loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stack) {
+        // Display error using a SnackBar after the build is complete.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Edit Profile Error: $error")),
@@ -42,8 +89,33 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         return const SizedBox.shrink();
       },
       data: (metadata) {
-        _nameController.text = metadata['name'] ?? "";
-        _phoneController.text = metadata['phone'] ?? "";
+        // Extract phone details to set IntlPhoneField initial values.
+        String phoneFromMetadata = metadata['phone'] ?? "";
+        String displayCountryCode = "IN";
+        String displayPhoneNumber = phoneFromMetadata;
+
+        if (phoneFromMetadata.isNotEmpty &&
+            phoneFromMetadata.startsWith('+') &&
+            phoneFromMetadata.length > 3) {
+          log(phoneFromMetadata);
+          String dialCode = phoneFromMetadata.substring(0, 3); // e.g., "+91"
+          if (dialCode == "+91") {
+            displayCountryCode = "IN";
+          } else {
+            // Optionally add mapping for other dial codes.
+            displayCountryCode = dialCode;
+          }
+          displayPhoneNumber = phoneFromMetadata.substring(3).trim();
+        }
+        // displayPhoneNumber = "9278949220";
+
+        // Combine the country code and phone for the complete phone number.
+        _completePhoneNumber = displayCountryCode == "IN"
+            ? "+91" + displayPhoneNumber
+            : displayCountryCode + displayPhoneNumber;
+
+        log(displayCountryCode);
+        log(displayPhoneNumber);
 
         return Scaffold(
           appBar: AppBar(
@@ -70,7 +142,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Name Input with validation
+                    // Name input with validation.
                     SizedBox(height: 8),
                     TextFormField(
                       controller: _nameController,
@@ -86,7 +158,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       },
                     ),
                     SizedBox(height: 16),
-                    // Email Input (disabled and greyed out)
+                    // Email input (disabled).
                     SizedBox(height: 8),
                     TextFormField(
                       controller: _emailController,
@@ -97,46 +169,39 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         filled: false,
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      enabled:
-                          false, // Disables editing and greys out the field
+                      enabled: false,
                     ),
                     SizedBox(height: 16),
-                    // Phone Number Input using IntlPhoneField
+                    // Phone number input using IntlPhoneField.
                     SizedBox(height: 8),
-                    IntlPhoneField(
-                      showCountryFlag: false,
-                      initialCountryCode: 'IN',
-                      initialValue: "9870131789",
+                    TextFormField(
+                      readOnly: true,
+                      initialValue: _completePhoneNumber,
                       decoration: InputDecoration(
                         labelText: "Phone Number",
                         border: OutlineInputBorder(),
+                        fillColor: Colors.grey[200],
+                        filled: false,
                       ),
                       keyboardType: TextInputType.phone,
-                      onChanged: (value) {
-                        setState(() {
-                          _phoneController.text = value.completeNumber.trim();
-                        });
-                      },
-                      onSaved: (value) {
-                        _phoneController.text =
-                            value?.completeNumber.trim() ?? '';
-                      },
-                      // Remove the controller to avoid conflicts with the onChanged handler
-                      controller: null,
+                      enabled: false,
                     ),
                     SizedBox(height: 16),
-                    // Save Button
+                    // Save button.
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
                           onPressed: () async {
-                            // Validate the form
                             if (_formKey.currentState!.validate()) {
+                              // Trigger onSaved callback on all form fields.
+                              _formKey.currentState!.save();
+
                               final newMetadata = metadata;
                               newMetadata['name'] = _nameController.text.trim();
+                              // Update metadata with our _completePhoneNumber variable.
                               newMetadata['phone'] =
-                                  _phoneController.text.trim();
+                                  _completePhoneNumber.trim();
 
                               final metadataService =
                                   ref.read(userMetadataServiceProvider);
@@ -145,6 +210,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 await metadataService.updateUserMetadata(
                                   metadata: newMetadata,
                                 );
+
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -161,7 +227,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 );
                               }
                             } else {
-                              // If validation fails, notify the user
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content:

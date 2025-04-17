@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/models/transaction.dart' show Transaction;
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
@@ -20,29 +22,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
   int _currentIndex = 2;
   String _selectedFilter = 'Daily';
   final List<String> _filters = ['Daily', 'Weekly', 'Monthly'];
-
-  // Mock data for demonstration
-  // final Map<String, Map<String, dynamic>> _data = {
-  //   'Daily': {
-  //     'spends': [1200, 800, 1500, 900, 1300, 700, 1000],
-  //     'received': [500, 1200, 800, 600, 900, 1300, 700],
-  //     'dates': List.generate(
-  //         7, (i) => DateTime.now().subtract(Duration(days: 6 - i))),
-  //   },
-  //   'Weekly': {
-  //     'spends': [4500, 5200, 4800, 5100, 4900, 5300, 5000],
-  //     'received': [3800, 4200, 4000, 4100, 3900, 4300, 4100],
-  //     'dates': List.generate(
-  //         7, (i) => DateTime.now().subtract(Duration(days: (6 - i) * 7))),
-  //   },
-  //   'Monthly': {
-  //     'spends': [18000, 19500, 21000, 18500, 20000, 19000, 20500],
-  //     'received': [16500, 17500, 18500, 17000, 18000, 17500, 19000],
-  //     'dates': List.generate(7,
-  //         (i) => DateTime(DateTime.now().year, DateTime.now().month - (6 - i))),
-  //   },
-  // };
-
   @override
   Widget build(BuildContext context) {
     final filter = createRecentTransactionFilter();
@@ -62,30 +41,33 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         final data = aggregateTransactionData(transactions);
         final currentData = data[_selectedFilter]!;
         final dates = currentData['dates'] as List<DateTime>;
+        final spendsNum = currentData['spends'] as List<num>;
+        final receivedNum = currentData['received'] as List<num>;
+        final spends = spendsNum.map((e) => e.toDouble()).toList();
+        final received = receivedNum.map((e) => e.toDouble()).toList();
         final labels = _generateLabels(dates);
 
-        final spends = (currentData['spends'] as List)
-            .map((e) => (e as num).toDouble())
-            .toList();
-        final received = (currentData['received'] as List)
-            .map((e) => (e as num).toDouble())
-            .toList();
+        // log(currentData.toString());
+        bool allZero = true;
+        for (var curr in currentData["spends"]) {
+          if (curr > 0) allZero = false;
+        }
 
         return Scaffold(
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                automaticallyImplyLeading: false, // This removes the back button
+                automaticallyImplyLeading: false,
                 title: Container(
-                  width: 100, // Adjust width as needed
+                  width: 100,
                   decoration: BoxDecoration(
-                    color: Colors.purple.shade50, // Light purple background
+                    color: Colors.purple.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: _selectedFilter,
-                    underline: SizedBox(), // Removes the default underline
+                    underline: SizedBox(),
                     dropdownColor: Theme.of(context).scaffoldBackgroundColor,
                     items: _filters.map((String value) {
                       return DropdownMenuItem<String>(
@@ -107,7 +89,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                 actions: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.purple.shade50, // Light purple background
+                      color: Colors.purple.shade50,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
@@ -115,11 +97,9 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                       onPressed: () => _exportToCSV(currentData, dates),
                     ),
                   ),
-                  // If you want some padding on the right, wrap it in Padding:
                   Padding(
                     padding: const EdgeInsets.only(right: 12),
-                    child:
-                        SizedBox(), // You can leave it empty or add another widget here if needed
+                    child: SizedBox(),
                   ),
                 ],
               ),
@@ -134,11 +114,19 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                             width: double.infinity,
                             height: 300,
                             padding: EdgeInsets.only(bottom: 20),
-                            child: BarChart(
-                              spends: spends,
-                              labels: labels,
-                              maxValue: spends.reduce((a, b) => a > b ? a : b),
-                            ),
+                            child: allZero
+                                ? Center(
+                                    child: Text(
+                                      'No transactions available',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  )
+                                : BarChart(
+                                    spends: spends,
+                                    labels: labels,
+                                    maxValue:
+                                        spends.reduce((a, b) => a > b ? a : b),
+                                  ),
                           ),
                         ),
                         _buildChartSection(
@@ -146,13 +134,20 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                           child: Container(
                             height: 300,
                             padding: EdgeInsets.only(bottom: 20),
-                            child: LineChart(
-                              spends: spends,
-                              received: received,
-                              labels: labels,
-                              maxValue: [...spends, ...received]
-                                  .reduce((a, b) => a > b ? a : b),
-                            ),
+                            child: allZero
+                                ? Center(
+                                    child: Text(
+                                      'No transactions available',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  )
+                                : LineChart(
+                                    spends: spends,
+                                    received: received,
+                                    labels: labels,
+                                    maxValue: [...spends, ...received]
+                                        .reduce((a, b) => a > b ? a : b),
+                                  ),
                           ),
                           legend: _buildLegend(),
                         ),
@@ -164,7 +159,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
               ),
             ],
           ),
-          // bottomNavigationBar: _buildBottomNavigationBar(),
         );
       },
     );
@@ -182,20 +176,23 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         final range =
             '${DateFormat('dd').format(start)}-${DateFormat('dd').format(end)}';
         return startMonth == endMonth
-            ? '$range\n$startMonth'
-            : '$range\n$startMonth/$endMonth';
+            ? '$range $startMonth'
+            : '$range $startMonth/$endMonth';
       });
     } else {
       return dates.map((d) {
         final day = DateFormat('dd').format(d);
         final month = DateFormat("MMM'yy").format(d);
-        return '$day\n$month';
+        return '$day $month';
       }).toList();
     }
   }
 
-  Widget _buildChartSection(
-      {required String title, required Widget child, Widget? legend}) {
+  Widget _buildChartSection({
+    required String title,
+    required Widget child,
+    Widget? legend,
+  }) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Card(
@@ -255,7 +252,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
   void _exportToCSV(Map<String, dynamic> data, List<DateTime> dates) async {
     final csvData = StringBuffer();
     csvData.writeln('Date,Spent,Received');
-
     for (int i = 0; i < dates.length; i++) {
       csvData.writeln('${_generateLabels([dates[i]]).first},'
           '${data['spends']![i]},'

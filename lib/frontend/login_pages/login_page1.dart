@@ -5,6 +5,7 @@ import 'package:brokeo/backend/default_categories.dart'
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/frontend/login_pages/auth_page.dart' show AuthPage;
 import 'package:brokeo/frontend/login_pages/login_page2.dart';
+import 'package:brokeo/frontend/login_pages/verify.dart' show EmailVerificationPage;
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, UserCredential;
 import 'package:flutter/material.dart';
@@ -21,7 +22,16 @@ class LoginPage1 extends ConsumerStatefulWidget {
 class LoginPage1State extends ConsumerState<LoginPage1> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   bool _isEmailValid = true;
+  bool _isProcessing = false; // Prevent multiple taps
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   bool _validEmailFormat(String email) {
     final RegExp emailRegex = RegExp(
@@ -32,7 +42,6 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
 
   Future<void> _login() async {
     try {
-      // Attempt to sign in with email and password
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -42,16 +51,25 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
       final user = userCredential.user;
       if (user != null) {
         await ensureDefaultCategories(user.uid);
+
+        if (!user.emailVerified) {
+          await user.sendEmailVerification();
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                  builder: (context) => EmailVerificationPage()),
+              (route) => false,
+            );
+          }
+        } else {
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => AuthPage()),
+            );
+          }
+        }
       }
-      // If sign-in is successful, navigate to the next page (for example, HomePage)
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => AuthPage(),
-        ),
-      );
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
       String errorMessage;
       switch (e.code) {
         case 'user-not-found':
@@ -61,17 +79,24 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
           errorMessage = 'Wrong password provided.';
           break;
         default:
-          errorMessage = e.message ?? 'An error occurred. Please try again.';
           errorMessage =
-              "Wrong email or password. An error occured (${e.code})";
+              'Wrong email or password. (${e.code})';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage)));
+        setState(() => _isProcessing = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('An error occurred: $e')));
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
-  void _verifyEmail() async {
+  void _verifyEmail() {
     final email = _emailController.text.trim();
 
     if (email.isEmpty || !_validEmailFormat(email)) {
@@ -84,6 +109,9 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
       return;
     }
 
+    setState(() {
+      _isProcessing = true;
+    });
     _login();
   }
 
@@ -115,7 +143,7 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
                       offset: Offset(0, 4),
                       blurRadius: 4,
                       color: Colors.black.withOpacity(0.25),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -197,31 +225,39 @@ class LoginPage1State extends ConsumerState<LoginPage1> {
 
               SizedBox(height: 20),
 
-              // Arrow Button
-              Container(
-                decoration: BoxDecoration(
-                  color: Color(0xFF65558F),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  iconSize: 35,
-                  icon: Icon(Icons.arrow_forward, color: Colors.white),
-                  onPressed: _verifyEmail,
-                ),
-              ),
+              // Arrow Button / Loader
+              _isProcessing
+                  ? SizedBox(
+                      height: 50,
+                      width: 50,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFF65558F),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        iconSize: 35,
+                        icon:
+                            Icon(Icons.arrow_forward, color: Colors.white),
+                        onPressed: _verifyEmail,
+                      ),
+                    ),
 
-              SizedBox(height: 12),
-
-              // Sign Up Text
-              // Replace this part below the arrow button
               SizedBox(height: 12),
 
               GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) =>
-                          LoginPage2(), // Replace with your sign-up screen
+                      builder: (context) => LoginPage2(),
                     ),
                   );
                 },

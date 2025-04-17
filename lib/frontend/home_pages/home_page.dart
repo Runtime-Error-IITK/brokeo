@@ -3,18 +3,23 @@ import 'dart:math' show pi;
 import 'package:brokeo/backend/models/category.dart';
 import 'package:brokeo/backend/models/merchant.dart';
 import 'package:brokeo/backend/models/schedule.dart';
+import 'package:brokeo/backend/models/split_transaction.dart';
 import 'package:brokeo/backend/models/transaction.dart';
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart'
     show CategoryFilter, categoryStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/merchant_stream_provider.dart'
     show MerchantFilter, merchantStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/schedule_stream_provider.dart'
-    show scheduleStreamProvider;
+    show ScheduleFilter, scheduleStreamProvider;
+import 'package:brokeo/backend/services/providers/read_providers/split_transaction_stream_provider.dart'
+    show SplitTransactionFilter, splitTransactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
 import 'package:brokeo/backend/services/providers/read_providers/user_id_provider.dart';
 import 'package:brokeo/backend/services/providers/write_providers/merchant_service.dart'
     show merchantServiceProvider;
+import 'package:brokeo/backend/services/providers/write_providers/schedule_service.dart'
+    show scheduleServiceProvider;
 import 'package:brokeo/backend/services/providers/write_providers/transaction_service.dart';
 import 'package:brokeo/frontend/transactions_pages/categories_page.dart';
 import 'package:brokeo/frontend/profile_pages/profile_page.dart';
@@ -52,6 +57,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   bool showAllScheduledPayments = false;
   bool showAllSplits = false;
   bool showAllBudgetCategories = false;
+  List<dynamic> contacts = [];
   final emptyTransactionFilter = const TransactionFilter();
   final emptyCategoryFilter = const CategoryFilter();
 
@@ -65,6 +71,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     _initializeNotifications();
     _checkAndRequestSmsPermission();
     startListeningForSms();
+    _loadContacts();
   }
 
   void _initializeNotifications() {
@@ -245,8 +252,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             _buildProfileAndBudgetSection(),
             _buildTransactions(),
             _buildCategories(), // <-- NEW CATEGORIES SECTION
-            // _buildScheduledPayments(scheduledPayments),
-            // _buildSplits(splits),
+            _buildScheduledPayments(),
+            _buildSplits(),
             _buildBudget(),
           ],
         ),
@@ -324,7 +331,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         return SizedBox.shrink();
       },
       data: (userMetadata) {
-        log(userMetadata.toString());
+        // log(userMetadata.toString());
         return transactionsAsync.when(
           loading: () => const CircularProgressIndicator(),
           error: (error, stack) {
@@ -353,7 +360,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ref.watch(categoryStreamProvider(emptyCategoryFilter));
             final categories = categoriesAsync.value ?? [];
             double budget = userMetadata['budget'] ?? 0.0;
-            log(budget.toString());
+            // log(budget.toString());
             double percentageSpent = (totalSpent / budget) * 100;
             String currentMonth = DateFormat.MMMM().format(DateTime.now());
             String name = userMetadata[nameId] ?? 'User';
@@ -438,14 +445,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 Text(
                                   "₹${totalSpent.toStringAsFixed(0)}",
                                   style: TextStyle(
-                                      fontSize: 30,
+                                      fontSize: 25,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 5),
                                 Text(
                                   "${percentageSpent.toStringAsFixed(1)}%",
                                   style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.normal,
                                       color: Colors.black87),
                                 ),
@@ -520,7 +527,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         Spacer(),
                         IconButton(
                           icon:
-                              Icon(Icons.add, size: 22, color: Colors.black54),
+                              Icon(Icons.edit, size: 22, color: Colors.black54),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -702,7 +709,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         }).toList();
         // log(transactions.length.toString());
         List<Transaction> transactionsToShow = showAllTransactions
-            ? filteredTransactions
+            ? filteredTransactions.take(10).toList()
             : filteredTransactions.take(3).toList();
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
@@ -792,162 +799,223 @@ class _HomePageState extends ConsumerState<HomePage> {
     String? amount;
     String? merchant;
     Category? selectedCategory;
-    String transactionType =
-        "Credit"; // Default transaction type set to "Credit"
+    String transactionType = "Credit"; // Default transaction type
+
+    // Declare the processing flag before calling the StatefulBuilder so it doesn't reset on rebuild.
+    bool isProcessing = false;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Consumer(builder: (context, ref, child) {
-          final asyncCategories =
-              ref.watch(categoryStreamProvider(emptyCategoryFilter));
-          // log(asyncCategories.toString());
-          return asyncCategories.when(
-            loading: () => AlertDialog(
-              title: Center(child: Text("Add transaction")),
-              content: SizedBox(
-                height: 80,
-                child: Center(child: CircularProgressIndicator()),
+        return Consumer(
+          builder: (context, ref, child) {
+            final asyncCategories =
+                ref.watch(categoryStreamProvider(emptyCategoryFilter));
+            return asyncCategories.when(
+              loading: () => AlertDialog(
+                title: Center(child: Text("Add transaction")),
+                content: SizedBox(
+                  height: 80,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
               ),
-            ),
-            error: (error, stack) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Category error: $error")),
-                );
-              });
-              return SizedBox.shrink();
-            },
-            data: (categories) {
-              // Wrap the entire AlertDialog in a StatefulBuilder so that
-              // any changes update both the content and the actions.
-              // log(categories.length.toString());
-              return StatefulBuilder(
-                builder: (context, setState) {
-                  bool isFormValid = amount != null &&
-                      amount!.trim().isNotEmpty &&
-                      merchant != null &&
-                      merchant!.trim().isNotEmpty &&
-                      selectedCategory != null;
-                  return AlertDialog(
-                    title: Center(child: Text("Add transaction")),
-                    content: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Radio buttons for transaction type
-                            Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Radio<String>(
-                                        value: "Credit",
-                                        groupValue: transactionType,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            transactionType = value!;
-                                          });
-                                        },
-                                      ),
-                                      Text("Credit"),
-                                    ],
-                                  ),
-                                  SizedBox(width: 40),
-                                  Row(
-                                    children: [
-                                      Radio<String>(
-                                        value: "Debit",
-                                        groupValue: transactionType,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            transactionType = value!;
-                                          });
-                                        },
-                                      ),
-                                      Text("Debit"),
-                                    ],
-                                  ),
-                                ],
+              error: (error, stack) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Category error: $error")),
+                  );
+                });
+                return SizedBox.shrink();
+              },
+              data: (categories) {
+                return StatefulBuilder(
+                  builder: (context, setState) {
+                    // Check if form is valid.
+                    bool isFormValid = amount != null &&
+                        amount!.trim().isNotEmpty &&
+                        merchant != null &&
+                        merchant!.trim().isNotEmpty &&
+                        selectedCategory != null;
+
+                    return AlertDialog(
+                      title: Center(child: Text("Add transaction")),
+                      content: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Transaction type radio buttons
+                              Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Radio<String>(
+                                          value: "Credit",
+                                          groupValue: transactionType,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              transactionType = value!;
+                                            });
+                                          },
+                                        ),
+                                        Text("Credit"),
+                                      ],
+                                    ),
+                                    SizedBox(width: 40),
+                                    Row(
+                                      children: [
+                                        Radio<String>(
+                                          value: "Debit",
+                                          groupValue: transactionType,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              transactionType = value!;
+                                            });
+                                          },
+                                        ),
+                                        Text("Debit"),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 16),
-                            // Amount input field
-                            TextFormField(
-                              decoration: InputDecoration(
-                                labelText: "Amount",
-                                prefixText: "₹",
+                              SizedBox(height: 16),
+                              // Amount input field
+                              TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: "Amount",
+                                  prefixText: "₹",
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  setState(() {
+                                    amount = value;
+                                  });
+                                },
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                setState(() {
-                                  amount = value;
-                                });
-                              },
-                            ),
-                            SizedBox(height: 16),
-                            // Merchant input field
-                            TextFormField(
-                              decoration: InputDecoration(
-                                labelText: "Merchant",
+                              SizedBox(height: 16),
+                              // Merchant input field
+                              TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: "Merchant",
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    merchant = value;
+                                  });
+                                },
                               ),
-                              onChanged: (value) {
-                                setState(() {
-                                  merchant = value;
-                                });
-                              },
-                            ),
-                            SizedBox(height: 16),
-                            // Dropdown for selecting a category
-                            DropdownButtonFormField<Category>(
-                              value: selectedCategory,
-                              decoration: InputDecoration(
-                                labelText: "Category",
+                              SizedBox(height: 16),
+                              // Category dropdown
+                              DropdownButtonFormField<Category>(
+                                value: selectedCategory,
+                                decoration: InputDecoration(
+                                  labelText: "Category",
+                                ),
+                                items: categories.map((cat) {
+                                  return DropdownMenuItem<Category>(
+                                    value: cat,
+                                    child: Text(cat.name),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedCategory = value;
+                                  });
+                                },
                               ),
-                              items: categories.map((cat) {
-                                return DropdownMenuItem<Category>(
-                                  value: cat,
-                                  child: Text(cat.name),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedCategory = value;
-                                });
-                              },
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text("Cancel"),
-                      ),
-                      TextButton(
-                        onPressed: isFormValid
-                            ? () async {
-                                // Create a filter for the merchant using the merchant name from input.
-                                final filter =
-                                    MerchantFilter(merchantName: merchant);
-                                try {
-                                  // Await the first snapshot from the merchant stream.
-                                  final merchants = await ref.read(
-                                      merchantStreamProvider(filter).future);
-                                  String merchantId;
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text("Cancel"),
+                        ),
+                        TextButton(
+                          onPressed: isFormValid && !isProcessing
+                              ? () async {
+                                  // Set the processing flag.
+                                  setState(() {
+                                    isProcessing = true;
+                                  });
+                                  final filter =
+                                      MerchantFilter(merchantName: merchant);
+                                  try {
+                                    // Check if the merchant exists.
+                                    final merchants = await ref.read(
+                                        merchantStreamProvider(filter).future);
+                                    String merchantId;
+                                    if (merchants.isNotEmpty) {
+                                      merchantId = merchants.first.merchantId;
+                                    } else {
+                                      // If not found, add a new merchant.
+                                      final merchantService =
+                                          ref.read(merchantServiceProvider);
+                                      if (merchantService == null) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content:
+                                                    Text("User not logged in")),
+                                          );
+                                        }
+                                        setState(() {
+                                          isProcessing = false;
+                                        });
+                                        return;
+                                      }
+                                      final newCloudMerchant = CloudMerchant(
+                                        merchantId:
+                                            "", // Auto-generated by Firestore.
+                                        name: merchant!,
+                                        userId: ref.read(userIdProvider) ?? "",
+                                        categoryId:
+                                            selectedCategory!.categoryId,
+                                      );
+                                      final insertedMerchant =
+                                          await merchantService
+                                              .insertMerchant(newCloudMerchant);
+                                      if (insertedMerchant == null) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    "Failed to add merchant.")),
+                                          );
+                                        }
+                                        setState(() {
+                                          isProcessing = false;
+                                        });
+                                        return;
+                                      }
+                                      merchantId = insertedMerchant.merchantId;
+                                    }
 
-                                  if (merchants.isNotEmpty) {
-                                    // Merchant exists, so use the merchantId from the first one.
-                                    merchantId = merchants.first.merchantId;
-                                  } else {
-                                    // Merchant not found. Insert a new merchant first.
-                                    final merchantService =
-                                        ref.read(merchantServiceProvider);
-                                    if (merchantService == null) {
+                                    // Create the transaction.
+                                    final newTransaction = Transaction(
+                                      transactionId: "",
+                                      amount: transactionType == "Credit"
+                                          ? double.parse(amount!)
+                                          : -1 * double.parse(amount!),
+                                      date: DateTime.now(),
+                                      merchantId: merchantId,
+                                      categoryId: selectedCategory!.categoryId,
+                                      userId: ref.read(userIdProvider) ?? "",
+                                      sms: "Manually added transaction",
+                                    );
+                                    final cloudTransaction =
+                                        CloudTransaction.fromTransaction(
+                                            newTransaction);
+                                    final transactionService =
+                                        ref.read(transactionServiceProvider);
+                                    if (transactionService == null) {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
@@ -956,104 +1024,68 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   Text("User not logged in")),
                                         );
                                       }
+                                      setState(() {
+                                        isProcessing = false;
+                                      });
                                       return;
                                     }
-                                    // Create a new CloudMerchant using the merchant name and the selected category.
-                                    final newCloudMerchant = CloudMerchant(
-                                      merchantId:
-                                          "", // Will be auto-generated by Firestore.
-                                      name: merchant!,
-                                      userId: ref.read(userIdProvider) ?? "",
-                                      categoryId: selectedCategory!.categoryId,
-                                      // Add any additional fields if needed.
-                                    );
-                                    final insertedMerchant =
-                                        await merchantService
-                                            .insertMerchant(newCloudMerchant);
-                                    if (insertedMerchant == null) {
+                                    final result = await transactionService
+                                        .insertTransaction(cloudTransaction);
+                                    if (result != null) {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           const SnackBar(
                                               content: Text(
-                                                  "Failed to add merchant.")),
+                                                  "Transaction added successfully!")),
+                                        );
+                                        Navigator.pop(context);
+                                      }
+                                    } else {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "Failed to add transaction.")),
                                         );
                                       }
-                                      return;
+                                      setState(() {
+                                        isProcessing = false;
+                                      });
                                     }
-                                    merchantId = insertedMerchant.merchantId;
-                                  }
-
-                                  // Now, create the transaction using the obtained merchantId.
-                                  final newTransaction = Transaction(
-                                    transactionId: "",
-                                    amount: transactionType == "Credit"
-                                        ? double.parse(amount!)
-                                        : -1 * double.parse(amount!),
-                                    date: DateTime.now(),
-                                    merchantId: merchantId,
-                                    categoryId: selectedCategory!.categoryId,
-                                    userId: ref.read(userIdProvider) ?? "",
-                                    sms: "Manually added transaction",
-                                  );
-                                  final cloudTransaction =
-                                      CloudTransaction.fromTransaction(
-                                          newTransaction);
-                                  final transactionService =
-                                      ref.read(transactionServiceProvider);
-                                  if (transactionService == null) {
+                                  } catch (error) {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
-                                        const SnackBar(
-                                            content:
-                                                Text("User not logged in")),
-                                      );
-                                    }
-                                    return;
-                                  }
-                                  final result = await transactionService
-                                      .insertTransaction(cloudTransaction);
-                                  if (result != null) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                             content: Text(
-                                                "Transaction added successfully!")),
-                                      );
-                                      Navigator.pop(context);
-                                    }
-                                  } else {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                "Failed to add transaction.")),
+                                                "Error loading merchant data: $error")),
                                       );
                                     }
-                                  }
-                                } catch (error) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(
-                                              "Error loading merchant data: $error")),
-                                    );
+                                    setState(() {
+                                      isProcessing = false;
+                                    });
                                   }
                                 }
-                              }
-                            : null,
-                        child: Text("Confirm"),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          );
-        });
+                              : null,
+                          child: isProcessing
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text("Confirm"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
       },
     );
   }
@@ -1133,30 +1165,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                         ),
                       ],
                     ),
-                    // Text(
-                    //   "₹${transaction.amount.abs()}",
-                    //   style: TextStyle(
-                    //     fontSize: 14,
-                    //     fontWeight: FontWeight.bold,
-                    //     color:
-                    //         transaction.amount < 0 ? Colors.red : Colors.green,
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
-              // if (expandedTransactionIndex == index)
-              //   Padding(
-              //     padding:
-              //         const EdgeInsets.only(left: 50, right: 10, bottom: 8),
-              //     child: Align(
-              //       alignment: Alignment.centerLeft,
-              //       child: Text(
-              //         "Date: ${DateFormat('dd MMM yyyy').format(DateTime.now())}\nCategory: Groceries",
-              //         style: TextStyle(fontSize: 12, color: Colors.black54),
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         );
@@ -1338,150 +1349,846 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  // Widget _buildScheduledPayments() {
-  //   final asyncScheduledPayments = ref.watch(scheduleStreamProvider);
+  Widget _buildScheduledPayments() {
+    // If not expanded, only show top 3
+    final now = DateTime.now();
 
-  //   return asyncScheduledPayments.when(
-  //       loading: () => const CircularProgressIndicator(),
-  //       error: (error, stack) {
-  //         WidgetsBinding.instance.addPostFrameCallback((_) {
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(content: Text("Schedule error: $error")),
-  //           );
-  //         });
-  //         return SizedBox.shrink();
-  //       },
-  //       data: (payments) {
-  //         List<Schedule> paymentsToShow =
-  //             showAllScheduledPayments ? payments : payments.take(3).toList();
+    final todayMidnight =
+        DateTime(now.year, now.month, now.day).subtract(Duration(days: 1));
+    final filter = ScheduleFilter(startDate: todayMidnight);
+    final asyncSchedules =
+        ref.watch(scheduleStreamProvider(filter)); // Fetch scheduled payments
 
-  //         return Container(
-  //           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-  //           decoration: BoxDecoration(
-  //             gradient: LinearGradient(
-  //               colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
-  //               stops: [0.0, 0.5, 1.0],
-  //               begin: Alignment.centerLeft,
-  //               end: Alignment.centerRight,
-  //             ),
-  //             borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-  //           ),
-  //           child: Card(
-  //             shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(20)),
-  //             color: Color(0xFFEDE7F6),
-  //             elevation: 0,
-  //             child: Padding(
-  //               padding: const EdgeInsets.all(12),
-  //               child: Column(
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: [
-  //                   // Header row
-  //                   Row(
-  //                     children: [
-  //                       Text(
-  //                         "Scheduled Payments",
-  //                         style: TextStyle(
-  //                             fontSize: 16, fontWeight: FontWeight.bold),
-  //                       ),
-  //                       Spacer(),
-  //                       IconButton(
-  //                         icon:
-  //                             Icon(Icons.add, size: 22, color: Colors.black54),
-  //                         onPressed: () {
-  //                           // TODO: Handle "Add Scheduled Payment"
-  //                         },
-  //                       ),
-  //                       IconButton(
-  //                         icon: Icon(
-  //                           showAllScheduledPayments
-  //                               ? Icons.expand_less
-  //                               : Icons.expand_more,
-  //                           size: 22,
-  //                           color: Colors.black54,
-  //                         ),
-  //                         onPressed: () {
-  //                           setState(() {
-  //                             showAllScheduledPayments =
-  //                                 !showAllScheduledPayments;
-  //                           });
-  //                         },
-  //                       ),
-  //                     ],
-  //                   ),
-  //                   SizedBox(height: 10),
+    return asyncSchedules.when(
+        loading: () => const CircularProgressIndicator(),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Scheduled Payment error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (payments) {
+          List<Schedule> paymentsToShow =
+              showAllScheduledPayments ? payments : payments.take(3).toList();
 
-  //                   // If empty
-  //                   payments.isEmpty
-  //                       ? Center(
-  //                           child: Text(
-  //                             "No Scheduled Payments Yet",
-  //                             style: TextStyle(
-  //                               fontSize: 16,
-  //                               fontWeight: FontWeight.bold,
-  //                               color: Colors.black54,
-  //                             ),
-  //                           ),
-  //                         )
-  //                       : Column(
-  //                           children:
-  //                               paymentsToShow.asMap().entries.map((entry) {
-  //                             return Column(
-  //                               children: [
-  //                                 _buildScheduledPaymentTile(entry.value),
-  //                                 if (entry.key < paymentsToShow.length - 1)
-  //                                   Divider(color: Colors.grey[300]),
-  //                               ],
-  //                             );
-  //                           }).toList(),
-  //                         ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         );
-  //       });
-  // }
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+                stops: [0.0, 0.5, 1.0],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              color: Color(0xFFEDE7F6),
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Row(
+                      children: [
+                        Text(
+                          "Scheduled Payments",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon:
+                              Icon(Icons.add, size: 22, color: Colors.black54),
+                          onPressed: () {
+                            showAddScheduledPaymentDialog(context);
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            showAllScheduledPayments
+                                ? Icons.expand_less
+                                : Icons.expand_more,
+                            size: 22,
+                            color: Colors.black54,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              showAllScheduledPayments =
+                                  !showAllScheduledPayments;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
 
-  // Widget _buildScheduledPaymentTile(ScheduledPayment payment) {
-  //   return InkWell(
-  //     onTap: () {
-  //       // TODO: Implement onTap logic for scheduled payment
-  //       // For example, open payment details or show a dialog.
-  //     },
-  //     child: Padding(
-  //       padding: const EdgeInsets.symmetric(vertical: 5),
-  //       child: Row(
-  //         children: [
-  //           // Circle avatar with first letter
-  //           CircleAvatar(
-  //             backgroundColor: Colors.purple[100],
-  //             child: Text(
-  //               payment.name[0],
-  //               style: TextStyle(
-  //                   fontWeight: FontWeight.bold, color: Colors.purple),
-  //             ),
-  //           ),
-  //           SizedBox(width: 12),
-  //           Expanded(
-  //             child: Text(
-  //               payment.name,
-  //               style: TextStyle(fontSize: 14, color: Colors.black87),
-  //             ),
-  //           ),
-  //           Text(
-  //             "₹${payment.amount.toStringAsFixed(0)}",
-  //             style: TextStyle(
-  //               fontSize: 14,
-  //               fontWeight: FontWeight.bold,
-  //               color: Colors.red,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
+                    // If empty
+                    payments.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No Scheduled Payments Yet",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          )
+                        : Column(
+                            children:
+                                paymentsToShow.asMap().entries.map((entry) {
+                              return Column(
+                                children: [
+                                  _buildScheduledPaymentTile(entry.value),
+                                  if (entry.key < paymentsToShow.length - 1)
+                                    Divider(color: Colors.grey[300]),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  void showAddScheduledPaymentDialog(BuildContext context) {
+    final _nameController = TextEditingController();
+    final _amountController = TextEditingController();
+    final _descriptionController = TextEditingController();
+    DateTime? selectedDate;
+    bool isProcessing = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text('Add Scheduled Payment'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(labelText: 'Name'),
+                    ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'Amount (₹)'),
+                    ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(labelText: 'Description'),
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            selectedDate == null
+                                ? 'No Date Chosen'
+                                : '${selectedDate!.toLocal()}'.split(' ')[0],
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.calendar_today),
+                          onPressed: () async {
+                            final pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  DateTime.now().add(Duration(days: 1)),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2100),
+                            );
+                            if (pickedDate != null) {
+                              setState(() {
+                                selectedDate = pickedDate;
+                              });
+                            }
+                          },
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                ElevatedButton(
+                  onPressed: isProcessing
+                      ? null
+                      : () async {
+                          final name = _nameController.text.trim();
+                          final amount = _amountController.text.trim();
+                          final description =
+                              _descriptionController.text.trim();
+
+                          if (name.isEmpty ||
+                              amount.isEmpty ||
+                              description.isEmpty ||
+                              selectedDate == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Please fill all fields")),
+                            );
+                            return;
+                          }
+
+                          final now = DateTime.now();
+                          if (selectedDate!.isBefore(
+                              DateTime(now.year, now.month, now.day)
+                                  .subtract(Duration(days: 1)))) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text("Please select a future date")),
+                            );
+                            return;
+                          }
+
+                          final userId = ref.read(userIdProvider);
+                          if (userId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("User not logged in")),
+                            );
+                            return;
+                          }
+
+                          setState(() {
+                            isProcessing = true;
+                          });
+
+                          final schedule = Schedule(
+                            merchantName: name,
+                            amount: double.parse(amount),
+                            description: description,
+                            date: selectedDate!,
+                            userId: userId,
+                            scheduleId: "",
+                            paid: false,
+                          );
+
+                          final scheduleService =
+                              ref.read(scheduleServiceProvider);
+                          if (scheduleService == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("User not logged in")),
+                            );
+                            setState(() => isProcessing = false);
+                            return;
+                          }
+
+                          try {
+                            await scheduleService.insertSchedule(
+                              CloudSchedule.fromSchedule(schedule),
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text("Scheduled payment added.")),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Error: $e")),
+                              );
+                            }
+                            setState(() => isProcessing = false);
+                          }
+                        },
+                  child: isProcessing
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+// Single Scheduled Payment tile
+  Widget _buildScheduledPaymentTile(Schedule payment) {
+    return InkWell(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text('Scheduled Payment Details'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text("Name: ",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Expanded(child: Text(payment.merchantName)),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text("Amount: ",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: Text("₹${payment.amount.toStringAsFixed(0)}")),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text("Description: ",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Expanded(child: Text(payment.description)),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text("Scheduled Date: ",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: Text(
+                          "${DateFormat("MMM dd, yyyy").format(payment.date.toLocal())}, 23:59",
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Close"),
+                ),
+                TextButton(
+                  onPressed: payment.paid
+                      ? null
+                      : () {
+                          // Mark as paid
+                          final newSchedule = Schedule(
+                            scheduleId: payment.scheduleId,
+                            userId: payment.userId,
+                            amount: payment.amount,
+                            merchantName: payment.merchantName,
+                            date: payment.date,
+                            description: payment.description,
+                            paid: true,
+                          );
+                          final scheduleService =
+                              ref.read(scheduleServiceProvider);
+                          if (scheduleService == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("User not logged in")),
+                            );
+                            return;
+                          } else {
+                            scheduleService.updateSchedule(
+                                CloudSchedule.fromSchedule(newSchedule));
+                          }
+
+                          Navigator.pop(context);
+                        },
+                  child: Text("Mark as Paid"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.purple[100],
+              child: Text(
+                payment.merchantName.isNotEmpty
+                    ? payment.merchantName[0].toUpperCase()
+                    : "?",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                payment.merchantName,
+                style: TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+            ),
+            // Display due date above amount using a Column.
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  "Due: ${DateFormat("MMM dd, yyyy").format(payment.date.toLocal())}, 23:59",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                Text(
+                  "₹${payment.amount.toStringAsFixed(0)}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: payment.paid ? Colors.green : Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _loadContacts() async {
+    final status = await Permission.contacts.request();
+    if (status.isGranted) {
+      log("Permission granted. Fetching contacts...");
+      try {
+        // This calls your platform method to fetch contacts.
+        const platform = MethodChannel('com.example.contacts/fetch');
+        final List<dynamic> contactDetails =
+            await platform.invokeMethod('getContacts');
+        log("Contacts fetched successfully: ${contactDetails.length} contacts found.");
+
+        // Use a temporary map to remove duplicates (keyed by a unique field, e.g. phone number).
+        final Map<String, Map<String, String>> tempMap = {};
+
+        for (var contact in contactDetails) {
+          // Extract the name and phone number from each contact.
+          final String name = (contact['name'] as String?)?.trim() ?? "Unknown";
+          final String phone =
+              (contact['phone'] as String?)?.trim().replaceAll(' ', '') ?? "";
+          if (name.isNotEmpty && phone.isNotEmpty) {
+            tempMap[phone] = {"name": name, "phone": phone};
+          }
+        }
+
+        // Convert the deduplicated map values to a list and sort it by name.
+        List<Map<String, String>> contactList = tempMap.values.toList();
+        contactList.sort((a, b) =>
+            a["name"]!.toLowerCase().compareTo(b["name"]!.toLowerCase()));
+
+        // Use setState to update contacts and ensure the UI rebuilds.
+        if (mounted) {
+          setState(() {
+            contacts = contactList;
+          });
+        }
+      } on PlatformException catch (e) {
+        log("Failed to fetch contacts: ${e.message}");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to fetch contacts: ${e.message}")),
+          );
+        }
+      }
+    } else {
+      log("Permission denied.");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Contacts permission denied")),
+        );
+      }
+    }
+  }
+
+  Widget _buildSplits() {
+    // Fetch the dummy values from MockBackend
+
+    final filter = SplitTransactionFilter();
+    final asyncSplitTransactions =
+        ref.watch(splitTransactionStreamProvider(filter));
+    final asyncMetaData =
+        ref.watch(userMetadataStreamProvider); // Get user metadata
+
+    return asyncMetaData.when(
+        loading: () => const CircularProgressIndicator(),
+        error: (error, stack) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Split Transaction error: $error")),
+            );
+          });
+          return SizedBox.shrink();
+        },
+        data: (metadata) {
+          return asyncSplitTransactions.when(
+              loading: () => const CircularProgressIndicator(),
+              error: (error, stack) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Split Transaction error: $error")),
+                  );
+                });
+                return SizedBox.shrink();
+              },
+              data: (splits) {
+                // double totalBalance = ;
+                // double youOwe = ;
+                // double youAreOwed = ;
+                double borrowed = 0, lent = 0;
+                var splitUsers = {};
+                var splitUsersNames = {};
+                for (var transaction in splits) {
+                  // log(transaction.toString());
+                  for (var entry in transaction.splitAmounts.entries) {
+                    final user = entry.key;
+                    final amount = entry.value;
+
+                    if (transaction.isPayment) {
+                      // log('sad');
+                      if (user == metadata["phone"]) {
+                        continue;
+                      }
+                      // log(transaction.toString());
+                      if (!splitUsers.containsKey(user)) {
+                        splitUsers[user] = 0.0;
+                        splitUsersNames[user] = contacts.firstWhere(
+                            (contact) => contact["phone"] == user, orElse: () {
+                          return {"name": user};
+                        })["name"];
+                      }
+                      if (transaction.userPhone == metadata["phone"]) {
+                        // log("wowpw");
+                        splitUsers[user] = splitUsers[user] + amount;
+                      } else {
+                        splitUsers[user] = splitUsers[user] -
+                            transaction.splitAmounts[metadata["phone"]];
+                      }
+                    } else {
+                      // continue;
+                      if (transaction.userPhone == metadata["phone"]) {
+                        if (user == metadata["phone"]) continue;
+                        if (!splitUsers.containsKey(user)) {
+                          if (entry.key == metadata["phone"]) continue;
+                          splitUsers[user] = 0.0;
+                          splitUsersNames[user] = contacts
+                              .firstWhere((contact) => contact["phone"] == user,
+                                  orElse: () {
+                            return {"name": user};
+                          })["name"];
+                        }
+                        splitUsers[user] = splitUsers[user] + amount;
+                      } else if (transaction.userPhone == user) {
+                        if (!splitUsers.containsKey(user)) {
+                          if (entry.key == metadata["phone"]) continue;
+                          splitUsers[user] = 0.0;
+                          splitUsersNames[user] = contacts
+                              .firstWhere((contact) => contact["phone"] == user,
+                                  orElse: () {
+                            return {"name": user};
+                          })["name"];
+                        }
+                        splitUsers[user] = splitUsers[user] -
+                            transaction.splitAmounts[metadata["phone"]];
+                      }
+                    }
+                  }
+                }
+
+                //remove yourself
+                splitUsers.remove(metadata["phone"]);
+
+                for (var entry in splitUsers.entries) {
+                  final amount = entry.value;
+                  if (amount < 0) {
+                    borrowed += amount.abs();
+                  } else {
+                    lent += amount;
+                  }
+                }
+                // Show top 3 splits by default
+
+                final splitUsersList = splitUsers.entries.map(
+                  (entry) {
+                    return {
+                      "name": splitUsersNames[entry.key],
+                      "phone": entry.key,
+                      "amount": entry.value
+                    };
+                  },
+                ).toList();
+
+                List<Map<String, dynamic>> splitsToShow = showAllSplits
+                    ? splitUsersList.take(10).toList()
+                    : splitUsersList.take(3).toList();
+
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Color(0xFFF3E5F5), Colors.white],
+                      stops: [0.0, 0.5, 1.0],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius:
+                        BorderRadius.vertical(bottom: Radius.circular(30)),
+                  ),
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    color: Color(0xFFEDE7F6),
+                    elevation: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// **Header Row** (Title, Add, Expand/Collapse)
+                          Row(
+                            children: [
+                              Text(
+                                "Splits",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              Spacer(),
+                              IconButton(
+                                icon: Icon(Icons.add,
+                                    size: 22, color: Colors.black54),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            ChooseTransactionPage()),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  showAllSplits
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                  size: 22,
+                                  color: Colors.black54,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    showAllSplits = !showAllSplits;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+
+                          /// **Three summary "tiles"** in the same style as transactions
+                          ///
+                          _buildSplitSummaryTile(
+                            "Total Balance",
+                            (borrowed - lent) > 0
+                                ? borrowed - lent
+                                : lent - borrowed,
+                            borrowed == lent
+                                ? Colors.black
+                                : borrowed < lent
+                                    ? Colors.green[800]!
+                                    : Colors.red[800]!,
+                          ),
+                          _buildSplitSummaryTile(
+                              "You owe", borrowed, Colors.red[800]!),
+                          _buildSplitSummaryTile(
+                              "You are owed", lent, Colors.green[800]!),
+
+                          // Divider below summaries
+                          Divider(color: Colors.grey[300], height: 20),
+
+                          // If no splits, show message
+                          if (splitUsers.isEmpty)
+                            Center(
+                              child: Text(
+                                "No Splits Yet",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            )
+                          else
+                            // Otherwise, show the split items
+                            Column(
+                              children:
+                                  splitsToShow.asMap().entries.map((entry) {
+                                return Column(
+                                  children: [
+                                    _buildSplitTile(entry.value),
+                                    if (entry.key < splitsToShow.length - 1)
+                                      Divider(color: Colors.grey[300]),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              });
+        });
+  }
+
+  Widget _buildSplitSummaryTile(String label, double amount, Color color) {
+    Color amountColor = color;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          // CircleAvatar(
+          //   backgroundColor: Colors.purple[100],
+          //   child: Text(
+          //     label[0].toUpperCase(), // e.g. 'T' for "Total", 'Y' for "You owe"
+          //     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple),
+          //   ),
+          // ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+          Text(
+            "₹${amount.abs().toStringAsFixed(0)}", // abs() to remove minus sign
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: amountColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSplitTile(Map<dynamic, dynamic> split) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            // builder: (context) => HomePage(),
+            builder: (context) => SplitHistoryPage(split: split),
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.purple[100],
+                  child: Text(
+                    split["name"][0].toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        split["name"],
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Wrap the lending/borrowing information in a column.
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      split["amount"] < 0
+                          ? "You borrowed"
+                          : split["amount"] == 0
+                              ? "Settled"
+                              : "You lent",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: split["amount"] < 0
+                            ? Colors.red
+                            : split["amount"] == 0
+                                ? Colors.black
+                                : Colors.green,
+                      ),
+                    ),
+                    Text(
+                      "₹${split["amount"].abs().toStringAsFixed(2)}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: split["amount"] < 0
+                            ? Colors.red
+                            : split["amount"] == 0
+                                ? Colors.black
+                                : Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    SmsHandler.saveAppCloseTime(
+        DateTime.now()); // Save the app's close time when the app is closed
+    super.dispose();
+  }
 }
 
 class ArcPainter extends CustomPainter {
