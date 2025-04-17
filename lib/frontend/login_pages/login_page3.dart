@@ -29,6 +29,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
   bool _isNameValid = true;
   bool _isPhoneValid = true;
   bool _isBudgetValid = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -38,7 +39,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
     super.dispose();
   }
 
-  void _validateAndProceed() async {
+  Future<void> _validateAndProceed() async {
     setState(() {
       _isNameValid = _nameController.text.isNotEmpty;
       _isPhoneValid = phoneNumber != null && phoneNumber!.number.trim().isNotEmpty;
@@ -244,20 +245,35 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                   ),
 
                   // Confirm Button
-                  SizedBox(
-                    width: 150,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _validateAndProceed,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF65558F),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Text("Confirm", style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
+                  // Confirm Button
+SizedBox(
+  width: 150,
+  height: 50,
+  child: ElevatedButton(
+    onPressed: _isLoading ? null : () async {
+      setState(() => _isLoading = true);
+      await _validateAndProceed();
+      setState(() => _isLoading = false);
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF65558F),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+    ),
+    child: _isLoading
+        ? const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 2.5,
+            ),
+          )
+        : const Text("Confirm", style: TextStyle(color: Colors.white)),
+  ),
+),
+
                 ],
               ),
             ],
