@@ -1,0 +1,2 @@
+/Users/aujasvit/Desktop/brokeo/android/app/.cxx/RelWithDebInfo/3u5g3k2v/x86_64/CMakeFiles/edit_cache.dir
+/Users/aujasvit/Desktop/brokeo/android/app/.cxx/RelWithDebInfo/3u5g3k2v/x86_64/CMakeFiles/rebuild_cache.dir
