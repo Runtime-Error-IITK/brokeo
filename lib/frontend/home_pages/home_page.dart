@@ -1932,8 +1932,21 @@ class _HomePageState extends ConsumerState<HomePage> {
                   }
                 }
                 // Show top 3 splits by default
-                List<SplitTransaction> splitsToShow =
-                    showAllSplits ? splits : splits.take(3).toList();
+
+                final splitUsersList = splitUsers.entries.map(
+                  (entry) {
+                    return {
+                      "name": splitUsersNames[entry.key],
+                      "phone": entry.key,
+                      "amount": entry.value
+                    };
+                  },
+                ).toList();
+
+                List<Map<String, dynamic>> splitsToShow = showAllSplits
+                    ? splitUsersList.take(10).toList()
+                    : splitUsersList.take(3).toList();
+
                 return Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
@@ -2016,7 +2029,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           Divider(color: Colors.grey[300], height: 20),
 
                           // If no splits, show message
-                          if (splits.isEmpty)
+                          if (splitUsers.isEmpty)
                             Center(
                               child: Text(
                                 "No Splits Yet",
