@@ -1,6 +1,7 @@
 import 'dart:developer' show log;
 
-import 'package:brokeo/backend/models/category.dart' show Category, CloudCategory;
+import 'package:brokeo/backend/models/category.dart'
+    show Category, CloudCategory;
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart';
 import 'package:brokeo/backend/services/providers/write_providers/category_service.dart';
 import 'package:brokeo/backend/services/providers/write_providers/user_metadata_service.dart';
@@ -41,7 +42,8 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
   void _validateAndProceed() async {
     setState(() {
       _isNameValid = _nameController.text.isNotEmpty;
-      _isPhoneValid = phoneNumber != null && phoneNumber!.number.trim().isNotEmpty;
+      _isPhoneValid =
+          phoneNumber != null && phoneNumber!.number.trim().isNotEmpty;
       _isBudgetValid = _budgetController.text.isNotEmpty;
     });
 
@@ -52,13 +54,15 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
         'phone': phoneNumber!.completeNumber,
         'budget': double.parse(_budgetController.text),
       };
-      ref.read(userMetadataServiceProvider)
-         ?.insertUserMetadata(metadata: metadata);
+      ref
+          .read(userMetadataServiceProvider)
+          ?.insertUserMetadata(metadata: metadata);
 
       // Navigate
-      Navigator.push(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => MainScreen()),
+        (route) => false,
       );
 
       // Update "Others" default category with budget
@@ -100,15 +104,18 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
       contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: isValid ? Colors.grey : Colors.red, width: 2),
+        borderSide:
+            BorderSide(color: isValid ? Colors.grey : Colors.red, width: 2),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: isValid ? Colors.grey : Colors.red, width: 2),
+        borderSide:
+            BorderSide(color: isValid ? Colors.grey : Colors.red, width: 2),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: isValid ? Colors.blue : Colors.red, width: 2),
+        borderSide:
+            BorderSide(color: isValid ? Colors.blue : Colors.red, width: 2),
       ),
     );
   }
@@ -155,7 +162,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black,           // <-- now pure black
+                    color: Colors.black, // <-- now pure black
                   ),
                   decoration: _inputDecoration("Name", _isNameValid),
                 ),
@@ -166,34 +173,38 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: IntlPhoneField(
-                  controller: _phoneController,    // <-- added
+                  controller: _phoneController, // <-- added
                   showCountryFlag: false,
                   initialCountryCode: 'IN',
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 16),
                     hintText: 'Enter Phone Number',
                     border: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: _isPhoneValid ? Colors.grey : Colors.red, width: 2),
+                          color: _isPhoneValid ? Colors.grey : Colors.red,
+                          width: 2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: _isPhoneValid ? Colors.grey : Colors.red, width: 2),
+                          color: _isPhoneValid ? Colors.grey : Colors.red,
+                          width: 2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                          color: _isPhoneValid ? Colors.blue : Colors.red, width: 2),
+                          color: _isPhoneValid ? Colors.blue : Colors.red,
+                          width: 2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black,           // <-- pure black
+                    color: Colors.black, // <-- pure black
                   ),
                   dropdownTextStyle: const TextStyle(
                     fontSize: 18,
@@ -216,7 +227,7 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black,           // <-- pure black
+                    color: Colors.black, // <-- pure black
                   ),
                   decoration: _inputDecoration("Budget", _isBudgetValid),
                 ),
@@ -239,7 +250,8 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      child: const Text("Cancel", style: TextStyle(color: Colors.white)),
+                      child: const Text("Cancel",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
 
@@ -255,7 +267,8 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      child: const Text("Confirm", style: TextStyle(color: Colors.white)),
+                      child: const Text("Confirm",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
