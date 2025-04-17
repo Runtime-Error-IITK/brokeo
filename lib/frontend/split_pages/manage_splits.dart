@@ -161,9 +161,13 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
               for (var entry in transaction.splitAmounts.entries) {
                 final user = entry.key;
                 final amount = entry.value;
-                if (user == userMetadata["phone"]) continue;
+
                 if (transaction.isPayment) {
                   // log('sad');
+                  if (user == userMetadata["phone"]) {
+                    continue;
+                  }
+                  // log(transaction.toString());
                   if (!splitUsers.containsKey(user)) {
                     splitUsers[user] = 0.0;
                     splitUsersNames[user] = contacts.firstWhere(
@@ -175,10 +179,13 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                     // log("wowpw");
                     splitUsers[user] = splitUsers[user] + amount;
                   } else {
-                    splitUsers[user] = splitUsers[user] - amount;
+                    splitUsers[user] = splitUsers[user] -
+                        transaction.splitAmounts[userMetadata["phone"]];
                   }
                 } else {
+                  // continue;
                   if (transaction.userPhone == userMetadata["phone"]) {
+                    if (user == userMetadata["phone"]) continue;
                     if (!splitUsers.containsKey(user)) {
                       if (entry.key == userMetadata["phone"]) continue;
                       splitUsers[user] = 0.0;
@@ -202,6 +209,9 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                 }
               }
             }
+
+            //remove yourself
+            splitUsers.remove(userMetadata["phone"]);
 
             // Calculate the total borrowed and lent amounts
             for (var entry in splitUsers.entries) {
