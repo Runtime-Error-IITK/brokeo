@@ -126,7 +126,7 @@ class SmsHandler {
         transactionId: "",
         amount: amount,
         date: DateTime.now(),
-        merchantId: merchants.first.userId,
+        merchantId: merchants.first.merchantId,
         categoryId: categories.first.categoryId,
         userId: userId,
       );
