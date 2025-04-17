@@ -291,56 +291,93 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
         });
   }
 
-  void _showDeleteConfirmationDialog(
-      WidgetRef ref, BuildContext context, Transaction transaction) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Delete Transaction"),
-          content: Text("Are you sure you want to delete this transaction?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () async {
-                final transactionService = ref.read(transactionServiceProvider);
-                if (transactionService == null) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("User not logged in")),
-                    );
-                  }
-                  return;
-                }
-                final success = await transactionService.deleteTransaction(
-                    transactionId: transaction.transactionId);
-                if (success) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text("Transaction deleted successfully!")),
-                    );
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  }
-                } else {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Failed to delete transaction.")),
-                    );
-                  }
-                }
-              },
-              child: Text("Delete", style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
+void _showDeleteConfirmationDialog(
+    WidgetRef ref, BuildContext context, Transaction transaction) {
+  bool isProcessing = false;
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text("Delete Transaction"),
+            content: Text("Are you sure you want to delete this transaction?"),
+            actions: [
+              TextButton(
+                onPressed: isProcessing
+                    ? null
+                    : () => Navigator.pop(context),
+                child: Text("Cancel"),
+              ),
+              // Delete button / loader
+              SizedBox(
+                height: 36,
+                child: isProcessing
+                    ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : TextButton(
+                        onPressed: () async {
+                          setState(() => isProcessing = true);
+
+                          final transactionService =
+                              ref.read(transactionServiceProvider);
+                          if (transactionService == null) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("User not logged in")),
+                              );
+                            }
+                            setState(() => isProcessing = false);
+                            return;
+                          }
+
+                          final success = await transactionService
+                              .deleteTransaction(
+                                  transactionId:
+                                      transaction.transactionId);
+
+                          if (success) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        "Transaction deleted successfully!")),
+                              );
+                              // Close both dialogs/pages as before
+                              Navigator.pop(context); // close AlertDialog
+                              Navigator.pop(context); // pop back
+                            }
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        "Failed to delete transaction.")),
+                              );
+                            }
+                            setState(() => isProcessing = false);
+                          }
+                        },
+                        child: Text(
+                          "Delete",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 
   String _convertNumberToWords(int number) {
     if (number == 0) return "Zero";
