@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/models/category.dart'
     show Category, CloudCategory;
 import 'package:brokeo/backend/services/providers/read_providers/category_stream_provider.dart';
@@ -52,21 +54,23 @@ class LoginPage3State extends ConsumerState<LoginPage3> {
         ),
       );
 
-      // final categoryFilter = CategoryFilter(categoryName: "Others");
-      // final category =
-      //     await ref.read(categoryStreamProvider(categoryFilter).future);
-      // if (category.isNotEmpty) {
-      //   final oldCategory = category[0];
-      //   final newCategory = Category(
-      //     name: oldCategory.name,
-      //     budget: double.parse(_budgetController.text),
-      //     categoryId: oldCategory.categoryId,
-      //     userId: oldCategory.userId,
-      //   );
-      //   ref
-      //       .read(categoryServiceProvider)!
-      //       .updateCloudCategory(CloudCategory.fromCategory(newCategory));
-      // }
+      final categoryFilter = CategoryFilter(categoryName: "Others");
+      final categoryService = ref.read(categoryServiceProvider);
+      final category =
+          await ref.read(categoryStreamProvider(categoryFilter).future);
+      log("im here");
+      log(category.toString());
+      if (category.isNotEmpty) {
+        final oldCategory = category[0];
+        final newCategory = Category(
+          name: oldCategory.name,
+          budget: double.parse(_budgetController.text),
+          categoryId: oldCategory.categoryId,
+          userId: oldCategory.userId,
+        );
+        categoryService
+            ?.updateCloudCategory(CloudCategory.fromCategory(newCategory));
+      }
     }
   }
 
