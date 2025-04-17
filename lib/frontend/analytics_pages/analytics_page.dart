@@ -1,3 +1,5 @@
+import 'dart:developer' show log;
+
 import 'package:brokeo/backend/models/transaction.dart' show Transaction;
 import 'package:brokeo/backend/services/providers/read_providers/transaction_stream_provider.dart'
     show TransactionFilter, transactionStreamProvider;
@@ -20,29 +22,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
   int _currentIndex = 2;
   String _selectedFilter = 'Daily';
   final List<String> _filters = ['Daily', 'Weekly', 'Monthly'];
-
-  // Mock data for demonstration
-  // final Map<String, Map<String, dynamic>> _data = {
-  //   'Daily': {
-  //     'spends': [1200, 800, 1500, 900, 1300, 700, 1000],
-  //     'received': [500, 1200, 800, 600, 900, 1300, 700],
-  //     'dates': List.generate(
-  //         7, (i) => DateTime.now().subtract(Duration(days: 6 - i))),
-  //   },
-  //   'Weekly': {
-  //     'spends': [4500, 5200, 4800, 5100, 4900, 5300, 5000],
-  //     'received': [3800, 4200, 4000, 4100, 3900, 4300, 4100],
-  //     'dates': List.generate(
-  //         7, (i) => DateTime.now().subtract(Duration(days: (6 - i) * 7))),
-  //   },
-  //   'Monthly': {
-  //     'spends': [18000, 19500, 21000, 18500, 20000, 19000, 20500],
-  //     'received': [16500, 17500, 18500, 17000, 18000, 17500, 19000],
-  //     'dates': List.generate(7,
-  //         (i) => DateTime(DateTime.now().year, DateTime.now().month - (6 - i))),
-  //   },
-  // };
-
   @override
   Widget build(BuildContext context) {
     final filter = createRecentTransactionFilter();
@@ -182,14 +161,14 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         final range =
             '${DateFormat('dd').format(start)}-${DateFormat('dd').format(end)}';
         return startMonth == endMonth
-            ? '$range\n$startMonth'
-            : '$range\n$startMonth/$endMonth';
+            ? '$range $startMonth'
+            : '$range $startMonth/$endMonth';
       });
     } else {
       return dates.map((d) {
         final day = DateFormat('dd').format(d);
         final month = DateFormat("MMM'yy").format(d);
-        return '$day\n$month';
+        return '$day $month';
       }).toList();
     }
   }
@@ -255,7 +234,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
   void _exportToCSV(Map<String, dynamic> data, List<DateTime> dates) async {
     final csvData = StringBuffer();
     csvData.writeln('Date,Spent,Received');
-
     for (int i = 0; i < dates.length; i++) {
       csvData.writeln('${_generateLabels([dates[i]]).first},'
           '${data['spends']![i]},'
