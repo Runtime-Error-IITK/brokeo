@@ -412,10 +412,10 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      split["amount"] < 0 ? "You borrowed" : "You lent",
+                      split["amount"] < 0 ? "You borrowed" : split["amount"] == 0 ? "Settled" : "You lent",
                       style: TextStyle(
                         fontSize: 12,
-                        color: split["amount"] < 0 ? Colors.red : Colors.green,
+                        color: split["amount"] < 0 ? Colors.red  : split["amount"] == 0 ? Colors.black : Colors.green,
                       ),
                     ),
                     Text(
@@ -423,7 +423,7 @@ class _ManageSplitsPageState extends ConsumerState<ManageSplitsPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: split["amount"] < 0 ? Colors.red : Colors.green,
+                       color: split["amount"] < 0 ? Colors.red  : split["amount"] == 0 ? Colors.black : Colors.green,
                       ),
                     ),
                   ],
