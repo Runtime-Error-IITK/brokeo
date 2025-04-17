@@ -1346,7 +1346,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildScheduledPayments() {
     // If not expanded, only show top 3
     final now = DateTime.now();
-    final todayMidnight = DateTime(now.year, now.month, now.day);
+
+    final todayMidnight =
+        DateTime(now.year, now.month, now.day).subtract(Duration(days: 1));
     final filter = ScheduleFilter(startDate: todayMidnight);
     final asyncSchedules =
         ref.watch(scheduleStreamProvider(filter)); // Fetch scheduled payments
