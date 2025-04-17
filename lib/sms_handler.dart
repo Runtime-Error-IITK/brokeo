@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' show log;
+
 import 'package:brokeo/backend/models/category.dart' show Category;
 import 'package:brokeo/backend/models/merchant.dart' show Merchant;
 import 'package:brokeo/backend/models/transaction.dart';
@@ -12,74 +14,118 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-String toTitleCase(String input) {
-  if (input.trim().isEmpty) return input;
-  return input.split(' ').map((word) {
-    if (word.isEmpty) return word;
-    final lower = word.toLowerCase();
-    return lower[0].toUpperCase() + lower.substring(1);
-  }).join(' ');
-}
-
 class SmsHandler {
   static const platform = MethodChannel('sms_platform');
 
-  // Function to call the FastAPI endpoint and pass a string (user message)
   static Future<void> fetchTransactionData(String userMessage) async {
-    log("User message: $userMessage"); // Print the user message for debugging
+    log("User message: $userMessage");
+
     final url = Uri.parse(
-        "http://172.27.16.252:8002/parse_transaction?user_message=$userMessage");
+      "http://172.27.16.252:8002/parse_transaction?user_message=$userMessage",
+    );
 
     try {
-      // Sending a GET request with the user message as a query parameter
-      final response = await http.get(
-        url,
-        headers: {"Content-Type": "application/json"}, // Setting headers
+      final response = await http.get(url, headers: {
+        "Content-Type": "application/json",
+      });
+
+      if (response.statusCode != 200) {
+        log("Error: ${response.statusCode}, ${response.body}");
+        return;
+      }
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      log("Response from API: $data");
+
+      if (data['IS_TRANSACTION'] != "YES") return;
+
+      double amount = 0;
+      if (data["Transaction Type"] as String == "Debit") {
+        amount = double.parse(data["Transaction Amount"] as String) * -1;
+      } else {
+        amount = double.parse(data["Transaction Amount"] as String);
+      }
+
+      final container = ProviderContainer();
+
+      // ── MERCHANTS ────────────────────────────────────────────────
+      final merchantFilter = MerchantFilter(
+        merchantName: toTitleCase(data["Merchant Name"] as String),
+      );
+      final merchantCompleter = Completer<List<Merchant>>();
+      ProviderSubscription<AsyncValue<List<Merchant>>>? merchantSub;
+
+      merchantSub = container.listen<AsyncValue<List<Merchant>>>(
+        merchantStreamProvider(merchantFilter),
+        (prev, next) => next.when(
+          data: (merchants) {
+            merchantCompleter.complete(merchants);
+            merchantSub?.close(); // stop listening
+          },
+          loading: () {/* still waiting */},
+          error: (err, stack) {
+            merchantCompleter.completeError(err, stack);
+            merchantSub?.close();
+          },
+        ),
+        fireImmediately: true,
       );
 
-      // Check if the request was successful (Status Code 200)
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body); // Convert response to JSON
-        log("Response from API: $data"); // Print the response
-        // Response from API: {IS_TRANSACTION: YES, Transaction Amount: 1.00, Transaction Type: Debit, Merchant Name: AUJASVIT DATTA, Category Name: Others}
-        if (data['IS_TRANSACTION'] == "YES") {
-          // If the response indicates a transaction, save it to SharedPreferences
-          final container = ProviderContainer();
-          final merchantFilter = MerchantFilter(
-              merchantName: toTitleCase(data["Merchant Name"] as String));
-          final List<Merchant> merchants = await container
-              .read(merchantStreamProvider(merchantFilter).future);
+      final merchants = await merchantCompleter.future;
 
-          final categoryFilter = CategoryFilter(categoryName: "Others");
-          final List<Category> categories = await container
-              .read(categoryStreamProvider(categoryFilter).future);
+      // ── CATEGORIES ───────────────────────────────────────────────
+      final categoryFilter = CategoryFilter(categoryName: "Others");
+      final categoryCompleter = Completer<List<Category>>();
+      ProviderSubscription<AsyncValue<List<Category>>>? categorySub;
 
-          final userId = FirebaseAuth.instance.currentUser?.uid;
+      categorySub = container.listen<AsyncValue<List<Category>>>(
+        categoryStreamProvider(categoryFilter),
+        (prev, next) => next.when(
+          data: (categories) {
+            categoryCompleter.complete(categories);
+            categorySub?.close();
+          },
+          loading: () {},
+          error: (err, stack) {
+            categoryCompleter.completeError(err, stack);
+            categorySub?.close();
+          },
+        ),
+        fireImmediately: true,
+      );
 
-          final newTransaction = Transaction(
-            transactionId: "",
-            amount: double.parse(data["Transaction Amount"] as String),
-            date: DateTime.now(),
-            merchantId: merchants[0].userId,
-            categoryId: categories[0].categoryId,
-            userId: userId!,
-          );
-          final transactionService = container.read(transactionServiceProvider);
-          final insertedTransaction =
-              await transactionService?.insertTransaction(
-                  CloudTransaction.fromTransaction(newTransaction));
+      final categories = await categoryCompleter.future;
 
-          if (insertedTransaction != null) {
-            log("Inserted transaction: ${insertedTransaction.toString()}");
-          } else {
-            log("Failed to insert transaction");
-          }
-        }
-      } else {
-        log("Error: ${response.statusCode}, ${response.body}"); // Print error if request fails
+      //  ── INSERT TRANSACTION ───────────────────────────────────────
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) {
+        log("No signed‑in user");
+        container.dispose();
+        return;
       }
-    } catch (e) {
-      log("Exception occurred: $e"); // Catch and print any exceptions
+
+      final newTx = Transaction(
+        transactionId: "",
+        amount: amount,
+        date: DateTime.now(),
+        merchantId: merchants.first.userId,
+        categoryId: categories.first.categoryId,
+        userId: userId,
+      );
+
+      final txService = container.read(transactionServiceProvider);
+      final inserted = await txService
+          ?.insertTransaction(CloudTransaction.fromTransaction(newTx));
+
+      if (inserted != null) {
+        log("Inserted transaction: $inserted");
+      } else {
+        log("Failed to insert transaction");
+      }
+
+      container.dispose();
+    } catch (e, stack) {
+      log("Exception occurred: $e\n$stack");
     }
   }
 
@@ -88,10 +134,18 @@ class SmsHandler {
     await prefs.setString('appCloseTime', time.toIso8601String());
   }
 
-  /// (Optional) Load the last saved close time.
   static Future<DateTime?> getLastAppCloseTime() async {
     final prefs = await SharedPreferences.getInstance();
     final iso = prefs.getString('appCloseTime');
     return iso == null ? null : DateTime.tryParse(iso);
+  }
+
+  static String toTitleCase(String input) {
+    if (input.trim().isEmpty) return input;
+    return input.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      final lower = word.toLowerCase();
+      return lower[0].toUpperCase() + lower.substring(1);
+    }).join(' ');
   }
 }
