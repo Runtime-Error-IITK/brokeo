@@ -47,3 +47,14 @@ We welcome contributions to enhance Brokeo. To contribute:
 Please ensure your contributions align with the project's coding standards and include relevant tests.
 
 *For bug reports, suggestions, or feature requests, please open an [issue](https://github.com/Runtime-Error-IITK/brokeo/issues).*
+
+## Documentation
+
+For more details about the project, refer to the following documents available in the `Doc` folder:
+
+- [Software Requirements Specification (SRS)](Doc/Brokeo_SRS.pdf)
+- [Design Document](Doc/Brokeo_Design.pdf)
+- [Implementation Document](Doc/Brokeo_Implementation_Document.pdf)
+- [Test Document](Doc/Brokeo_Test_Document.pdf)
+- [User Manual](Doc/Brokeo_User_Manual.pdf)
+- [Final Presentation Slides](Doc/Brokeo_presentation.pdf)
