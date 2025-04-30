@@ -50,7 +50,7 @@ Please ensure your contributions align with the project's coding standards and i
 
 ## Documentation
 
-For more details about the project, refer to the following documents available in the `Doc` folder:
+For more details about the project, refer to the following documents available in the [Doc](Doc) folder:
 
 - [Software Requirements Specification (SRS)](Doc/Brokeo_SRS.pdf)
 - [Design Document](Doc/Brokeo_Design.pdf)
